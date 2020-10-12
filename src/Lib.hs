@@ -4,7 +4,7 @@ import Text.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 --import Text.ParserCombinators.Parsec.Error(messageString)
-
+import Data.List (intercalate)
 
 build :: String -> String
 build str = case (parse saltyParser "saltyParser" str) of
@@ -16,7 +16,10 @@ build str = case (parse saltyParser "saltyParser" str) of
 (<||>) p1 p2 = try(p1) <|> p2
 
 
-saltyParser = instanceVar <||> classVar
+saltyParser = do
+       instanceVar
+  <||> classVar
+  <||> method
 
 -- @foo = 1
 instanceVar = do
@@ -37,3 +40,25 @@ classVar = do
   spaces
   value <- anyToken `manyTill` eof
   return $ "self::$" ++ variable ++ " = " ++ value
+
+
+-- build a b := 2
+method = do
+  functionName <- many1 letter
+  space
+  parameters <- many1 methodParameter
+  string ":="
+  spaces
+  body <- (singleLineMethodBody <||> multiLineMethodBody)
+  return $ "function " ++ functionName ++ "(" ++ (intercalate ", " (map (\n -> '$':n) parameters)) ++ ") {\n" ++ body ++ "\n}"
+
+singleLineMethodBody = do
+  body <- many1 $ noneOf "\r\n"
+  return $ "return " ++ body ++ ";"
+
+multiLineMethodBody = anyToken `manyTill` eof
+
+methodParameter = do
+  name <- many1 letter
+  space
+  return name
