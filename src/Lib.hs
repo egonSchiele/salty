@@ -17,15 +17,17 @@ build str = case (parse saltyParser "saltyParser" (str ++ "\n")) of
 (<||>) p1 p2 = try(p1) <|> p2
 
 getRight (Right x) = x
+getRight (Left x) = SaltyString $ "error: " ++ (show x)
 
 parse_ :: String -> Salty
 parse_ str = getRight $ parse saltyParser "saltyParser" str
 
 saltyParser = do
   function
-  <||>    assignment
+  <||> assignment
   <||> saltyString
   <||> saltyNumber
+  <||> returnStatement
 
 variableName = do
         classVar
@@ -40,13 +42,9 @@ functionBody = do
 
 function = do
   name <- variableName
-  parserTrace "1"
   args <- anyToken `manyTill` (string ":=")
-  parserTrace "2"
   spaces
-  parserTrace "3"
   body <- functionBody
-  parserTrace "4"
   return $ Function name (map argWithDefaults (words args)) body
 
 assignmentType = do
@@ -94,7 +92,7 @@ simpleVar = do
   return $ SimpleVar variable
 
 oneLine = do
-  line <- anyToken `manyTill` newline
+  line <- many1 anyChar
   let salty = parse_ line
   return $ OneLine salty
 
@@ -115,6 +113,12 @@ ampersand = do
   string "&"
   var <- variableName
   return $ AmpersandFunction var
+
+returnStatement = do
+  string "return "
+  line <- anyToken `manyTill` (try newline)
+  let salty = parse_ line
+  return $ ReturnStatement salty
 
 -- build a b := 2
 -- function = do

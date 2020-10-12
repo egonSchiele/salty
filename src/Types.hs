@@ -78,6 +78,7 @@ data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
              --   fmapObject :: Salty,
              --   fmapFunction :: FunctionBody
              -- }
+             | ReturnStatement Salty
              | Salt
              deriving (Show)
 
@@ -91,6 +92,7 @@ instance ConvertToPhp VariableName where
   toPhp (SimpleVar s) = '$':s
 
 instance ConvertToPhp FunctionBody where
+  toPhp (OneLine r@(ReturnStatement s)) = toPhp r;
   toPhp (OneLine s) = "return " ++ (toPhp s) ++ ";"
   toPhp (Block s) = (intercalate ";\n" $ map toPhp s) ++ ";"
   toPhp (LambdaFunction args body) = (unlines $ map (printf "$%s = null;\n") args) ++ toPhp body
@@ -114,16 +116,12 @@ instance ConvertToPhp Salty where
 
   toPhp (Function name args (LambdaFunction _ _)) = "lambda function body not allowed as method body " ++ (show name)
   toPhp (Function name args (AmpersandFunction _)) = "ampersand function body not allowed as method body " ++ (show name)
-  toPhp (Function name args body) = printf "%s(%s) {\n%s\n}" funcName funcArgs funcBody
+  toPhp (Function name args body) = printf "%s(%s) {\n%s\n}" funcName funcArgs (toPhp body)
     where funcName = case name of
             InstanceVar str -> "function " ++ str
             ClassVar str -> "static function " ++ str
             SimpleVar str -> "function " ++ str
           funcArgs = intercalate ", " $ map toPhp args
-          funcBody = case body of
-              OneLine s -> "return " ++ (toPhp s) ++ ";"
-              Block s -> (intercalate ";\n" $ map toPhp s) ++ ";"
-              _ -> "invalid funcBody"
 
   toPhp (SaltyNumber s) = s
   toPhp (SaltyString s) = s
@@ -152,6 +150,7 @@ instance ConvertToPhp Salty where
   toPhp (HashLookup (Left var) key) = printf "%s[%s]" (varName var) (varName key)
   toPhp (HashLookup (Right hashLookup_) key) = printf "%s[%s]" (toPhp hashLookup_) (varName key)
   toPhp Salt = "I'm salty"
+  toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
 
   toPhp x = "not implemented yet: " ++ (show x)
 
