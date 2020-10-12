@@ -91,7 +91,8 @@ instance ConvertToPhp FunctionBody where
   toPhp (OneLine s) = (toPhp s) ++ ";"
   toPhp (Block s) = (intercalate ";\n" $ map toPhp s) ++ ";"
   toPhp (LambdaFunction args body) = (unlines $ map (printf "$%s = null;\n") args) ++ toPhp body
-  toPhp (AmpersandFunction fName) = printf "$%s($var);" (toPhp fName)
+  toPhp (AmpersandFunction (SimpleVar str)) = printf "%s($i)" str
+  toPhp (AmpersandFunction (InstanceVar str)) = printf "$i->%s()" str
 
 instance ConvertToPhp Argument where
   toPhp (Argument typ name (Just default_)) = printf "?%s $%s = %s" typ name default_
@@ -129,15 +130,15 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just (InstanceVar obj)) funcName args) = printf "$this->%s->%s(%s)" obj (simpleVarName funcName) (intercalate ", " args)
   toPhp (FunctionCall (Just (ClassVar obj)) funcName args) = printf "static::%s->%s(%s)" obj (simpleVarName funcName) (intercalate ", " args)
 
-  toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body)) = printf "foreach (%s as %s) {\n%s;\n}" (varName obj) loopVar (toPhp body)
+  toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body)) = printf "foreach (%s as $%s) {\n%s;\n}" (varName obj) loopVar (toPhp body)
 
-  toPhp (HigherOrderFunctionCall obj Each (AmpersandFunction name)) = printf "foreach (%s as $i) {\n%s($i);\n}" (varName obj) (varName name)
+  toPhp (HigherOrderFunctionCall obj Each af@(AmpersandFunction name)) = printf "foreach (%s as $i) {\n%s;\n}" (varName obj) (toPhp af)
 
-  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:accVar:xs) body)) = printf "%s=[];\nforeach (%s as %s) {\n%s []= %s;\n}" accVar (varName obj) loopVar accVar (toPhp body)
-  toPhp (HigherOrderFunctionCall obj Map (AmpersandFunction name)) = printf "$acc=[];\nforeach (%s as $i) {\n$acc []= %s($i);\n}" (varName obj) (varName name)
+  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:accVar:xs) body)) = printf "%s=[];\nforeach (%s as $%s) {\n%s []= %s;\n}" accVar (varName obj) loopVar accVar (toPhp body)
+  toPhp (HigherOrderFunctionCall obj Map af@(AmpersandFunction name)) = printf "$acc=[];\nforeach (%s as $i) {\n$acc []= %s;\n}" (varName obj) (toPhp af)
 
-  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:accVar:xs) body)) = printf "%s=[];\nforeach (%s as %s) {\nif(%s) {\n%s []= %s;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
-  toPhp (HigherOrderFunctionCall obj Select (AmpersandFunction name)) = printf "$acc=[];\nforeach (%s as $i) {\nif(%s($i) {\n$acc []= $i;\n}\n}" (varName obj) (varName name)
+  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:accVar:xs) body)) = printf "%s=[];\nforeach (%s as $%s) {\nif(%s) {\n%s []= %s;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
+  toPhp (HigherOrderFunctionCall obj Select af@(AmpersandFunction name)) = printf "$acc=[];\nforeach (%s as $i) {\nif(%s) {\n$acc []= $i;\n}\n}" (varName obj) (toPhp af)
 
   toPhp (HashLookup (Left var) key) = printf "%s[%s]" (varName var) (varName key)
   toPhp (HashLookup (Right hashLookup_) key) = printf "%s[%s]" (toPhp hashLookup_) (varName key)

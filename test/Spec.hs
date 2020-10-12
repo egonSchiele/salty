@@ -177,6 +177,22 @@ functionTests = map makeToPhpTest $ [
     (FunctionCall Nothing (InstanceVar "foo") ["1", "2"], "$this->foo(1, 2)"),
     (FunctionCall Nothing (ClassVar "foo") ["1", "2"], "static::foo(1, 2)"),
 
+    -- higher order calls
+    (HigherOrderFunctionCall (SimpleVar "foo") Each (AmpersandFunction (SimpleVar "funcName")), "foreach ($foo as $i) {\nfuncName($i);\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Each (AmpersandFunction (InstanceVar "funcName")), "foreach ($foo as $i) {\n$i->funcName();\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Each (LambdaFunction ["a"] (OneLine (SaltyNumber "1"))), "foreach ($foo as $a) {\n1;\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Each (LambdaFunction ["a"] (OneLine (Assignment (SimpleVar "a") Equals (SaltyNumber "1")))), "foreach ($foo as $a) {\n$a = 1;\n}"),
+
+                          -- | LambdaFunction { -- \a b -> a + b
+                        -- lArguments :: [String],
+                        -- lBody :: FunctionBody
+                      -- }
+
+             -- | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
+             --   hoObject :: VariableName,
+             --   hoCallName :: HigherOrderCall,
+             --   hoFunction :: FunctionBody  --  either lambda or ampersand function.
+             -- }
     -- hash lookup
     (HashLookup (Left (SimpleVar "hash")) (SimpleVar "key"), "$hash[$key]"),
     (HashLookup (Left (InstanceVar "hash")) (InstanceVar "key"), "$this->hash[$this->key]"),
