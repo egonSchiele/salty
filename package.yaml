@@ -24,6 +24,8 @@ dependencies:
 - HUnit
 - parsec
 - raw-strings-qq
+- mtl
+- directory
 
 library:
   source-dirs: src
