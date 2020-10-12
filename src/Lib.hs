@@ -120,6 +120,14 @@ returnStatement = do
   let salty = parse_ line
   return $ ReturnStatement salty
 
+hashLookup = do
+  h <- variableName
+  space
+  char '>'
+  space
+  k <- variableName
+  return $ HashLookup (Left h) k
+
 -- build a b := 2
 -- function = do
 --   functionName <- many1 letter
