@@ -20,6 +20,7 @@ saltyParser = do
        instanceVar
   <||> classVar
   <||> method
+  <||> invertedIf
 
 -- @foo = 1
 instanceVar = do
@@ -53,6 +54,7 @@ method = do
   return $ "function " ++ functionName ++ "(" ++ (intercalate ", " (map (\n -> '$':n) parameters)) ++ ") {\n" ++ body ++ "\n}"
 
 singleLineMethodBody = do
+  skipMany $ string "return" >> spaces
   body <- many1 $ noneOf "\r\n"
   return $ "return " ++ body ++ ";"
 
@@ -62,3 +64,6 @@ methodParameter = do
   name <- many1 letter
   space
   return name
+
+invertedIf = do
+  string "foo"
