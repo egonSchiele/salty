@@ -1,22 +1,68 @@
 {-# LANGUAGE QuasiQuotes #-}
 import Text.RawString.QQ
 
+
 import Test.HUnit
 import Lib
 import Types
+
+-- so it prints multi-line strings on multiple lines for gods sake
+-- assertEqual_ expected actual = assertBool (expected == actual) failureMsg
+-- 	where failureMsg = "expected:\n" ++ expected ++"\nbut got actual:\n" ++ actual ++ "\n"
 
 matches str1 str2 = TestCase $ assertEqual "" str2 (build str1)
 
 makeToPhpTest :: (Salty, String) -> Test
 makeToPhpTest (salty,expectedStr) = (toPhp salty) `matches` expectedStr
 
-tests = TestList [
-    -- "@foo = 1" `matches` "$this->foo = 1",
-    -- "@@foo = 1" `matches` "self::$foo = 1",
-    -- "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-    -- "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
+saltyBlob = [r|
+  isSafe str lists := lists.any(\l -> l.isBlocked(str))
+
+  isBlocked str := do
+    return @list.any(\term -> strpos(term, str) !== false)
+    end
+
+  isUnsafe str := !isSafe(str)
+  |]
+
+phpBlob = [r|
+  public function isSafe($str, $lists) {
+    $result = false;
+    foreach ($lists as $l) {
+      if ($l->isBlocked($str)) {
+        $result = true;
+        break;
+      }
+    }
+    return $result;
+  }
+
+  public function isBlocked($str) {
+    $result = false;
+    foreach ($list as $term) {
+      if (strpos(term, str) !== false) {
+        $result = true;
+        break;
+      }
+    }
+    return $result;
+  }
+
+  public function isUnsafe($str) {
+    return !isSafe($str);
+  }
+  |]
+
+longerTest = saltyBlob `matches` phpBlob
+
+transpileTests = [
+    "foo = 1" `matches` "$foo = 1",
+    "@foo = 1" `matches` "$this->foo = 1",
+    "@@foo = 1" `matches` "self::$foo = 1",
+    "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
+    "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
+    "@@build a b := 2" `matches` "static function build($a, $b) {\n\treturn 2;\n}"
     -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
-    -- "@@build a b := 2" `matches` "static function build($a, $b) {\n\treturn 2;\n}",
     -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
     -- "# hi" `matches` "// hi",
     -- "~loc.flag" `matches` "Feature::isEnabled('loc.flag')",
@@ -183,16 +229,11 @@ functionTests = map makeToPhpTest $ [
     (HigherOrderFunctionCall (SimpleVar "foo") Each (LambdaFunction ["a"] (OneLine (SaltyNumber "1"))), "foreach ($foo as $a) {\n1;\n}"),
     (HigherOrderFunctionCall (SimpleVar "foo") Each (LambdaFunction ["a"] (OneLine (Assignment (SimpleVar "a") Equals (SaltyNumber "1")))), "foreach ($foo as $a) {\n$a = 1;\n}"),
 
-                          -- | LambdaFunction { -- \a b -> a + b
-                        -- lArguments :: [String],
-                        -- lBody :: FunctionBody
-                      -- }
+    (HigherOrderFunctionCall (SimpleVar "foo") Map (AmpersandFunction (SimpleVar "funcName")), "$acc = [];\nforeach ($foo as $i) {\n$acc []= funcName($i);\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Map (AmpersandFunction (InstanceVar "funcName")), "$acc = [];\nforeach ($foo as $i) {\n$acc []= $i->funcName();\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Map (LambdaFunction ["a", "newList"] (OneLine (SaltyNumber "1"))), "$newList = [];\nforeach ($foo as $a) {\n$newList []= 1;\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Map (LambdaFunction ["a", "newList"] (OneLine (Assignment (SimpleVar "a") Equals (SaltyNumber "1")))), "$newList = [];\nforeach ($foo as $a) {\n$newList []= ($a = 1);\n}"),
 
-             -- | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
-             --   hoObject :: VariableName,
-             --   hoCallName :: HigherOrderCall,
-             --   hoFunction :: FunctionBody  --  either lambda or ampersand function.
-             -- }
     -- hash lookup
     (HashLookup (Left (SimpleVar "hash")) (SimpleVar "key"), "$hash[$key]"),
     (HashLookup (Left (InstanceVar "hash")) (InstanceVar "key"), "$this->hash[$this->key]"),
@@ -201,8 +242,10 @@ functionTests = map makeToPhpTest $ [
   ]
 
 allTests = TestList $
-            assignmentTests
-            ++ functionTests
+             [longerTest]
+              -- transpileTests
+            -- assignmentTests
+            -- ++ functionTests
 
 
 main :: IO ()
