@@ -3,16 +3,19 @@ import Text.RawString.QQ
 
 import Test.HUnit
 import Lib
+import Types
 
 matches str1 str2 = TestCase $ assertEqual "" str2 (build str1)
 
+makeToPhpTest :: (Salty, String) -> Test
+makeToPhpTest (salty,expectedStr) = (toPhp salty) `matches` expectedStr
 
 tests = TestList [
-    "@foo = 1" `matches` "$this->foo = 1",
-    "@@foo = 1" `matches` "self::$foo = 1",
-    "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-    "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-    "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
+    -- "@foo = 1" `matches` "$this->foo = 1",
+    -- "@@foo = 1" `matches` "self::$foo = 1",
+    -- "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
+    -- "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
+    -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
     -- "@@build a b := 2" `matches` "static function build($a, $b) {\n\treturn 2;\n}",
     -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
     -- "# hi" `matches` "// hi",
@@ -38,7 +41,7 @@ tests = TestList [
     --     }|],
     -- "hash > str" `matches` "$hash[$str]",
     -- "hash > str > str2 > str3" `matches` "$hash[$str][$str2][$str3]",
-    -- "arr.map \b acc -> b+1" `matches` [r|
+    -- "arr.map(\b acc -> b+1)" `matches` [r|
     --   $acc = [];
     --   foreach ($arr as $b) {
     --     $acc []= $b+1;
@@ -99,6 +102,31 @@ tests = TestList [
     -- "array_merge $ a b c" `matches` "array_merge($a, $b, $c)"
   ]
 
+assignmentTests = map makeToPhpTest $ [
+    -- equals
+    (Assignment (SimpleVar "foo") Equals (SaltyNumber "1"), "$foo = 1"),
+    (Assignment (InstanceVar "foo") Equals (SaltyNumber "1"), "$this->foo = 1"),
+    (Assignment (ClassVar "foo") Equals (SaltyNumber "1"), "self::foo = 1"),
+
+    -- plusequals
+    (Assignment (SimpleVar "foo") PlusEquals (SaltyNumber "1"), "$foo = $foo + 1"),
+    (Assignment (InstanceVar "foo") PlusEquals (SaltyNumber "1"), "$this->foo = $this->foo + 1"),
+    (Assignment (ClassVar "foo") PlusEquals (SaltyNumber "1"), "self::foo = self::foo + 1"),
+
+    -- minusequals
+    (Assignment (SimpleVar "foo") MinusEquals (SaltyNumber "1"), "$foo = $foo - 1"),
+    (Assignment (InstanceVar "foo") MinusEquals (SaltyNumber "1"), "$this->foo = $this->foo - 1"),
+    (Assignment (ClassVar "foo") MinusEquals (SaltyNumber "1"), "self::foo = self::foo - 1"),
+
+    -- orequals
+    (Assignment (SimpleVar "foo") OrEquals (SaltyNumber "1"), "$foo = $foo ?? 1"),
+    (Assignment (InstanceVar "foo") OrEquals (SaltyNumber "1"), "$this->foo = $this->foo ?? 1"),
+    (Assignment (ClassVar "foo") OrEquals (SaltyNumber "1"), "self::foo = self::foo ?? 1")
+  ]
+
+allTests = TestList $
+            assignmentTests
+
 
 main :: IO ()
-main = runTestTT tests >> return ()
+main = runTestTT allTests >> return ()

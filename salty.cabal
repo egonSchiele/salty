@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 23e3ad823ab54ad56fa740f25fff7f03b9f7961d451bc203f0d7f0362952347a
+-- hash: ad1b2e436f94e612d32221d4d117d1f1c3598880a7e22bdeddcfdd706bfe4e5c
 
 name:           salty
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Types
   other-modules:
       Paths_salty
   hs-source-dirs:

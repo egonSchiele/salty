@@ -1,5 +1,6 @@
 module Lib where
 
+import Types
 import Text.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
