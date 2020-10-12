@@ -5,11 +5,17 @@ import Data.List (intercalate)
 
 data VariableName = InstanceVar String | ClassVar String | SimpleVar String deriving (Show)
 
-varName :: VariableName -> String
-varName x = case x of
+simpleVarName :: VariableName -> String
+simpleVarName x = case x of
     InstanceVar s -> s
     ClassVar s -> s
     SimpleVar s -> s
+
+varName :: VariableName -> String
+varName x = case x of
+    InstanceVar str -> "$this->" ++ str
+    ClassVar str -> "static::$" ++ str
+    SimpleVar str -> "$" ++ str
 
 data FunctionBody = OneLine Salty -- e.g. incr x := x + 1
                       | Block [Salty] -- fib x := do if x < 2 .... end
@@ -29,6 +35,8 @@ data Argument = Argument {
                   argDefault :: Maybe String
                 } deriving (Show)
 
+data HigherOrderCall = Each | Map | Select deriving (Show)
+
 data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
                aName :: VariableName,
                aAssignmentType :: AssignmentType,
@@ -45,6 +53,11 @@ data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
                fObject :: Maybe VariableName,
                fCallName :: VariableName,
                fCallArguments :: [String]
+             }
+             | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
+               hoObject :: VariableName,
+               hoCallName :: HigherOrderCall,
+               hoFunction :: FunctionBody  --  either lambda or ampersand function.
              }
              | TypeDefinition { -- e.g. foo :: String, String -> Num. tTypes would be ["String", "String", "Num"]
                tName :: String,
@@ -112,16 +125,24 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall Nothing (SimpleVar str) args) = printf "%s(%s)" str (intercalate ", " args)
   toPhp (FunctionCall Nothing (InstanceVar str) args) = printf "$this->%s(%s)" str (intercalate ", " args)
   toPhp (FunctionCall Nothing (ClassVar str) args) = printf "static::%s(%s)" str (intercalate ", " args)
-  toPhp (FunctionCall (Just (SimpleVar obj)) funcName args) = printf "$%s->%s(%s)" obj (varName funcName) (intercalate ", " args)
-  toPhp (FunctionCall (Just (InstanceVar obj)) funcName args) = printf "$this->%s->%s(%s)" obj (varName funcName) (intercalate ", " args)
-  toPhp (FunctionCall (Just (ClassVar obj)) funcName args) = printf "static::%s->%s(%s)" obj (varName funcName) (intercalate ", " args)
+  toPhp (FunctionCall (Just (SimpleVar obj)) funcName args) = printf "$%s->%s(%s)" obj (simpleVarName funcName) (intercalate ", " args)
+  toPhp (FunctionCall (Just (InstanceVar obj)) funcName args) = printf "$this->%s->%s(%s)" obj (simpleVarName funcName) (intercalate ", " args)
+  toPhp (FunctionCall (Just (ClassVar obj)) funcName args) = printf "static::%s->%s(%s)" obj (simpleVarName funcName) (intercalate ", " args)
+
+  toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body)) = printf "foreach (%s as %s) {\n%s;\n}" (varName obj) loopVar (toPhp body)
+
+  toPhp (HigherOrderFunctionCall obj Each (AmpersandFunction name)) = printf "foreach (%s as $i) {\n%s($i);\n}" (varName obj) (varName name)
+
+  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:accVar:xs) body)) = printf "%s=[];\nforeach (%s as %s) {\n%s []= %s;\n}" accVar (varName obj) loopVar accVar (toPhp body)
+  toPhp (HigherOrderFunctionCall obj Map (AmpersandFunction name)) = printf "$acc=[];\nforeach (%s as $i) {\n$acc []= %s($i);\n}" (varName obj) (varName name)
+
+  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:accVar:xs) body)) = printf "%s=[];\nforeach (%s as %s) {\nif(%s) {\n%s []= %s;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
+  toPhp (HigherOrderFunctionCall obj Select (AmpersandFunction name)) = printf "$acc=[];\nforeach (%s as $i) {\nif(%s($i) {\n$acc []= $i;\n}\n}" (varName obj) (varName name)
 
   toPhp x = "not implemented yet: " ++ (show x)
 
-
-    --             | FunctionCall { -- e.g. obj.foo / obj.foo(1) / foo(1, 2)
-               -- fObject :: Maybe VariableName,
-               -- fCallName :: VariableName,
-               -- fCallArguments :: [String]
+             -- | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
+             --   hoObject :: VariableName,
+             --   hoCallName :: HigherOrderCall,
+             --   hoFunction :: FunctionBody  --  either lambda or ampersand function.
              -- }
-
