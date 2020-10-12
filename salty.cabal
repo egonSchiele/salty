@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f2b4728c0ea154b42fe7de54caadae6ccb0dd413920b3ecbaddb1b333f297053
+-- hash: 9b0f81a56b924398fe3afcf2575bcb150aaa7497af693e007cd6a54c26dfb78f
 
 name:           salty
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       HUnit
     , base >=4.7 && <5
     , parsec
+    , raw-strings-qq
   default-language: Haskell2010
 
 executable salty-exe
@@ -49,6 +50,7 @@ executable salty-exe
       HUnit
     , base >=4.7 && <5
     , parsec
+    , raw-strings-qq
     , salty
   default-language: Haskell2010
 
@@ -64,5 +66,6 @@ test-suite salty-test
       HUnit
     , base >=4.7 && <5
     , parsec
+    , raw-strings-qq
     , salty
   default-language: Haskell2010
