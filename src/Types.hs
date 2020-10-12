@@ -35,7 +35,7 @@ data Argument = Argument {
                   argDefault :: Maybe String
                 } deriving (Show)
 
-data HigherOrderCall = Each | Map | Select deriving (Show)
+data HigherOrderCall = Each | Map | Select | Any | All deriving (Show)
 
 data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
                aName :: VariableName,
@@ -139,6 +139,10 @@ instance ConvertToPhp Salty where
 
   toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:accVar:xs) body)) = printf "$%s = [];\nforeach (%s as $%s) {\nif(%s) {\n$%s []= %s;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
   toPhp (HigherOrderFunctionCall obj Select af@(AmpersandFunction name)) = printf "$acc = [];\nforeach (%s as $i) {\nif(%s) {\n$acc []= $i;\n}\n}" (varName obj) (toPhp af)
+  toPhp (HigherOrderFunctionCall obj Any (LambdaFunction (loopVar:xs) body)) = printf "$result = false;\nforeach (%s as $%s) {\nif(%s) {\n$result = true;\nbreak;\n}" (varName obj) loopVar (toPhp body)
+  toPhp (HigherOrderFunctionCall obj Any af@(AmpersandFunction name)) = printf "$result = false;\nforeach (%s as $i) {\nif(%s) {\n$result = true;\nbreak;\n}" (varName obj) (toPhp af)
+  toPhp (HigherOrderFunctionCall obj All (LambdaFunction (loopVar:xs) body)) = printf "$result = true;\nforeach (%s as $%s) {\nif(!%s) {\n$result = false;\nbreak;\n}" (varName obj) loopVar (toPhp body)
+  toPhp (HigherOrderFunctionCall obj All af@(AmpersandFunction name)) = printf "$result = true;\nforeach (%s as $i) {\nif(!%s) {\n$result = false;\nbreak;\n}" (varName obj) (toPhp af)
 
   toPhp (HashLookup (Left var) key) = printf "%s[%s]" (varName var) (varName key)
   toPhp (HashLookup (Right hashLookup_) key) = printf "%s[%s]" (toPhp hashLookup_) (varName key)
