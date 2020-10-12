@@ -29,7 +29,7 @@ tests = TestList [
     |],
     "@loc.getLanguage + @loc.getRegion" `matches` "$loc->getLanguage() . $loc->getRegion()",
     "a += 1" `matches` "$a = $a + 1",
-    "p 'hello' if hash['str']" `matches` [r|
+    "p 'hello' if hash ? str" `matches` [r|
       if (isset($hash['str'])) {
         var_dump 'hello';
         }|],
@@ -37,15 +37,50 @@ tests = TestList [
     "hash > str > str2 > str3" `matches` "$hash[$str][$str2][$str3]",
     "arr.map \b acc -> b+1" `matches` [r|
       $acc = [];
-      foreach ($b as $arr) {
+      foreach ($arr as $b) {
         $acc []= $b+1;
       }
     |],
     "arr.filter \b acc -> b > :is_stem" `matches` [r|
       $acc = [];
-      foreach ($b as $arr) {
+      foreach ($arr as $b) {
         if ($b['is_stem']) {
           $acc []= $b;
+        }
+      }
+    |],
+    [r|arr.each \b ->
+      b[word] <$> \ids ->
+          ids.each \id ->
+            hits[id] ||= 0
+            hits[id] += 1
+
+    |] `matches` [r|
+      foreach ($b as $arr) {
+        if (isset($b[$word])) {
+          $ids = $b[$word];
+          foreach ($ids as $id) {
+            $hits[$id] = $hits[$id] ?? 0;
+            $hits[$id] = $hits[$id] + 1;
+          }
+        }
+      }
+    |],
+    "arr.any \b acc -> b > :is_stem" `matches` [r|
+      $acc = false;
+      foreach ($arr as $b) {
+        if ($b['is_stem']) {
+          $acc = true;
+          break;
+        }
+      }
+    |],
+    "arr.all \b acc -> b > :is_stem" `matches` [r|
+      $acc = true;
+      foreach ($arr as $b) {
+        if (!$b['is_stem']) {
+          $acc = false;
+          break;
         }
       }
     |],
@@ -56,7 +91,9 @@ tests = TestList [
       return static::memcache()->allCacheKeys(static::buildKey($blocklists, $loc ?? default_loc()));
     |],
     "b ||= []" `matches` "$b = $b ?? []",
-    "Blocklist lists" `matches` "new Blocklist($lists)"
+    "Blocklist lists" `matches` "new Blocklist($lists)",
+    "foo.uniq" `matches` "array_unique($foo)",
+    "array_merge $ a b c" `matches` "array_merge($a, $b, $c)"
   ]
 
 
