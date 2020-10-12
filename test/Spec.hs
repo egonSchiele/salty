@@ -124,8 +124,14 @@ assignmentTests = map makeToPhpTest $ [
     (Assignment (ClassVar "foo") OrEquals (SaltyNumber "1"), "self::foo = self::foo ?? 1")
   ]
 
+functionTests = map makeToPhpTest $ [
+    -- different types of functions
+    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1) {\n1\n}")
+  ]
+
 allTests = TestList $
             assignmentTests
+            ++ functionTests
 
 
 main :: IO ()

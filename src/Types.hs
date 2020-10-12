@@ -76,7 +76,7 @@ instance ConvertToPhp FunctionBody where
 
 instance ConvertToPhp Argument where
   toPhp (Argument typ name (Just default_)) = printf "?%s $%s=%s" typ name default_
-  toPhp (Argument typ name Nothing) = typ ++ '$':name
+  toPhp (Argument typ name Nothing) = typ ++ " $" ++ name
 
 instance ConvertToPhp Salty where
   toPhp (Assignment name Equals value) = (toPhp name) ++ " = " ++ (toPhp value)
@@ -89,7 +89,7 @@ instance ConvertToPhp Salty where
   toPhp (SaltyNumber s) = s
   toPhp (SaltyString s) = s
 
-  toPhp (Function name args body) = printf "%s (%s) {\n%s\n}" funcName funcArgs (toPhp body)
+  toPhp (Function name args body) = printf "%s(%s) {\n%s\n}" funcName funcArgs (toPhp body)
     where funcName = case name of
             InstanceVar str -> "function " ++ str
             ClassVar str -> "static function " ++ str
