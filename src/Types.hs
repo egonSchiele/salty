@@ -59,23 +59,23 @@ data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
                hoCallName :: HigherOrderCall,
                hoFunction :: FunctionBody  --  either lambda or ampersand function.
              }
-             | TypeDefinition { -- e.g. foo :: String, String -> Num. tTypes would be ["String", "String", "Num"]
-               tName :: String,
-               tTypes :: [String]
-             }
-             | FeatureFlag String
-             | ExistenceCheck { -- e.g. "hash ? key" gets converted to "isset($hash[$key])"
-               eHash :: VariableName,
+             -- | TypeDefinition { -- e.g. foo :: String, String -> Num. tTypes would be ["String", "String", "Num"]
+             --   tName :: String,
+             --   tTypes :: [String]
+             -- }
+             -- | FeatureFlag String
+             -- | ExistenceCheck { -- e.g. "hash ? key" gets converted to "isset($hash[$key])"
+             --   eHash :: VariableName,
+             --   eKey :: VariableName
+             -- }
+             | HashLookup { -- e.g. "hash > key" -> "$hash[$key]"
+               eHash :: Either VariableName Salty,
                eKey :: VariableName
              }
-             | HashGet { -- e.g. "hash > key" -> "$hash[$key]"
-               eHash :: VariableName,
-               eKey :: VariableName
-             }
-             | FMapCall {
-               fmapObject :: Salty,
-               fmapFunction :: FunctionBody
-             }
+             -- | FMapCall {
+             --   fmapObject :: Salty,
+             --   fmapFunction :: FunctionBody
+             -- }
              deriving (Show)
 
 
@@ -139,10 +139,17 @@ instance ConvertToPhp Salty where
   toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:accVar:xs) body)) = printf "%s=[];\nforeach (%s as %s) {\nif(%s) {\n%s []= %s;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
   toPhp (HigherOrderFunctionCall obj Select (AmpersandFunction name)) = printf "$acc=[];\nforeach (%s as $i) {\nif(%s($i) {\n$acc []= $i;\n}\n}" (varName obj) (varName name)
 
+  toPhp (HashLookup (Left var) key) = printf "%s[%s]" (varName var) (varName key)
+  toPhp (HashLookup (Right hashLookup_) key) = printf "%s[%s]" (toPhp hashLookup_) (varName key)
+
   toPhp x = "not implemented yet: " ++ (show x)
 
              -- | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
              --   hoObject :: VariableName,
              --   hoCallName :: HigherOrderCall,
              --   hoFunction :: FunctionBody  --  either lambda or ampersand function.
+             -- }
+             -- | HashLookup { -- e.g. "hash > key" -> "$hash[$key]"
+             --   eHash :: Either VariableName HashLookup,
+             --   eKey :: VariableName
              -- }

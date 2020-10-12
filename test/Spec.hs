@@ -175,7 +175,13 @@ functionTests = map makeToPhpTest $ [
     -- pass args to function calls (multiple args)
     (FunctionCall Nothing (SimpleVar "foo") ["1", "2"], "foo(1, 2)"),
     (FunctionCall Nothing (InstanceVar "foo") ["1", "2"], "$this->foo(1, 2)"),
-    (FunctionCall Nothing (ClassVar "foo") ["1", "2"], "static::foo(1, 2)")
+    (FunctionCall Nothing (ClassVar "foo") ["1", "2"], "static::foo(1, 2)"),
+
+    -- hash lookup
+    (HashLookup (Left (SimpleVar "hash")) (SimpleVar "key"), "$hash[$key]"),
+    (HashLookup (Left (InstanceVar "hash")) (InstanceVar "key"), "$this->hash[$this->key]"),
+    (HashLookup (Left (ClassVar "hash")) (ClassVar "key"), "static::$hash[static::$key]"),
+    (HashLookup (Right (HashLookup (Left (InstanceVar "hash")) (InstanceVar "key"))) (ClassVar "key2"), "$this->hash[$this->key][static::$key2]")
   ]
 
 allTests = TestList $
