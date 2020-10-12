@@ -21,6 +21,7 @@ saltyParser = do
   <||> classVar
   <||> method
   <||> invertedIf
+  <||> (many1 anyToken)
 
 -- @foo = 1
 instanceVar = do
@@ -50,7 +51,8 @@ method = do
   parameters <- many1 methodParameter
   string ":="
   spaces
-  body <- (singleLineMethodBody <||> multiLineMethodBody)
+  body_ <- (singleLineMethodBody <||> multiLineMethodBody)
+  let body = build body_
   return $ "function " ++ functionName ++ "(" ++ (intercalate ", " (map (\n -> '$':n) parameters)) ++ ") {\n" ++ body ++ "\n}"
 
 singleLineMethodBody = do
@@ -66,4 +68,8 @@ methodParameter = do
   return name
 
 invertedIf = do
-  string "foo"
+  action <- manyTill anyToken (lookAhead (string "if"))
+  string "if"
+  space
+  condition <- manyTill anyToken eof
+  return $ "if (" ++ condition ++ ") {\n" ++ action ++ "\n}"

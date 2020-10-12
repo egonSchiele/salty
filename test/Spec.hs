@@ -11,7 +11,8 @@ tests = TestList [
     "@foo = 1" `matches` "$this->foo = 1",
     "@@foo = 1" `matches` "self::$foo = 1",
     "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-    "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}"
+    "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
+    "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
     -- "@@build a b := 2" `matches` "static function build($a, $b) {\n\treturn 2;\n}",
     -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
     -- "# hi" `matches` "// hi",
