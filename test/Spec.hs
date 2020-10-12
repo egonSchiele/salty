@@ -56,12 +56,12 @@ phpBlob = [r|
 longerTest = saltyBlob `matches` phpBlob
 
 transpileTests = [
-    "foo = 1" `matches` "$foo = 1",
-    "@foo = 1" `matches` "$this->foo = 1",
-    "@@foo = 1" `matches` "self::$foo = 1",
-    "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-    "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-    "@@build a b := 2" `matches` "static function build($a, $b) {\n\treturn 2;\n}"
+   -- "foo = 1" `matches` "$foo = 1",
+   --  "@foo = 1" `matches` "$this->foo = 1",
+   --  "@@foo = 1" `matches` "self::$foo = 1",
+    "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}"
+    -- "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
+    -- "@@build a b := 2" `matches` "static function build($a, $b) {\n\treturn 2;\n}"
     -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
     -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
     -- "# hi" `matches` "// hi",
@@ -172,22 +172,22 @@ assignmentTests = map makeToPhpTest $ [
 
 functionTests = map makeToPhpTest $ [
     -- different types of functions (instance vs class)
-    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1) {\n1;\n}"),
-    (Function (InstanceVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1) {\n1;\n}"),
-    (Function (ClassVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ SaltyNumber "1"), "static function foo(array $arg1) {\n1;\n}"),
+    (Function (SimpleVar "foo") [Argument (Just "array") "arg1" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1) {\n1;\n}"),
+    (Function (InstanceVar "foo") [Argument (Just "array") "arg1" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1) {\n1;\n}"),
+    (Function (ClassVar "foo") [Argument (Just "array") "arg1" Nothing] (OneLine $ SaltyNumber "1"), "static function foo(array $arg1) {\n1;\n}"),
 
     -- different numbers of args
-    (Function (InstanceVar "foo") [Argument "array" "arg1" Nothing, Argument "string" "arg2" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1, string $arg2) {\n1;\n}"),
-    (Function (InstanceVar "foo") [Argument "array" "arg1" Nothing, Argument "string" "arg2" Nothing, Argument "EP_Locale" "loc" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1, string $arg2, EP_Locale $loc) {\n1;\n}"),
+    (Function (InstanceVar "foo") [Argument (Just "array") "arg1" Nothing, Argument (Just "string") "arg2" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1, string $arg2) {\n1;\n}"),
+    (Function (InstanceVar "foo") [Argument (Just "array") "arg1" Nothing, Argument (Just "string") "arg2" Nothing, Argument (Just "EP_Locale") "loc" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1, string $arg2, EP_Locale $loc) {\n1;\n}"),
 
     -- default args
-    (Function (InstanceVar "foo") [Argument "array" "arg1" Nothing, Argument "string" "arg2" $ Just "null"] (OneLine $ SaltyNumber "1"), "function foo(array $arg1, ?string $arg2 = null) {\n1;\n}"),
+    (Function (InstanceVar "foo") [Argument (Just "array") "arg1" Nothing, Argument (Just "string") "arg2" $ Just "null"] (OneLine $ SaltyNumber "1"), "function foo(array $arg1, ?string $arg2 = null) {\n1;\n}"),
 
     -- different types of function bodies
-    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ Assignment (SimpleVar "foo") Equals (SaltyNumber "1")), "function foo(array $arg1) {\n$foo = 1;\n}"),
-    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (Block [Assignment (SimpleVar "foo") Equals (SaltyNumber "1"), Assignment (SimpleVar "foo") PlusEquals (SaltyNumber "1")]), "function foo(array $arg1) {\n$foo = 1;\n$foo = $foo + 1;\n}"),
-    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (AmpersandFunction (SimpleVar "foo")), "ampersand function body not allowed as method body SimpleVar \"foo\""),
-    -- (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (LambdaFunction ["a", "b"] $ AmpersandFunction (SimpleVar "foo")), "lambda function body not allowed as method body SimpleVar \"foo\""),
+    (Function (SimpleVar "foo") [Argument (Just "array") "arg1" Nothing] (OneLine $ Assignment (SimpleVar "foo") Equals (SaltyNumber "1")), "function foo(array $arg1) {\n$foo = 1;\n}"),
+    (Function (SimpleVar "foo") [Argument (Just "array") "arg1" Nothing] (Block [Assignment (SimpleVar "foo") Equals (SaltyNumber "1"), Assignment (SimpleVar "foo") PlusEquals (SaltyNumber "1")]), "function foo(array $arg1) {\n$foo = 1;\n$foo = $foo + 1;\n}"),
+    (Function (SimpleVar "foo") [Argument (Just "array") "arg1" Nothing] (AmpersandFunction (SimpleVar "foo")), "ampersand function body not allowed as method body SimpleVar \"foo\""),
+    -- (Function (SimpleVar "foo") [Argument (Just "array") "arg1" Nothing] (LambdaFunction ["a", "b"] $ AmpersandFunction (SimpleVar "foo")), "lambda function body not allowed as method body SimpleVar \"foo\""),
 
     (SaltyNumber "123", "123"),
     (SaltyNumber "123.0", "123.0"),

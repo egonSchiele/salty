@@ -22,13 +22,14 @@ parse_ :: String -> Salty
 parse_ str = getRight $ parse saltyParser "saltyParser" str
 
 saltyParser = do
-       assignment
+  function
+  <||>    assignment
   <||> saltyString
   <||> saltyNumber
 
 variableName = do
-        instanceVar
-  <||>  classVar
+        classVar
+  <||>  instanceVar
   <||>  simpleVar
 
 functionBody = do
@@ -36,6 +37,17 @@ functionBody = do
   <||>  block
   <||>  lambda
   <||>  ampersand
+
+function = do
+  name <- variableName
+  parserTrace "1"
+  args <- anyToken `manyTill` (string ":=")
+  parserTrace "2"
+  spaces
+  parserTrace "3"
+  body <- functionBody
+  parserTrace "4"
+  return $ Function name (map argWithDefaults (words args)) body
 
 assignmentType = do
        (string "=" >> return Equals)
@@ -64,22 +76,25 @@ saltyNumber = do
 -- @foo
 instanceVar = do
   char '@'
-  variable <- anyToken `manyTill` space
+  variable <- many1 letter
+  try space
   return $ InstanceVar variable
 
 -- @@foo
 classVar = do
   string "@@"
-  variable <- anyToken `manyTill` space
+  variable <- many1 letter
+  try space
   return $ ClassVar variable
 
 -- foo
 simpleVar = do
-  variable <- anyToken `manyTill` space
+  variable <- many1 letter
+  try space
   return $ SimpleVar variable
 
 oneLine = do
-  line <- anyToken `manyTill` newline
+  line <- many1 anyToken
   let salty = parse_ line
   return $ OneLine salty
 
@@ -92,7 +107,7 @@ block = do
 
 lambda = do
   string "\\"
-  args <- (many1 anyChar) `sepBy` space
+  args <- (many1 letter) `sepBy` space
   body <- functionBody
   return $ LambdaFunction args body
 

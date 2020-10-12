@@ -30,10 +30,12 @@ data AssignmentType = Equals | PlusEquals | MinusEquals | OrEquals deriving (Sho
 
 -- function args
 data Argument = Argument {
-                  argType :: String,
+                  argType :: Maybe String,
                   argName :: String,
                   argDefault :: Maybe String
                 } deriving (Show)
+
+argWithDefaults name = Argument Nothing name Nothing
 
 data HigherOrderCall = Each | Map | Select | Any | All deriving (Show)
 
@@ -76,6 +78,7 @@ data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
              --   fmapObject :: Salty,
              --   fmapFunction :: FunctionBody
              -- }
+             | Salt
              deriving (Show)
 
 
@@ -84,19 +87,21 @@ class ConvertToPhp a where
 
 instance ConvertToPhp VariableName where
   toPhp (InstanceVar s) = "$this->" ++ s
-  toPhp (ClassVar s) = "self::" ++ s
+  toPhp (ClassVar s) = "self::$" ++ s
   toPhp (SimpleVar s) = '$':s
 
 instance ConvertToPhp FunctionBody where
-  toPhp (OneLine s) = (toPhp s) ++ ";"
+  toPhp (OneLine s) = "return " ++ (toPhp s) ++ ";"
   toPhp (Block s) = (intercalate ";\n" $ map toPhp s) ++ ";"
   toPhp (LambdaFunction args body) = (unlines $ map (printf "$%s = null;\n") args) ++ toPhp body
   toPhp (AmpersandFunction (SimpleVar str)) = printf "%s($i)" str
   toPhp (AmpersandFunction (InstanceVar str)) = printf "$i->%s()" str
 
 instance ConvertToPhp Argument where
-  toPhp (Argument typ name (Just default_)) = printf "?%s $%s = %s" typ name default_
-  toPhp (Argument typ name Nothing) = typ ++ " $" ++ name
+  toPhp (Argument (Just typ) name (Just default_)) = printf "?%s $%s = %s" typ name default_
+  toPhp (Argument (Just typ) name Nothing) = typ ++ " $" ++ name
+  toPhp (Argument Nothing name (Just default_)) = printf "$%s = %s" name default_
+  toPhp (Argument Nothing name Nothing) = "$" ++ name
 
 instance ConvertToPhp Salty where
   toPhp (Assignment name Equals value) = (toPhp name) ++ " = " ++ (toPhp value)
@@ -116,7 +121,7 @@ instance ConvertToPhp Salty where
             SimpleVar str -> "function " ++ str
           funcArgs = intercalate ", " $ map toPhp args
           funcBody = case body of
-              OneLine s -> (toPhp s) ++ ";"
+              OneLine s -> "return " ++ (toPhp s) ++ ";"
               Block s -> (intercalate ";\n" $ map toPhp s) ++ ";"
               _ -> "invalid funcBody"
 
@@ -146,6 +151,7 @@ instance ConvertToPhp Salty where
 
   toPhp (HashLookup (Left var) key) = printf "%s[%s]" (varName var) (varName key)
   toPhp (HashLookup (Right hashLookup_) key) = printf "%s[%s]" (toPhp hashLookup_) (varName key)
+  toPhp Salt = "I'm salty"
 
   toPhp x = "not implemented yet: " ++ (show x)
 
