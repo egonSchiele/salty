@@ -145,7 +145,37 @@ functionTests = map makeToPhpTest $ [
 
     (SaltyNumber "123", "123"),
     (SaltyNumber "123.0", "123.0"),
-    (SaltyString "hello there", "hello there")
+    (SaltyString "hello there", "hello there"),
+    -- function calls
+    -- type of function (instance/class)
+    (FunctionCall Nothing (SimpleVar "foo") [], "foo()"),
+    (FunctionCall Nothing (InstanceVar "foo") [], "$this->foo()"),
+    (FunctionCall Nothing (ClassVar "foo") [], "static::foo()"),
+
+    -- calls on an object, function is simplevar
+    (FunctionCall (Just $ SimpleVar "obj") (SimpleVar "foo") [], "$obj->foo()"),
+    (FunctionCall (Just $ InstanceVar "obj") (SimpleVar "foo") [], "$this->obj->foo()"),
+    (FunctionCall (Just $ ClassVar "obj") (SimpleVar "foo") [], "static::obj->foo()"),
+
+    -- calls on an object, function is instancevar. No difference from simplevar.
+    (FunctionCall (Just $ SimpleVar "obj") (InstanceVar "foo") [], "$obj->foo()"),
+    (FunctionCall (Just $ InstanceVar "obj") (InstanceVar "foo") [], "$this->obj->foo()"),
+    (FunctionCall (Just $ ClassVar "obj") (InstanceVar "foo") [], "static::obj->foo()"),
+
+    -- calls on an object, function is classvar. No difference from simplevar.
+    (FunctionCall (Just $ SimpleVar "obj") (ClassVar "foo") [], "$obj->foo()"),
+    (FunctionCall (Just $ InstanceVar "obj") (ClassVar "foo") [], "$this->obj->foo()"),
+    (FunctionCall (Just $ ClassVar "obj") (ClassVar "foo") [], "static::obj->foo()"),
+
+    -- pass args to function calls (single arg)
+    (FunctionCall Nothing (SimpleVar "foo") ["1"], "foo(1)"),
+    (FunctionCall Nothing (InstanceVar "foo") ["1"], "$this->foo(1)"),
+    (FunctionCall Nothing (ClassVar "foo") ["1"], "static::foo(1)"),
+
+    -- pass args to function calls (multiple args)
+    (FunctionCall Nothing (SimpleVar "foo") ["1", "2"], "foo(1, 2)"),
+    (FunctionCall Nothing (InstanceVar "foo") ["1", "2"], "$this->foo(1, 2)"),
+    (FunctionCall Nothing (ClassVar "foo") ["1", "2"], "static::foo(1, 2)")
   ]
 
 allTests = TestList $

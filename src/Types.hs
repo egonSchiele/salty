@@ -5,6 +5,12 @@ import Data.List (intercalate)
 
 data VariableName = InstanceVar String | ClassVar String | SimpleVar String deriving (Show)
 
+varName :: VariableName -> String
+varName x = case x of
+    InstanceVar s -> s
+    ClassVar s -> s
+    SimpleVar s -> s
+
 data FunctionBody = OneLine Salty -- e.g. incr x := x + 1
                       | Block [Salty] -- fib x := do if x < 2 .... end
                       | LambdaFunction { -- \a b -> a + b
@@ -38,7 +44,7 @@ data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
              | FunctionCall { -- e.g. obj.foo / obj.foo(1) / foo(1, 2)
                fObject :: Maybe VariableName,
                fCallName :: VariableName,
-               fCallArguments :: [VariableName]
+               fCallArguments :: [String]
              }
              | TypeDefinition { -- e.g. foo :: String, String -> Num. tTypes would be ["String", "String", "Num"]
                tName :: String,
@@ -103,5 +109,19 @@ instance ConvertToPhp Salty where
   toPhp (SaltyNumber s) = s
   toPhp (SaltyString s) = s
 
+  toPhp (FunctionCall Nothing (SimpleVar str) args) = printf "%s(%s)" str (intercalate ", " args)
+  toPhp (FunctionCall Nothing (InstanceVar str) args) = printf "$this->%s(%s)" str (intercalate ", " args)
+  toPhp (FunctionCall Nothing (ClassVar str) args) = printf "static::%s(%s)" str (intercalate ", " args)
+  toPhp (FunctionCall (Just (SimpleVar obj)) funcName args) = printf "$%s->%s(%s)" obj (varName funcName) (intercalate ", " args)
+  toPhp (FunctionCall (Just (InstanceVar obj)) funcName args) = printf "$this->%s->%s(%s)" obj (varName funcName) (intercalate ", " args)
+  toPhp (FunctionCall (Just (ClassVar obj)) funcName args) = printf "static::%s->%s(%s)" obj (varName funcName) (intercalate ", " args)
+
   toPhp x = "not implemented yet: " ++ (show x)
+
+
+    --             | FunctionCall { -- e.g. obj.foo / obj.foo(1) / foo(1, 2)
+               -- fObject :: Maybe VariableName,
+               -- fCallName :: VariableName,
+               -- fCallArguments :: [String]
+             -- }
 
