@@ -8,7 +8,7 @@ import Text.Parsec.Combinator
 import Data.List (intercalate)
 
 build :: String -> String
-build str = case (parse saltyParser "saltyParser" str) of
+build str = case (parse saltyParser "saltyParser" (str ++ "\n")) of
                  Left err -> show err
                  Right xs -> toPhp xs
 
@@ -94,7 +94,7 @@ simpleVar = do
   return $ SimpleVar variable
 
 oneLine = do
-  line <- many1 anyToken
+  line <- anyToken `manyTill` newline
   let salty = parse_ line
   return $ OneLine salty
 
