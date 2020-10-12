@@ -17,7 +17,7 @@ build str = case (parse saltyParser "saltyParser" (str ++ "\n")) of
 (<||>) p1 p2 = try(p1) <|> p2
 
 getRight (Right x) = x
-getRight (Left x) = SaltyString $ "error: " ++ (show x)
+getRight (Left x) = SaltyString $ "error adit: " ++ (show x)
 
 parse_ :: String -> Salty
 parse_ str = getRight $ parse saltyParser "saltyParser" str
@@ -28,6 +28,8 @@ saltyParser = do
   <||> saltyString
   <||> saltyNumber
   <||> returnStatement
+  <||> higherOrderFunctionCall
+  <||> phpLine
 
 variableName = do
         classVar
@@ -35,10 +37,10 @@ variableName = do
   <||>  simpleVar
 
 functionBody = do
-        oneLine
-  <||>  block
+        block
   <||>  lambda
   <||>  ampersand
+  <||>  oneLine
 
 function = do
   name <- variableName
@@ -75,25 +77,28 @@ saltyNumber = do
 instanceVar = do
   char '@'
   variable <- many1 letter
-  try space
+  lookAhead (oneOf " .")
   return $ InstanceVar variable
 
 -- @@foo
 classVar = do
   string "@@"
   variable <- many1 letter
-  try space
+  lookAhead (oneOf " .")
   return $ ClassVar variable
 
 -- foo
 simpleVar = do
   variable <- many1 letter
-  try space
+  lookAhead (oneOf " .")
   return $ SimpleVar variable
 
 oneLine = do
-  line <- many1 anyChar
+  parserTrace "oneline1"
+  line <- anyChar `manyTill` (lookAhead $ char ')')
+  parserTrace $ "oneline2: " ++ line
   let salty = parse_ line
+  parserTrace "oneline3"
   return $ OneLine salty
 
 block = do
@@ -105,9 +110,13 @@ block = do
 
 lambda = do
   string "\\"
-  args <- (many1 letter) `sepBy` space
+  parserTrace "lamb1"
+  args <- anyToken `manyTill` (string "->")
+  spaces
+  parserTrace "lamb2"
   body <- functionBody
-  return $ LambdaFunction args body
+  parserTrace $ "lamb3: " ++ (show body)
+  return $ LambdaFunction (words args) body
 
 ampersand = do
   string "&"
@@ -127,6 +136,35 @@ hashLookup = do
   space
   k <- variableName
   return $ HashLookup (Left h) k
+
+eachFunc = string ".each" >> return Each
+mapFunc = string ".map" >> return Map
+selectFunc = string ".select" >> return Select
+anyFunc = string ".any" >> return Any
+allFunc = string ".all" >> return All
+
+higherOrderFunction = do
+       eachFunc
+  <||> mapFunc
+  <||> selectFunc
+  <||> anyFunc
+  <||> allFunc
+
+higherOrderFunctionCall = do
+  parserTrace "1"
+  obj <- variableName
+  parserTrace "2"
+  hof <- higherOrderFunction
+  parserTrace "3"
+  char '('
+  parserTrace "4"
+  func <- functionBody
+  parserTrace "5"
+  return $ HigherOrderFunctionCall obj hof func
+
+phpLine = do
+  line <- many1 anyChar
+  return $ PhpLine line
 
 -- build a b := 2
 -- function = do

@@ -61,7 +61,8 @@ transpileTests = [
     "@@foo = 1" `matches` "self::$foo = 1",
     "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
     "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-    "@@build a b := 2" `matches` "static function build($a, $b) {\nreturn 2;\n}"
+    "@@build a b := 2" `matches` "static function build($a, $b) {\nreturn 2;\n}",
+    "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
     -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
     -- "# hi" `matches` "// hi",

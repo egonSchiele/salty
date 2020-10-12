@@ -37,7 +37,7 @@ data Argument = Argument {
 
 argWithDefaults name = Argument Nothing name Nothing
 
-data HigherOrderCall = Each | Map | Select | Any | All deriving (Show)
+data HigherOrderFunction = Each | Map | Select | Any | All deriving (Show)
 
 data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
                aName :: VariableName,
@@ -58,7 +58,7 @@ data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
              }
              | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
                hoObject :: VariableName,
-               hoCallName :: HigherOrderCall,
+               hoCallName :: HigherOrderFunction,
                hoFunction :: FunctionBody  --  either lambda or ampersand function.
              }
              -- | TypeDefinition { -- e.g. foo :: String, String -> Num. tTypes would be ["String", "String", "Num"]
@@ -79,6 +79,7 @@ data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
              --   fmapFunction :: FunctionBody
              -- }
              | ReturnStatement Salty
+             | PhpLine String
              | Salt
              deriving (Show)
 
@@ -92,7 +93,8 @@ instance ConvertToPhp VariableName where
   toPhp (SimpleVar s) = '$':s
 
 instance ConvertToPhp FunctionBody where
-  toPhp (OneLine r@(ReturnStatement s)) = toPhp r;
+  toPhp (OneLine r@(ReturnStatement s)) = toPhp r
+  toPhp (OneLine r@(PhpLine s)) = s
   toPhp (OneLine s) = "return " ++ (toPhp s) ++ ";"
   toPhp (Block s) = (intercalate ";\n" $ map toPhp s) ++ ";"
   toPhp (LambdaFunction args body) = (unlines $ map (printf "$%s = null;\n") args) ++ toPhp body
@@ -151,6 +153,7 @@ instance ConvertToPhp Salty where
   toPhp (HashLookup (Right hashLookup_) key) = printf "%s[%s]" (toPhp hashLookup_) (varName key)
   toPhp Salt = "I'm salty"
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
+  toPhp (PhpLine line) = line
 
   toPhp x = "not implemented yet: " ++ (show x)
 
