@@ -69,13 +69,13 @@ instance ConvertToPhp VariableName where
   toPhp (SimpleVar s) = '$':s
 
 instance ConvertToPhp FunctionBody where
-  toPhp (OneLine s) = toPhp s
-  toPhp (Block s) = intercalate "\n" $ map toPhp s
-  toPhp (LambdaFunction args body) = (intercalate "\n" args) ++ toPhp body
+  toPhp (OneLine s) = (toPhp s) ++ ";"
+  toPhp (Block s) = (intercalate ";\n" $ map toPhp s) ++ ";"
+  toPhp (LambdaFunction args body) = (unlines $ map (printf "$%s = null;\n") args) ++ toPhp body
   toPhp (AmpersandFunction fName) = printf "$%s($var);" (toPhp fName)
 
 instance ConvertToPhp Argument where
-  toPhp (Argument typ name (Just default_)) = printf "?%s $%s=%s" typ name default_
+  toPhp (Argument typ name (Just default_)) = printf "?%s $%s = %s" typ name default_
   toPhp (Argument typ name Nothing) = typ ++ " $" ++ name
 
 instance ConvertToPhp Salty where

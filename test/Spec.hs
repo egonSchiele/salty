@@ -125,8 +125,21 @@ assignmentTests = map makeToPhpTest $ [
   ]
 
 functionTests = map makeToPhpTest $ [
-    -- different types of functions
-    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1) {\n1\n}")
+    -- different types of functions (instance vs class)
+    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1) {\n1;\n}"),
+    (Function (InstanceVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1) {\n1;\n}"),
+    (Function (ClassVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ SaltyNumber "1"), "static function foo(array $arg1) {\n1;\n}"),
+
+    -- different numbers of args
+    (Function (InstanceVar "foo") [Argument "array" "arg1" Nothing, Argument "string" "arg2" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1, string $arg2) {\n1;\n}"),
+    (Function (InstanceVar "foo") [Argument "array" "arg1" Nothing, Argument "string" "arg2" Nothing, Argument "EP_Locale" "loc" Nothing] (OneLine $ SaltyNumber "1"), "function foo(array $arg1, string $arg2, EP_Locale $loc) {\n1;\n}"),
+
+    -- default args
+    (Function (InstanceVar "foo") [Argument "array" "arg1" Nothing, Argument "string" "arg2" $ Just "null"] (OneLine $ SaltyNumber "1"), "function foo(array $arg1, ?string $arg2 = null) {\n1;\n}"),
+
+    -- different types of function bodies
+    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ Assignment (SimpleVar "foo") Equals (SaltyNumber "1")), "function foo(array $arg1) {\n$foo = 1;\n}"),
+    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (Block [Assignment (SimpleVar "foo") Equals (SaltyNumber "1"), Assignment (SimpleVar "foo") PlusEquals (SaltyNumber "1")]), "function foo(array $arg1) {\n$foo = 1;\n$foo = $foo + 1;\n}")
   ]
 
 allTests = TestList $
