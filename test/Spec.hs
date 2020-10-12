@@ -139,7 +139,13 @@ functionTests = map makeToPhpTest $ [
 
     -- different types of function bodies
     (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (OneLine $ Assignment (SimpleVar "foo") Equals (SaltyNumber "1")), "function foo(array $arg1) {\n$foo = 1;\n}"),
-    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (Block [Assignment (SimpleVar "foo") Equals (SaltyNumber "1"), Assignment (SimpleVar "foo") PlusEquals (SaltyNumber "1")]), "function foo(array $arg1) {\n$foo = 1;\n$foo = $foo + 1;\n}")
+    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (Block [Assignment (SimpleVar "foo") Equals (SaltyNumber "1"), Assignment (SimpleVar "foo") PlusEquals (SaltyNumber "1")]), "function foo(array $arg1) {\n$foo = 1;\n$foo = $foo + 1;\n}"),
+    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (AmpersandFunction (SimpleVar "foo")), "ampersand function body not allowed as method body SimpleVar \"foo\""),
+    (Function (SimpleVar "foo") [Argument "array" "arg1" Nothing] (LambdaFunction ["a", "b"] $ AmpersandFunction (SimpleVar "foo")), "lambda function body not allowed as method body SimpleVar \"foo\""),
+
+    (SaltyNumber "123", "123"),
+    (SaltyNumber "123.0", "123.0"),
+    (SaltyString "hello there", "hello there")
   ]
 
 allTests = TestList $
