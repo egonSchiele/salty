@@ -144,21 +144,18 @@ saltyNumber = do
 -- @foo
 instanceVar = do
   char '@'
-  variable <- many1 letter
-  lookAhead (oneOf " .),")
+  variable <- letter `manyTill` (lookAhead (oneOf " .),"))
   return $ InstanceVar variable
 
 -- @@foo
 classVar = do
   string "@@"
-  variable <- many1 letter
-  lookAhead (oneOf " .),")
+  variable <- letter `manyTill` (lookAhead (oneOf " .),"))
   return $ ClassVar variable
 
 -- foo
 simpleVar = do
-  variable <- many1 letter
-  lookAhead (oneOf " .),")
+  variable <- letter `manyTill` (lookAhead (oneOf " .),"))
   return $ SimpleVar variable
 
 oneLine = do
@@ -231,8 +228,11 @@ phpLine = do
   return $ PhpLine line
 
 functionCall = do
-  string "fuck"
-  return Salt
+  obj <- variableName
+  char '.'
+  funcName <- letter `manyTill` (lookAhead $ char '(')
+  funcArgs <- anyChar `manyTill` (lookAhead . try $ char ')')
+  return $ FunctionCall (Just obj) (SimpleVar funcName) (split "," funcArgs)
 
 -- build a b := 2
 -- function = do
