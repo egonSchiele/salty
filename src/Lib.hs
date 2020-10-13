@@ -6,6 +6,7 @@ import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 --import Text.ParserCombinators.Parsec.Error(messageString)
 import Data.List (intercalate)
+import qualified Data.Functor.Identity
 
 for = flip map
 
@@ -14,7 +15,8 @@ saltyToPhp str = case (build str) of
                    Left err -> show err
                    Right xs -> saltyToPhp_ xs
 
-saltyToPhp_ tree = unlines . indent . addSemicolons . lines . toPhp $ tree
+saltyToPhp_ :: [Salty] -> String
+saltyToPhp_ tree = unlines . indent . addSemicolons . lines . concat . (map toPhp) $ tree
 
 addSemicolons :: [String] -> [String]
 addSemicolons phpLines = for phpLines $ \line ->
@@ -27,6 +29,7 @@ indent lines_ = indent_ lines_ 0
 
 indent_ :: [String] -> Int -> [String]
 indent_ [] _ = []
+indent_ ("":lines_) indentAmt = "":(indent_ lines_ indentAmt)
 indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
   where newLine = if (last l) == '}'
                      then (replicate ((indentAmt-1)*4) ' ') ++ l
@@ -37,6 +40,7 @@ indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
                       _ -> indentAmt
 
 
+build :: String -> Either ParseError [Salty]
 build str = parse saltyParser "saltyParser" (str ++ "\n")
 
 -- if you don't use try, and the first parser consumes some input,
@@ -47,9 +51,13 @@ getRight (Right x) = x
 getRight (Left x) = SaltyString $ "error adit: " ++ (show x)
 
 parse_ :: String -> Salty
-parse_ str = getRight $ parse saltyParser "saltyParser" str
+parse_ str = getRight $ parse saltyParserSingle "saltyParserSingle" str
 
-saltyParser = do
+saltyParser :: ParsecT String u Data.Functor.Identity.Identity [Salty]
+saltyParser = many saltyParserSingle
+
+saltyParserSingle :: ParsecT String u Data.Functor.Identity.Identity Salty
+saltyParserSingle = do
   function
   <||> assignment
   <||> saltyString
@@ -87,7 +95,7 @@ assignment = do
   spaces
   typ <- assignmentType
   spaces
-  value <- saltyParser
+  value <- saltyParserSingle
   return $ Assignment name typ value
 
 betweenQuotes = between (oneOf "\"'") (oneOf "\"'")
