@@ -224,6 +224,7 @@ higherOrderFunctionCall = do
   args <- anyToken `manyTill` (try $ string "->")
   spaces
   body_ <- functionCall
+  char ')'
   let func = LambdaFunction (words args) body_
   return $ HigherOrderFunctionCall obj hof func
 
