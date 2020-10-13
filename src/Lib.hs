@@ -114,8 +114,10 @@ lambda = do
   args <- anyToken `manyTill` (string "->")
   spaces
   parserTrace "lamb2"
-  body <- functionBody
-  parserTrace $ "lamb3: " ++ (show body)
+  body_ <- anyToken `manyTill` (lookAhead $ oneOf ")\n")
+  parserTrace $ "lamb3: " ++ (show body_)
+  let body = parse_ body_
+  parserTrace $ "lamb4: " ++ (show body)
   return $ LambdaFunction (words args) body
 
 ampersand = do
@@ -158,7 +160,7 @@ higherOrderFunctionCall = do
   parserTrace "3"
   char '('
   parserTrace "4"
-  func <- functionBody
+  func <- (lambda <||> ampersand)
   parserTrace "5"
   char ')'
   return $ HigherOrderFunctionCall obj hof func

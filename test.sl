@@ -1,3 +1,3 @@
 @adit = "awesome"
 
-fib x := return x if x < 2
+@adit.map(\x -> x + 1)

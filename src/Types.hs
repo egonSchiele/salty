@@ -21,7 +21,7 @@ data FunctionBody = OneLine Salty -- e.g. incr x := x + 1
                       | Block [Salty] -- fib x := do if x < 2 .... end
                       | LambdaFunction { -- \a b -> a + b
                         lArguments :: [String],
-                        lBody :: FunctionBody
+                        lBody :: Salty
                       }
                       | AmpersandFunction VariableName -- &:@function (used for maps/each etc)
                       deriving (Show)
@@ -139,7 +139,9 @@ instance ConvertToPhp Salty where
 
   toPhp (HigherOrderFunctionCall obj Each af@(AmpersandFunction name)) = printf "foreach (%s as $i) {\n%s;\n}" (varName obj) (toPhp af)
 
-  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:accVar:xs) body)) = printf "$%s = [];\nforeach (%s as $%s) {\n$%s []= %s;\n}" accVar (varName obj) loopVar accVar (toPhp body)
+  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:accVar:[]) body)) = printf "$%s = [];\nforeach (%s as $%s) {\n$%s []= %s;\n}" accVar (varName obj) loopVar accVar (toPhp body)
+  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:[]) body)) = printf "$%s = [];\nforeach (%s as $%s) {\n$%s []= %s;\n}" accVar (varName obj) loopVar accVar (toPhp body)
+        where accVar = "result"
   toPhp (HigherOrderFunctionCall obj Map af@(AmpersandFunction name)) = printf "$acc = [];\nforeach (%s as $i) {\n$acc []= %s;\n}" (varName obj) (toPhp af)
 
   toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:accVar:xs) body)) = printf "$%s = [];\nforeach (%s as $%s) {\nif(%s) {\n$%s []= %s;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
@@ -157,6 +159,7 @@ instance ConvertToPhp Salty where
 
   toPhp x = "not implemented yet: " ++ (show x)
 
+--not implemented yet: HigherOrderFunctionCall {hoObject = InstanceVar "adit", hoCallName = Map, hoFunction = LambdaFunction {lArguments = ["x"], lBody = PhpLine "x + 1"}}
              -- | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
              --   hoObject :: VariableName,
              --   hoCallName :: HigherOrderCall,

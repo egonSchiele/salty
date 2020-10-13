@@ -64,7 +64,8 @@ transpileTests = [
    --  "@@build a b := 2" `matches` "static function build($a, $b) {\nreturn 2;\n}",
     "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}",
     "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
-    "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}"
+    "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",
+	"@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n$result []= x + 1;\n}"
     -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
     -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
     -- "# hi" `matches` "// hi",
@@ -229,13 +230,13 @@ functionTests = map makeToPhpTest $ [
     -- higher order calls
     (HigherOrderFunctionCall (SimpleVar "foo") Each (AmpersandFunction (SimpleVar "funcName")), "foreach ($foo as $i) {\nfuncName($i);\n}"),
     (HigherOrderFunctionCall (SimpleVar "foo") Each (AmpersandFunction (InstanceVar "funcName")), "foreach ($foo as $i) {\n$i->funcName();\n}"),
-    (HigherOrderFunctionCall (SimpleVar "foo") Each (LambdaFunction ["a"] (OneLine (SaltyNumber "1"))), "foreach ($foo as $a) {\n1;\n}"),
-    (HigherOrderFunctionCall (SimpleVar "foo") Each (LambdaFunction ["a"] (OneLine (Assignment (SimpleVar "a") Equals (SaltyNumber "1")))), "foreach ($foo as $a) {\n$a = 1;\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Each (LambdaFunction ["a"] (SaltyNumber "1")), "foreach ($foo as $a) {\n1;\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Each (LambdaFunction ["a"] (Assignment (SimpleVar "a") Equals (SaltyNumber "1"))), "foreach ($foo as $a) {\n$a = 1;\n}"),
 
     (HigherOrderFunctionCall (SimpleVar "foo") Map (AmpersandFunction (SimpleVar "funcName")), "$acc = [];\nforeach ($foo as $i) {\n$acc []= funcName($i);\n}"),
     (HigherOrderFunctionCall (SimpleVar "foo") Map (AmpersandFunction (InstanceVar "funcName")), "$acc = [];\nforeach ($foo as $i) {\n$acc []= $i->funcName();\n}"),
-    (HigherOrderFunctionCall (SimpleVar "foo") Map (LambdaFunction ["a", "newList"] (OneLine (SaltyNumber "1"))), "$newList = [];\nforeach ($foo as $a) {\n$newList []= 1;\n}"),
-    (HigherOrderFunctionCall (SimpleVar "foo") Map (LambdaFunction ["a", "newList"] (OneLine (Assignment (SimpleVar "a") Equals (SaltyNumber "1")))), "$newList = [];\nforeach ($foo as $a) {\n$newList []= ($a = 1);\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Map (LambdaFunction ["a", "newList"] (SaltyNumber "1")), "$newList = [];\nforeach ($foo as $a) {\n$newList []= 1;\n}"),
+    (HigherOrderFunctionCall (SimpleVar "foo") Map (LambdaFunction ["a", "newList"] (Assignment (SimpleVar "a") Equals (SaltyNumber "1"))), "$newList = [];\nforeach ($foo as $a) {\n$newList []= ($a = 1);\n}"),
 
     -- hash lookup
     (HashLookup (Left (SimpleVar "hash")) (SimpleVar "key"), "$hash[$key]"),
