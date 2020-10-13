@@ -164,15 +164,15 @@ instance ConvertToPhp Salty where
 
   -- any
   toPhp (HigherOrderFunctionCall obj Any (LambdaFunction (loopVar:xs) body)) =
-                printf "$result = false;\nforeach (%s as $%s) {\nif(%s) {\n$result = true;\nbreak;\n}" (varName obj) loopVar (toPhp body)
+                printf "$result = false;\nforeach (%s as $%s) {\nif(%s) {\n$result = true;\nbreak;\n}\n}" (varName obj) loopVar (toPhp body)
   toPhp (HigherOrderFunctionCall obj Any af@(AmpersandFunction name)) =
-                printf "$result = false;\nforeach (%s as $i) {\nif(%s) {\n$result = true;\nbreak;\n}" (varName obj) (toPhp af)
+                printf "$result = false;\nforeach (%s as $i) {\nif(%s) {\n$result = true;\nbreak;\n}\n}" (varName obj) (toPhp af)
 
   -- all
   toPhp (HigherOrderFunctionCall obj All (LambdaFunction (loopVar:xs) body)) =
-                printf "$result = true;\nforeach (%s as $%s) {\nif(!%s) {\n$result = false;\nbreak;\n}" (varName obj) loopVar (toPhp body)
+                printf "$result = true;\nforeach (%s as $%s) {\nif(!%s) {\n$result = false;\nbreak;\n}\n}" (varName obj) loopVar (toPhp body)
   toPhp (HigherOrderFunctionCall obj All af@(AmpersandFunction name)) =
-                printf "$result = true;\nforeach (%s as $i) {\nif(!%s) {\n$result = false;\nbreak;\n}" (varName obj) (toPhp af)
+                printf "$result = true;\nforeach (%s as $i) {\nif(!%s) {\n$result = false;\nbreak;\n}\n}" (varName obj) (toPhp af)
 
   toPhp (HashLookup (Left var) key) = printf "%s[%s]" (varName var) (varName key)
   toPhp (HashLookup (Right hashLookup_) key) = printf "%s[%s]" (toPhp hashLookup_) (varName key)

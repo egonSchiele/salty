@@ -42,13 +42,17 @@ indent_ :: [String] -> Int -> [String]
 indent_ [] _ = []
 indent_ ("":lines_) indentAmt = "":(indent_ lines_ indentAmt)
 indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
-  where newLine = if (last l) == '}'
+  where newLine = if (last l) == '}' || (last_ 2 l) == "};"
                      then (replicate ((indentAmt-1)*4) ' ') ++ l
                      else (replicate (indentAmt*4) ' ') ++ l
-        newAmt = case (last l) of
-                      '{' -> indentAmt + 1
-                      '}' -> indentAmt - 1
-                      _ -> indentAmt
+        newAmt = newAmt_ l indentAmt
+
+
+newAmt_ l indentAmt
+  | (last l) == '{' = indentAmt + 1
+  | (last l) == '}' = indentAmt - 1
+  | (last_ 2 l) == "};" = indentAmt - 1
+  | otherwise = indentAmt
 
 
 indentDebug :: [String] -> [String]
@@ -219,7 +223,7 @@ higherOrderFunctionCall = do
   string "\\"
   args <- anyToken `manyTill` (try $ string "->")
   spaces
-  body_ <- phpLine
+  body_ <- functionCall
   let func = LambdaFunction (words args) body_
   return $ HigherOrderFunctionCall obj hof func
 
