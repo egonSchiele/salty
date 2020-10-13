@@ -17,14 +17,14 @@ varName x = case x of
     ClassVar str -> "static::$" ++ str
     SimpleVar str -> "$" ++ str
 
-data FunctionBody = OneLine Salty -- e.g. incr x := x + 1
-                      | Block [Salty] -- fib x := do if x < 2 .... end
-                      | LambdaFunction { -- \a b -> a + b
-                        lArguments :: [String],
-                        lBody :: Salty
-                      }
-                      | AmpersandFunction VariableName -- &:@function (used for maps/each etc)
-                      deriving (Show)
+-- data FunctionBody = OneLine Salty -- e.g. incr x := x + 1
+--                       | Block [Salty] -- fib x := do if x < 2 .... end
+--                       | LambdaFunction { -- \a b -> a + b
+--                         lArguments :: [String],
+--                         lBody :: Salty
+--                       }
+--                       | AmpersandFunction VariableName -- &:@function (used for maps/each etc)
+--                       deriving (Show)
 
 -- function args
 data Argument = Argument {
@@ -59,7 +59,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | Function {
                fName :: VariableName,
                fArguments :: [Argument],
-               fBody :: FunctionBody
+               fBody :: Salty
              }
              | SaltyNumber String
              | SaltyString String
@@ -71,7 +71,11 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
                hoObject :: VariableName,
                hoCallName :: HigherOrderFunction,
-               hoFunction :: FunctionBody  --  either lambda or ampersand function.
+               hoFunction :: Salty  --  either lambda or ampersand function.
+             }
+             | LambdaFunction { -- \a b -> a + b
+               lArguments :: [String],
+               lBody :: Salty
              }
              -- | TypeDefinition { -- e.g. foo :: String, String -> Num. tTypes would be ["String", "String", "Num"]
              --   tName :: String,
@@ -107,14 +111,14 @@ instance ConvertToPhp VariableName where
   toPhp (ClassVar s) = "self::$" ++ s
   toPhp (SimpleVar s) = '$':s
 
-instance ConvertToPhp FunctionBody where
-  toPhp (OneLine r@(ReturnStatement s)) = toPhp r
-  toPhp (OneLine r@(PhpLine s)) = s
-  toPhp (OneLine s) = "return " ++ (toPhp s) ++ ";"
-  toPhp (Block s) = (intercalate ";\n" $ map toPhp s) ++ ";"
-  toPhp (LambdaFunction args body) = (unlines $ map (printf "$%s = null;\n") args) ++ toPhp body
-  toPhp (AmpersandFunction (SimpleVar str)) = printf "%s($i)" str
-  toPhp (AmpersandFunction (InstanceVar str)) = printf "$i->%s()" str
+-- instance ConvertToPhp FunctionBody where
+--   toPhp (OneLine r@(ReturnStatement s)) = toPhp r
+--   toPhp (OneLine r@(PhpLine s)) = s
+--   toPhp (OneLine s) = "return " ++ (toPhp s) ++ ";"
+--   toPhp (Block s) = (intercalate ";\n" $ map toPhp s) ++ ";"
+--   toPhp (LambdaFunction args body) = (unlines $ map (printf "$%s = null;\n") args) ++ toPhp body
+--   toPhp (AmpersandFunction (SimpleVar str)) = printf "%s($i)" str
+--   toPhp (AmpersandFunction (InstanceVar str)) = printf "$i->%s()" str
 
 instance ConvertToPhp Argument where
   toPhp (Argument (Just typ) name (Just default_)) = printf "?%s $%s = %s" typ name default_
@@ -141,8 +145,8 @@ instance ConvertToPhp Salty where
   toPhp (Operation left OrOr right) = printf "%s || %s" (toPhp left) (toPhp left) (toPhp right)
   toPhp (Operation left AndAnd right) = printf "%s || %s" (toPhp left) (toPhp left) (toPhp right)
 
-  toPhp (Function name args (LambdaFunction _ _)) = "lambda function body not allowed as method body " ++ (show name)
-  toPhp (Function name args (AmpersandFunction _)) = "ampersand function body not allowed as method body " ++ (show name)
+  -- toPhp (Function name args (LambdaFunction _ _)) = "lambda function body not allowed as method body " ++ (show name)
+  -- toPhp (Function name args (AmpersandFunction _)) = "ampersand function body not allowed as method body " ++ (show name)
   toPhp (Function name args body) = printf "%s(%s) {\n%s\n}" funcName funcArgs (toPhp body)
     where funcName = case name of
             InstanceVar str -> "function " ++ str
@@ -160,12 +164,14 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just (InstanceVar obj)) funcName args) = printf "$this->%s->%s(%s)" obj (simpleVarName funcName) (intercalate ", " args)
   toPhp (FunctionCall (Just (ClassVar obj)) funcName args) = printf "static::%s->%s(%s)" obj (simpleVarName funcName) (intercalate ", " args)
 
+  toPhp (LambdaFunction args body) = (unlines $ map (printf "$%s = null;\n") args) ++ toPhp body
+
   -- each
   toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body)) =
                 printf "foreach (%s as $%s) {\n%s;\n}" (varName obj) loopVar (toPhp body)
 
-  toPhp (HigherOrderFunctionCall obj Each af@(AmpersandFunction name)) =
-                printf "foreach (%s as $i) {\n%s;\n}" (varName obj) (toPhp af)
+  -- toPhp (HigherOrderFunctionCall obj Each af@(AmpersandFunction name)) =
+  --               printf "foreach (%s as $i) {\n%s;\n}" (varName obj) (toPhp af)
 
   -- map
   toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:accVar:[]) body)) =
@@ -175,8 +181,8 @@ instance ConvertToPhp Salty where
                 printf "$%s = [];\nforeach (%s as $%s) {\n$%s []= %s;\n}" accVar (varName obj) loopVar accVar (toPhp body)
                   where accVar = "result"
 
-  toPhp (HigherOrderFunctionCall obj Map af@(AmpersandFunction name)) =
-                printf "$acc = [];\nforeach (%s as $i) {\n$acc []= %s;\n}" (varName obj) (toPhp af)
+  -- toPhp (HigherOrderFunctionCall obj Map af@(AmpersandFunction name)) =
+  --               printf "$acc = [];\nforeach (%s as $i) {\n$acc []= %s;\n}" (varName obj) (toPhp af)
 
   -- select
   toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:accVar:[]) body)) =
@@ -184,20 +190,20 @@ instance ConvertToPhp Salty where
   toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:[]) body)) =
                 printf "$%s = [];\nforeach (%s as $%s) {\nif(%s) {\n$%s []= %s;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
                         where accVar = "result"
-  toPhp (HigherOrderFunctionCall obj Select af@(AmpersandFunction name)) =
-                printf "$acc = [];\nforeach (%s as $i) {\nif(%s) {\n$acc []= $i;\n}\n}" (varName obj) (toPhp af)
+  -- toPhp (HigherOrderFunctionCall obj Select af@(AmpersandFunction name)) =
+  --               printf "$acc = [];\nforeach (%s as $i) {\nif(%s) {\n$acc []= $i;\n}\n}" (varName obj) (toPhp af)
 
   -- any
   toPhp (HigherOrderFunctionCall obj Any (LambdaFunction (loopVar:xs) body)) =
                 printf "$result = false;\nforeach (%s as $%s) {\nif(%s) {\n$result = true;\nbreak;\n}\n}" (varName obj) loopVar (toPhp body)
-  toPhp (HigherOrderFunctionCall obj Any af@(AmpersandFunction name)) =
-                printf "$result = false;\nforeach (%s as $i) {\nif(%s) {\n$result = true;\nbreak;\n}\n}" (varName obj) (toPhp af)
+  -- toPhp (HigherOrderFunctionCall obj Any af@(AmpersandFunction name)) =
+  --               printf "$result = false;\nforeach (%s as $i) {\nif(%s) {\n$result = true;\nbreak;\n}\n}" (varName obj) (toPhp af)
 
   -- all
   toPhp (HigherOrderFunctionCall obj All (LambdaFunction (loopVar:xs) body)) =
                 printf "$result = true;\nforeach (%s as $%s) {\nif(!%s) {\n$result = false;\nbreak;\n}\n}" (varName obj) loopVar (toPhp body)
-  toPhp (HigherOrderFunctionCall obj All af@(AmpersandFunction name)) =
-                printf "$result = true;\nforeach (%s as $i) {\nif(!%s) {\n$result = false;\nbreak;\n}\n}" (varName obj) (toPhp af)
+  -- toPhp (HigherOrderFunctionCall obj All af@(AmpersandFunction name)) =
+  --               printf "$result = true;\nforeach (%s as $i) {\nif(!%s) {\n$result = false;\nbreak;\n}\n}" (varName obj) (toPhp af)
 
   toPhp (HashLookup (Left var) key) = printf "%s[%s]" (varName var) (varName key)
   toPhp (HashLookup (Right hashLookup_) key) = printf "%s[%s]" (toPhp hashLookup_) (varName key)

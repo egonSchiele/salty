@@ -126,14 +126,21 @@ variableName = debug "variableName" >> do
   <||>  instanceVar
   <||>  simpleVar
 
-functionBody = debug "functionBody" >> do
-        lambda
-  <||>  ampersand
-  <||>  oneLine
+-- functionBody = debug "functionBody" >> do
+--         lambda
+--   <||>  ampersand
+--   <||>  oneLine
 
 parens = debug "parens" >> do
   char '('
   body <- saltyParserSingle
+  char ')'
+  return $ Parens body
+
+parensWith :: ParsecT String u Data.Functor.Identity.Identity Salty -> ParsecT String u Data.Functor.Identity.Identity Salty
+parensWith parser = debug "parensWith" >> do
+  char '('
+  body <- parser
   char ')'
   return $ Parens body
 
@@ -148,7 +155,7 @@ function = debug "function" >> do
   body_ <- anyChar `manyTill` char ';'
   parserTrace $ "5" ++ body_
   body <- parse_ body_ "function"
-  return $ Function name (map argWithDefaults (words args)) (OneLine body)
+  return $ Function name (map argWithDefaults (words args)) body
 
 operator = debug "operator" >> do
        (string "+" >> return Add)
@@ -218,11 +225,6 @@ simpleVar = debug "simpleVar" >> do
   variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
   return $ SimpleVar variable
 
-oneLine = debug "oneLine" >> do
-  line <- anyChar `manyTill` (try $ char ';')
-  salty <- parse_ line "oneLine"
-  return $ OneLine salty
-
 -- block = do
 --   string "do"
 --   newline
@@ -234,14 +236,14 @@ lambda = debug "lambda" >> do
   string "\\"
   args <- anyToken `manyTill` (string "->")
   spaces
-  body_ <- anyToken `manyTill` (lookAhead $ char '\n')
+  body_ <- anyToken `manyTill` (char '#')
   body <- parse_ body_ "lambda"
   return $ LambdaFunction (words args) body
 
-ampersand = debug "ampersand" >> do
-  char '&'
-  var <- variableName
-  return $ AmpersandFunction var
+-- ampersand = debug "ampersand" >> do
+--   char '&'
+--   var <- variableName
+--   return $ AmpersandFunction var
 
 returnStatement = debug "returnStatement" >> do
   string "return "
@@ -282,14 +284,7 @@ manyTillChar ch = do
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   obj <- variableName
   hof <- higherOrderFunction
-  char '('
-
-  string "\\"
-  args <- anyToken `manyTill` (try $ string "->")
-  spaces
-  body_ <- manyTillChar ')'
-  body <- parse_ body_ "higherOrderFunctionCall"
-  let func = LambdaFunction (words args) body
+  (Parens func) <- parensWith lambda
   return $ HigherOrderFunctionCall obj hof func
 
 -- phpLine = do
