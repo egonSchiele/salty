@@ -77,20 +77,20 @@ saltyNumber = do
 instanceVar = do
   char '@'
   variable <- many1 letter
-  lookAhead (oneOf " .")
+  lookAhead (oneOf " .),")
   return $ InstanceVar variable
 
 -- @@foo
 classVar = do
   string "@@"
   variable <- many1 letter
-  lookAhead (oneOf " .")
+  lookAhead (oneOf " .),")
   return $ ClassVar variable
 
 -- foo
 simpleVar = do
   variable <- many1 letter
-  lookAhead (oneOf " .")
+  lookAhead (oneOf " .),")
   return $ SimpleVar variable
 
 oneLine = do
@@ -119,7 +119,7 @@ lambda = do
   return $ LambdaFunction (words args) body
 
 ampersand = do
-  string "&"
+  char '&'
   var <- variableName
   return $ AmpersandFunction var
 
@@ -160,6 +160,7 @@ higherOrderFunctionCall = do
   parserTrace "4"
   func <- functionBody
   parserTrace "5"
+  char ')'
   return $ HigherOrderFunctionCall obj hof func
 
 phpLine = do
