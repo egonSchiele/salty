@@ -7,10 +7,37 @@ import Text.Parsec.Combinator
 --import Text.ParserCombinators.Parsec.Error(messageString)
 import Data.List (intercalate)
 
-build :: String -> String
-build str = case (parse saltyParser "saltyParser" (str ++ "\n")) of
-                 Left err -> show err
-                 Right xs -> toPhp xs
+for = flip map
+
+saltyToPhp :: String -> String
+saltyToPhp str = case (build str) of
+                   Left err -> show err
+                   Right xs -> saltyToPhp_ xs
+
+saltyToPhp_ tree = unlines . indent . addSemicolons . lines . toPhp $ tree
+
+addSemicolons :: [String] -> [String]
+addSemicolons phpLines = for phpLines $ \line ->
+                              if (line == "") || (last line) `elem` ['{', '}', ';']
+                                 then line
+                                 else (line ++ ";")
+
+indent :: [String] -> [String]
+indent lines_ = indent_ lines_ 0
+
+indent_ :: [String] -> Int -> [String]
+indent_ [] _ = []
+indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
+  where newLine = if (last l) == '}'
+                     then (replicate ((indentAmt-1)*4) ' ') ++ l
+                     else (replicate (indentAmt*4) ' ') ++ l
+        newAmt = case (last l) of
+                      '{' -> indentAmt + 1
+                      '}' -> indentAmt - 1
+                      _ -> indentAmt
+
+
+build str = parse saltyParser "saltyParser" (str ++ "\n")
 
 -- if you don't use try, and the first parser consumes some input,
 -- parser #2 doesn't use that input

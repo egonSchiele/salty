@@ -11,9 +11,9 @@ import Lib
 
 convert :: String -> String -> IO ()
 convert infile outfile = do
-    contents <- lines <$> readFile infile
-    let out = map build contents
-    liftIO $ writeFile outfile (unlines out)
+    contents <- readFile infile
+    let out = saltyToPhp contents
+    liftIO $ writeFile outfile out
 
 printHelp = do
     putStrLn "Salty is Salmon for PHP."
