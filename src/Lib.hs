@@ -15,8 +15,13 @@ saltyToPhp str = case (build str) of
                    Left err -> show err
                    Right xs -> saltyToPhp_ xs
 
+saltyToDebugTree :: String -> String
+saltyToDebugTree str = case (build str) of
+                   Left err -> show err
+                   Right xs -> (show xs)
+
 saltyToPhp_ :: [Salty] -> String
-saltyToPhp_ tree = unlines . indent . addSemicolons . lines . concat . (map toPhp) $ tree
+saltyToPhp_ tree = unlines . indent . addSemicolons . lines . (intercalate "\n") . (map toPhp) $ tree
 
 addSemicolons :: [String] -> [String]
 addSemicolons phpLines = for phpLines $ \line ->
@@ -51,7 +56,9 @@ getRight (Right x) = x
 getRight (Left x) = SaltyString $ "error adit: " ++ (show x)
 
 parse_ :: String -> Salty
-parse_ str = getRight $ parse saltyParserSingle "saltyParserSingle" str
+parse_ "" = PhpLine ""
+parse_ str = getRight $ parse saltyParserSingle "saltyParserSingle" newStr
+  where newStr = if (last str == '\n') then str else (str ++ "\n")
 
 saltyParser :: ParsecT String u Data.Functor.Identity.Identity [Salty]
 saltyParser = many saltyParserSingle
@@ -189,7 +196,7 @@ higherOrderFunctionCall = do
   return $ HigherOrderFunctionCall obj hof func
 
 phpLine = do
-  line <- many1 anyChar
+  line <- anyChar `manyTill` (string "\n")
   return $ PhpLine line
 
 -- build a b := 2
