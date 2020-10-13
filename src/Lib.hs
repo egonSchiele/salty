@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Lib where
 
 import Types
@@ -215,6 +217,15 @@ higherOrderFunction = do
   <||> anyFunc
   <||> allFunc
 
+lastMatch ch = do
+  list <- many1 (char ch)
+  return $ (init list)
+
+manyTillChar ch = do
+  body <- anyToken `manyTill` (lookAhead . try $ char ch)
+  end <- lastMatch ')'
+  return (body ++ end)
+
 higherOrderFunctionCall = do
   obj <- variableName
   hof <- higherOrderFunction
@@ -223,9 +234,10 @@ higherOrderFunctionCall = do
   string "\\"
   args <- anyToken `manyTill` (try $ string "->")
   spaces
-  body_ <- functionCall
-  char ')'
-  let func = LambdaFunction (words args) body_
+  body_ <- anyToken `manyTill` (lookAhead . try $ char ')')
+  end <- lastMatch ')'
+  let body = parse_ (body_ ++ end)
+  let func = LambdaFunction (words args) body
   return $ HigherOrderFunctionCall obj hof func
 
 phpLine = do
@@ -235,8 +247,8 @@ phpLine = do
 functionCall = do
   obj <- variableName
   char '.'
-  funcName <- letter `manyTill` (lookAhead $ char '(')
-  funcArgs <- anyChar `manyTill` (lookAhead . try $ char ')')
+  funcName <- letter `manyTill` (char '(')
+  funcArgs <- anyChar `manyTill` (char ')')
   return $ FunctionCall (Just obj) (SimpleVar funcName) (split "," funcArgs)
 
 -- build a b := 2
