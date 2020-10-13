@@ -10,6 +10,17 @@ import Text.Parsec.Combinator
 import Data.List (intercalate)
 import qualified Data.Functor.Identity
 import Utils
+import System.IO.Unsafe
+import System.Environment
+import Debug.Trace (trace)
+
+debug :: String -> ParsecT String u Data.Functor.Identity.Identity Salty
+debug str = trace str $ return (SaltyString str)
+-- debug str = return $ unsafePerformIO $ do
+--   debugFlag <- lookupEnv "DEBUG"
+--   case debugFlag of
+--     Nothing -> return (SaltyString $ "debug flag off for debug: " ++ str)
+--     Just _ -> putStrLn str >> return (SaltyString $ "debug: " ++ str)
 
 for = flip map
 
@@ -82,19 +93,23 @@ build str = parse saltyParser "saltyParser" (str ++ "\n")
 -- parser #2 doesn't use that input
 (<||>) p1 p2 = try(p1) <|> p2
 
-getRight (Right x) = x
-getRight (Left x) = SaltyString $ "error adit: " ++ (show x)
+-- getRight (Right x) = x
+-- getRight (Left x) = SaltyString $ "error adit: " ++ (show x)
 
-parse_ :: String -> Salty
-parse_ "" = PhpLine ""
-parse_ str = getRight $ parse saltyParserSingle "saltyParserSingle" newStr
+-- parse_ :: String -> Either ParseError Salty
+parse_ :: String -> String -> ParsecT String u Data.Functor.Identity.Identity Salty
+parse_ "" caller = return EmptyLine
+parse_ str caller = case parsed of
+              (Left err) -> parserTraced (show err) (unexpected (show err))
+              (Right s) -> return s
   where newStr = if (last str == '\n') then str else (str ++ "\n")
+        parsed = parse saltyParserSingle ("parse_ from " ++ caller) newStr
 
 saltyParser :: ParsecT String u Data.Functor.Identity.Identity [Salty]
 saltyParser = many saltyParserSingle
 
 saltyParserSingle :: ParsecT String u Data.Functor.Identity.Identity Salty
-saltyParserSingle = do
+saltyParserSingle = debug "saltyParserSingle" >> do
   function
   <||> operation
   <||> saltyString
@@ -105,26 +120,30 @@ saltyParserSingle = do
   <||> negateSalty
   <||> emptyLine
 
-variableName = do
+variableName = debug "variableName" >> do
         classVar
   <||>  instanceVar
   <||>  simpleVar
 
-functionBody = do
-        block
-  <||>  lambda
+functionBody = debug "functionBody" >> do
+        lambda
   <||>  ampersand
   <||>  oneLine
 
-function = do
+function = debug "function" >> do
+  parserTrace "1"
   name <- variableName
+  parserTrace "2"
   args <- anyToken `manyTill` (string ":=")
-  spaces
+  parserTrace "3"
+  space
+  parserTrace "4"
   body_ <- anyChar `manyTill` char ';'
-  let body = parse_ body_
+  parserTrace $ "5" ++ body_
+  body <- parse_ body_ "function"
   return $ Function name (map argWithDefaults (words args)) (OneLine body)
 
-operator = do
+operator = debug "operator" >> do
        (string "+" >> return Add)
   <||> (string "+" >> return Subtract)
   <||> (string "/" >> return Divide)
@@ -139,87 +158,91 @@ operator = do
   <||> (string "||" >> return OrOr)
   <||> (string "&&" >> return AndAnd)
 
-atom = do
+atom = debug "atom" >> do
        (Left <$> variableName)
   <||> (Right <$> saltyString)
   <||> (Right <$> saltyNumber)
 
-operation = do
+operation = debug "operation" >> do
+  parserTrace "a"
   left <- atom
-  spaces
+  space
+  parserTrace "b"
   op <- operator
-  spaces
+  space
+  parserTrace "c"
   right <- atom
+  parserTrace "d"
   return $ Operation left op right
 
-negateSalty = do
+negateSalty = debug "negateSalty" >> do
   char '!'
   s <- saltyParserSingle
   return $ Negate s
 
-emptyLine = do
+emptyLine = debug "emptyLine" >> do
   string "\n\n"
   return EmptyLine
 
 betweenQuotes = between (oneOf "\"'") (oneOf "\"'")
 
-saltyString = do
+saltyString = debug "saltyString" >> do
   str <- betweenQuotes (many anyToken)
   return $ SaltyString str
 
-saltyNumber = do
+saltyNumber = debug "saltyNumber" >> do
   number <- many1 (oneOf "1234567890.")
   return $ SaltyNumber number
 
 -- @foo
-instanceVar = do
+instanceVar = debug "instanceVar" >> do
   char '@'
-  variable <- letter `manyTill` (lookAhead (oneOf " .),"))
+  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n"))
   return $ InstanceVar variable
 
 -- @@foo
-classVar = do
+classVar = debug "classVar" >> do
   string "@@"
-  variable <- letter `manyTill` (lookAhead (oneOf " .),"))
+  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n"))
   return $ ClassVar variable
 
 -- foo
-simpleVar = do
-  variable <- letter `manyTill` (lookAhead (oneOf " .),"))
+simpleVar = debug "simpleVar" >> do
+  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n"))
   return $ SimpleVar variable
 
-oneLine = do
+oneLine = debug "oneLine" >> do
   line <- anyChar `manyTill` (try $ char ';')
-  let salty = parse_ line
+  salty <- parse_ line "oneLine"
   return $ OneLine salty
 
-block = do
-  string "do"
-  newline
-  blockLines <- anyToken `manyTill` (string "end")
-  let l = lines blockLines
-  return $ Block (map parse_ l)
+-- block = do
+--   string "do"
+--   newline
+--   blockLines <- anyToken `manyTill` (string "end")
+--   let l = lines blockLines
+--   return $ Block (map parse_ l)
 
-lambda = do
+lambda = debug "lambda" >> do
   string "\\"
   args <- anyToken `manyTill` (string "->")
   spaces
   body_ <- anyToken `manyTill` (lookAhead $ char '\n')
-  let body = parse_ body_
+  body <- parse_ body_ "lambda"
   return $ LambdaFunction (words args) body
 
-ampersand = do
+ampersand = debug "ampersand" >> do
   char '&'
   var <- variableName
   return $ AmpersandFunction var
 
-returnStatement = do
+returnStatement = debug "returnStatement" >> do
   string "return "
   line <- anyToken `manyTill` (try newline)
-  let salty = parse_ line
+  salty <- parse_ line "returnStatement"
   return $ ReturnStatement salty
 
-hashLookup = do
+hashLookup = debug "hashLookup" >> do
   h <- variableName
   space
   char '>'
@@ -233,7 +256,7 @@ selectFunc = string ".select" >> return Select
 anyFunc = string ".any" >> return Any
 allFunc = string ".all" >> return All
 
-higherOrderFunction = do
+higherOrderFunction = debug "higherOrderFunction" >> do
        eachFunc
   <||> mapFunc
   <||> selectFunc
@@ -249,7 +272,7 @@ manyTillChar ch = do
   end <- lastMatch ')'
   return (body ++ end)
 
-higherOrderFunctionCall = do
+higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   obj <- variableName
   hof <- higherOrderFunction
   char '('
@@ -258,7 +281,7 @@ higherOrderFunctionCall = do
   args <- anyToken `manyTill` (try $ string "->")
   spaces
   body_ <- manyTillChar ')'
-  let body = parse_ body_
+  body <- parse_ body_ "higherOrderFunctionCall"
   let func = LambdaFunction (words args) body
   return $ HigherOrderFunctionCall obj hof func
 
@@ -266,18 +289,18 @@ higherOrderFunctionCall = do
 --   line <- anyChar `manyTill` (string "\n")
 --   return $ PhpLine line
 
-functionCall = do
+functionCall = debug "functionCall" >> do
        functionCallOnObject
   <||> functionCallWithoutObject
 
-functionCallOnObject = do
+functionCallOnObject = debug "functionCallOnObject" >> do
   obj <- variableName
   char '.'
   funcName <- letter `manyTill` (char '(')
   funcArgs <- anyChar `manyTill` (char ')')
   return $ FunctionCall (Just obj) (SimpleVar funcName) (split "," funcArgs)
 
-functionCallWithoutObject = do
+functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   funcName <- letter `manyTill` (char '(')
   funcArgs <- anyChar `manyTill` (char ')')
   return $ FunctionCall Nothing (SimpleVar funcName) (split "," funcArgs)

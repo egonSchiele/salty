@@ -20,13 +20,13 @@ printHelp = do
     putStrLn "Usage: `salty test.sl` (writes to test.php)"
     putStrLn "or `salty input.sl output.php` to write to output.php"
 
-debug :: String -> IO ()
-debug infile = do
+debugFile :: String -> IO ()
+debugFile infile = do
     contents <- readFile infile
     putStrLn . saltyToDebugTree $ contents
 
 main = do
   args <- getArgs
   case args of
-       ["debug"] -> debug "test.sl"
+       ["debug"] -> debugFile "test.sl"
        _ -> convert "test.sl" "test.php"
