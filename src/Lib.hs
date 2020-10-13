@@ -234,9 +234,8 @@ higherOrderFunctionCall = do
   string "\\"
   args <- anyToken `manyTill` (try $ string "->")
   spaces
-  body_ <- anyToken `manyTill` (lookAhead . try $ char ')')
-  end <- lastMatch ')'
-  let body = parse_ (body_ ++ end)
+  body_ <- manyTillChar ')'
+  let body = parse_ body_
   let func = LambdaFunction (words args) body
   return $ HigherOrderFunctionCall obj hof func
 
