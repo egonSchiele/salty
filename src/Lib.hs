@@ -102,7 +102,8 @@ saltyParserSingle = do
   <||> returnStatement
   <||> higherOrderFunctionCall
   <||> functionCall
-  <||> phpLine
+  <||> negateSalty
+  <||> emptyLine
 
 variableName = do
         classVar
@@ -151,6 +152,15 @@ operation = do
   right <- atom
   return $ Operation left op right
 
+negateSalty = do
+  char '!'
+  s <- saltyParserSingle
+  return $ Negate s
+
+emptyLine = do
+  string "\n\n"
+  return EmptyLine
+
 betweenQuotes = between (oneOf "\"'") (oneOf "\"'")
 
 saltyString = do
@@ -180,7 +190,6 @@ simpleVar = do
 
 oneLine = do
   line <- anyChar `manyTill` (try $ char ';')
-  parserTrace $ ">> " ++ line ++ "<<"
   let salty = parse_ line
   return $ OneLine salty
 
@@ -253,17 +262,25 @@ higherOrderFunctionCall = do
   let func = LambdaFunction (words args) body
   return $ HigherOrderFunctionCall obj hof func
 
-phpLine = do
-  line <- anyChar `manyTill` (string "\n")
-  return $ PhpLine line
+-- phpLine = do
+--   line <- anyChar `manyTill` (string "\n")
+--   return $ PhpLine line
 
 functionCall = do
+       functionCallOnObject
+  <||> functionCallWithoutObject
+
+functionCallOnObject = do
   obj <- variableName
   char '.'
   funcName <- letter `manyTill` (char '(')
   funcArgs <- anyChar `manyTill` (char ')')
   return $ FunctionCall (Just obj) (SimpleVar funcName) (split "," funcArgs)
 
+functionCallWithoutObject = do
+  funcName <- letter `manyTill` (char '(')
+  funcArgs <- anyChar `manyTill` (char ')')
+  return $ FunctionCall Nothing (SimpleVar funcName) (split "," funcArgs)
 -- build a b := 2
 -- function = do
 --   functionName <- many1 letter

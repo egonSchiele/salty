@@ -8,8 +8,6 @@ function isSafe($str, $lists) {
     };
 }
 
-
 function isUnsafe($str) {
-    !isSafe(str);
+    return !isSafe(str);
 }
-

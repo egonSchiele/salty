@@ -91,6 +91,8 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              --   fmapFunction :: FunctionBody
              -- }
              | ReturnStatement Salty
+             | Negate Salty
+             | EmptyLine
              | PhpLine String
              | Salt
              deriving (Show)
@@ -201,6 +203,8 @@ instance ConvertToPhp Salty where
   toPhp Salt = "I'm salty"
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
   toPhp (PhpLine line) = line
+  toPhp (Negate s) = "!" ++ (toPhp s)
+  toPhp EmptyLine = ""
 
   toPhp x = "not implemented yet: " ++ (show x)
 
