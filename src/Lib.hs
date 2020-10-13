@@ -95,6 +95,7 @@ saltyParserSingle = do
   <||> saltyNumber
   <||> returnStatement
   <||> higherOrderFunctionCall
+  <||> functionCall
   <||> phpLine
 
 variableName = do
@@ -112,8 +113,9 @@ function = do
   name <- variableName
   args <- anyToken `manyTill` (string ":=")
   spaces
-  body <- (block <||> oneLine)
-  return $ Function name (map argWithDefaults (words args)) body
+  body_ <- anyChar `manyTill` char ';'
+  let body = parse_ body_
+  return $ Function name (map argWithDefaults (words args)) (OneLine body)
 
 assignmentType = do
        (string "=" >> return Equals)
@@ -160,7 +162,8 @@ simpleVar = do
   return $ SimpleVar variable
 
 oneLine = do
-  line <- anyChar `manyTill` (lookAhead $ oneOf ")\n")
+  line <- anyChar `manyTill` (try $ char ';')
+  parserTrace $ ">> " ++ line ++ "<<"
   let salty = parse_ line
   return $ OneLine salty
 
@@ -175,7 +178,7 @@ lambda = do
   string "\\"
   args <- anyToken `manyTill` (string "->")
   spaces
-  body_ <- anyToken `manyTill` (lookAhead $ oneOf ")\n")
+  body_ <- anyToken `manyTill` (lookAhead $ char '\n')
   let body = parse_ body_
   return $ LambdaFunction (words args) body
 
@@ -215,13 +218,21 @@ higherOrderFunctionCall = do
   obj <- variableName
   hof <- higherOrderFunction
   char '('
-  func <- (lambda <||> ampersand)
-  char ')'
+
+  string "\\"
+  args <- anyToken `manyTill` (try $ string "->")
+  spaces
+  body_ <- phpLine
+  let func = LambdaFunction (words args) body_
   return $ HigherOrderFunctionCall obj hof func
 
 phpLine = do
   line <- anyChar `manyTill` (string "\n")
   return $ PhpLine line
+
+functionCall = do
+  string "fuck"
+  return Salt
 
 -- build a b := 2
 -- function = do
