@@ -138,12 +138,12 @@ instance ConvertToPhp Salty where
   toPhp (Operation left MultiplyEquals right) = printf "%s = %s * %s" (toPhp left) (toPhp left) (toPhp right)
   toPhp (Operation left DivideEquals right) = printf "%s = %s / %s" (toPhp left) (toPhp left) (toPhp right)
   toPhp (Operation left OrEquals right) = printf "%s = %s ?? %s" (toPhp left) (toPhp left) (toPhp right)
-  toPhp (Operation left Add right) = printf "%s + %s" (toPhp left) (toPhp left) (toPhp right)
-  toPhp (Operation left Subtract right) = printf "%s + %s" (toPhp left) (toPhp left) (toPhp right)
-  toPhp (Operation left Divide right) = printf "%s + %s" (toPhp left) (toPhp left) (toPhp right)
-  toPhp (Operation left Multiply right) = printf "%s + %s" (toPhp left) (toPhp left) (toPhp right)
-  toPhp (Operation left OrOr right) = printf "%s || %s" (toPhp left) (toPhp left) (toPhp right)
-  toPhp (Operation left AndAnd right) = printf "%s || %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left Add right) = printf "%s + %s" (toPhp left) (toPhp right)
+  toPhp (Operation left Subtract right) = printf "%s + %s" (toPhp left) (toPhp right)
+  toPhp (Operation left Divide right) = printf "%s + %s" (toPhp left) (toPhp right)
+  toPhp (Operation left Multiply right) = printf "%s + %s" (toPhp left) (toPhp right)
+  toPhp (Operation left OrOr right) = printf "%s || %s" (toPhp left) (toPhp right)
+  toPhp (Operation left AndAnd right) = printf "%s || %s" (toPhp left) (toPhp right)
 
   -- toPhp (Function name args (LambdaFunction _ _)) = "lambda function body not allowed as method body " ++ (show name)
   -- toPhp (Function name args (AmpersandFunction _)) = "ampersand function body not allowed as method body " ++ (show name)
@@ -164,7 +164,8 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just (InstanceVar obj)) funcName args) = printf "$this->%s->%s(%s)" obj (simpleVarName funcName) (intercalate ", " args)
   toPhp (FunctionCall (Just (ClassVar obj)) funcName args) = printf "static::%s->%s(%s)" obj (simpleVarName funcName) (intercalate ", " args)
 
-  toPhp (LambdaFunction args body) = (unlines $ map (printf "$%s = null;\n") args) ++ toPhp body
+  toPhp (LambdaFunction [] body) =  toPhp body
+  toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)
 
   -- each
   toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body)) =
