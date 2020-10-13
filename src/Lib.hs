@@ -7,6 +7,7 @@ import Text.Parsec.Combinator
 --import Text.ParserCombinators.Parsec.Error(messageString)
 import Data.List (intercalate)
 import qualified Data.Functor.Identity
+import Utils
 
 for = flip map
 
@@ -18,10 +19,15 @@ saltyToPhp str = case (build str) of
 saltyToDebugTree :: String -> String
 saltyToDebugTree str = case (build str) of
                    Left err -> show err
-                   Right xs -> (show xs)
+                   Right xs -> formatDebug (show xs)
 
 saltyToPhp_ :: [Salty] -> String
 saltyToPhp_ tree = unlines . indent . addSemicolons . lines . (intercalate "\n") . (map toPhp) $ tree
+
+formatDebug :: String -> String
+formatDebug str = unlines . indentDebug . (map strip) . lines . addNewlines $ str
+
+addNewlines str = replace "[" "[\n" . replace "{" "{\n" . replace "," ",\n" . replace "}" "\n}" . replace "]" "\n]" $ str
 
 addSemicolons :: [String] -> [String]
 addSemicolons phpLines = for phpLines $ \line ->
@@ -44,6 +50,24 @@ indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
                       '}' -> indentAmt - 1
                       _ -> indentAmt
 
+
+indentDebug :: [String] -> [String]
+indentDebug lines_ = indentDebug_ lines_ 0
+
+indentDebug_ :: [String] -> Int -> [String]
+indentDebug_ [] _ = []
+indentDebug_ ("":lines_) indentAmt = "":(indentDebug_ lines_ indentAmt)
+indentDebug_ (l:lines_) indentAmt = newLine:(indentDebug_ lines_ newAmt)
+  where newLine = if (last l) `elem` ['}', ']'] || (last_ 2 l) `elem` ["},", "],"]
+                     then (replicate ((indentAmt-1)*4) ' ') ++ l
+                     else (replicate (indentAmt*4) ' ') ++ l
+        newAmt = getNewAmt l indentAmt
+
+getNewAmt l indentAmt
+  | (last l) `elem` ['}', ']'] = indentAmt - 1
+  | (last_ 2 l) `elem` ["},", "],"] = indentAmt - 1
+  | (last l) `elem` ['{', '['] = indentAmt + 1
+  | otherwise = indentAmt
 
 build :: String -> Either ParseError [Salty]
 build str = parse saltyParser "saltyParser" (str ++ "\n")
