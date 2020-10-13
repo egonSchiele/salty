@@ -96,7 +96,7 @@ saltyParser = many saltyParserSingle
 saltyParserSingle :: ParsecT String u Data.Functor.Identity.Identity Salty
 saltyParserSingle = do
   function
-  <||> assignment
+  <||> operation
   <||> saltyString
   <||> saltyNumber
   <||> returnStatement
@@ -123,19 +123,33 @@ function = do
   let body = parse_ body_
   return $ Function name (map argWithDefaults (words args)) (OneLine body)
 
-assignmentType = do
-       (string "=" >> return Equals)
+operator = do
+       (string "+" >> return Add)
+  <||> (string "+" >> return Subtract)
+  <||> (string "/" >> return Divide)
+  <||> (string "*" >> return Multiply)
+  <||> (string "=" >> return Equals)
+  <||> (string "!=" >> return NotEquals)
   <||> (string "+=" >> return PlusEquals)
   <||> (string "-=" >> return MinusEquals)
+  <||> (string "/=" >> return DivideEquals)
+  <||> (string "*=" >> return MultiplyEquals)
   <||> (string "||=" >> return OrEquals)
+  <||> (string "||" >> return OrOr)
+  <||> (string "&&" >> return AndAnd)
 
-assignment = do
-  name <- variableName
+atom = do
+       (Left <$> variableName)
+  <||> (Right <$> saltyString)
+  <||> (Right <$> saltyNumber)
+
+operation = do
+  left <- atom
   spaces
-  typ <- assignmentType
+  op <- operator
   spaces
-  value <- saltyParserSingle
-  return $ Assignment name typ value
+  right <- atom
+  return $ Operation left op right
 
 betweenQuotes = between (oneOf "\"'") (oneOf "\"'")
 

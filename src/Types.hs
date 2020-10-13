@@ -26,8 +26,6 @@ data FunctionBody = OneLine Salty -- e.g. incr x := x + 1
                       | AmpersandFunction VariableName -- &:@function (used for maps/each etc)
                       deriving (Show)
 
-data AssignmentType = Equals | PlusEquals | MinusEquals | OrEquals deriving (Show)
-
 -- function args
 data Argument = Argument {
                   argType :: Maybe String,
@@ -39,10 +37,24 @@ argWithDefaults name = Argument Nothing name Nothing
 
 data HigherOrderFunction = Each | Map | Select | Any | All deriving (Show)
 
-data Salty = Assignment { -- e.g. a = 1 / a += 1 / a ||= 0
-               aName :: VariableName,
-               aAssignmentType :: AssignmentType,
-               aValue :: Salty
+data Operator = Add |
+  Subtract |
+  Divide |
+  Multiply |
+  Equals |
+  NotEquals |
+  PlusEquals |
+  MinusEquals |
+  OrEquals |
+  DivideEquals |
+  MultiplyEquals |
+  OrOr |
+  AndAnd deriving (Show)
+
+data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
+               oLeft :: Either VariableName Salty,
+               oOperationType :: Operator,
+               oRight :: Either VariableName Salty
              }
              | Function {
                fName :: VariableName,
@@ -107,14 +119,24 @@ instance ConvertToPhp Argument where
   toPhp (Argument Nothing name (Just default_)) = printf "$%s = %s" name default_
   toPhp (Argument Nothing name Nothing) = "$" ++ name
 
+instance (ConvertToPhp a1, ConvertToPhp a2) => ConvertToPhp (Either a1 a2) where
+  toPhp (Left a) = toPhp a
+  toPhp (Right a) = toPhp a
+
 instance ConvertToPhp Salty where
-  toPhp (Assignment name Equals value) = (toPhp name) ++ " = " ++ (toPhp value)
-  toPhp (Assignment name PlusEquals value) = printf "%s = %s + %s" n n (toPhp value)
-    where n = toPhp name
-  toPhp (Assignment name MinusEquals value) = printf "%s = %s - %s" n n (toPhp value)
-    where n = toPhp name
-  toPhp (Assignment name OrEquals value) = printf "%s = %s ?? %s" n n (toPhp value)
-    where n = toPhp name
+  toPhp (Operation left Equals right) = (toPhp left) ++ " = " ++ (toPhp right)
+  toPhp (Operation left NotEquals right) = (toPhp left) ++ " != " ++ (toPhp right)
+  toPhp (Operation left PlusEquals right) = printf "%s = %s + %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left MinusEquals right) = printf "%s = %s - %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left MultiplyEquals right) = printf "%s = %s * %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left DivideEquals right) = printf "%s = %s / %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left OrEquals right) = printf "%s = %s ?? %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left Add right) = printf "%s + %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left Subtract right) = printf "%s + %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left Divide right) = printf "%s + %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left Multiply right) = printf "%s + %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left OrOr right) = printf "%s || %s" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left AndAnd right) = printf "%s || %s" (toPhp left) (toPhp left) (toPhp right)
 
   toPhp (Function name args (LambdaFunction _ _)) = "lambda function body not allowed as method body " ++ (show name)
   toPhp (Function name args (AmpersandFunction _)) = "ampersand function body not allowed as method body " ++ (show name)
