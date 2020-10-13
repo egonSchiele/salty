@@ -93,6 +93,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | ReturnStatement Salty
              | Negate Salty
              | EmptyLine
+             | Parens Salty
              | PhpLine String
              | Salt
              deriving (Show)
@@ -202,6 +203,7 @@ instance ConvertToPhp Salty where
   toPhp (HashLookup (Right hashLookup_) key) = printf "%s[%s]" (toPhp hashLookup_) (varName key)
   toPhp Salt = "I'm salty"
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
+  toPhp (Parens s) = "(" ++ (toPhp s) ++ ")"
   toPhp (PhpLine line) = line
   toPhp (Negate s) = "!" ++ (toPhp s)
   toPhp EmptyLine = ""

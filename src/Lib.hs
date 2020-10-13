@@ -110,7 +110,8 @@ saltyParser = many saltyParserSingle
 
 saltyParserSingle :: ParsecT String u Data.Functor.Identity.Identity Salty
 saltyParserSingle = debug "saltyParserSingle" >> do
-  function
+  parens
+  <||> function
   <||> operation
   <||> saltyString
   <||> saltyNumber
@@ -129,6 +130,12 @@ functionBody = debug "functionBody" >> do
         lambda
   <||>  ampersand
   <||>  oneLine
+
+parens = debug "parens" >> do
+  char '('
+  body <- saltyParserSingle
+  char ')'
+  return $ Parens body
 
 function = debug "function" >> do
   parserTrace "1"
@@ -197,18 +204,18 @@ saltyNumber = debug "saltyNumber" >> do
 -- @foo
 instanceVar = debug "instanceVar" >> do
   char '@'
-  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n"))
+  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
   return $ InstanceVar variable
 
 -- @@foo
 classVar = debug "classVar" >> do
   string "@@"
-  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n"))
+  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
   return $ ClassVar variable
 
 -- foo
 simpleVar = debug "simpleVar" >> do
-  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n"))
+  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
   return $ SimpleVar variable
 
 oneLine = debug "oneLine" >> do
