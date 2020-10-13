@@ -152,7 +152,7 @@ function = debug "function" >> do
   parserTrace "3"
   space
   parserTrace "4"
-  body_ <- anyChar `manyTill` char ';'
+  body_ <- anyChar `manyTill` char '\n'
   parserTrace $ "5" ++ body_
   body <- parse_ body_ "function"
   return $ Function name (map argWithDefaults (words args)) body

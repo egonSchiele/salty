@@ -1,1 +1,2 @@
-foo := a.foo;
+foo := a.foo
+
