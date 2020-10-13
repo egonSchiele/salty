@@ -46,7 +46,7 @@ function = do
   name <- variableName
   args <- anyToken `manyTill` (string ":=")
   spaces
-  body <- functionBody
+  body <- (block <||> oneLine)
   return $ Function name (map argWithDefaults (words args)) body
 
 assignmentType = do
@@ -94,11 +94,8 @@ simpleVar = do
   return $ SimpleVar variable
 
 oneLine = do
-  parserTrace "oneline1"
-  line <- anyChar `manyTill` (lookAhead $ char ')')
-  parserTrace $ "oneline2: " ++ line
+  line <- anyChar `manyTill` (lookAhead $ oneOf ")\n")
   let salty = parse_ line
-  parserTrace "oneline3"
   return $ OneLine salty
 
 block = do
@@ -110,14 +107,10 @@ block = do
 
 lambda = do
   string "\\"
-  parserTrace "lamb1"
   args <- anyToken `manyTill` (string "->")
   spaces
-  parserTrace "lamb2"
   body_ <- anyToken `manyTill` (lookAhead $ oneOf ")\n")
-  parserTrace $ "lamb3: " ++ (show body_)
   let body = parse_ body_
-  parserTrace $ "lamb4: " ++ (show body)
   return $ LambdaFunction (words args) body
 
 ampersand = do
@@ -153,15 +146,10 @@ higherOrderFunction = do
   <||> allFunc
 
 higherOrderFunctionCall = do
-  parserTrace "1"
   obj <- variableName
-  parserTrace "2"
   hof <- higherOrderFunction
-  parserTrace "3"
   char '('
-  parserTrace "4"
   func <- (lambda <||> ampersand)
-  parserTrace "5"
   char ')'
   return $ HigherOrderFunctionCall obj hof func
 

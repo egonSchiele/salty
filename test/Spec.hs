@@ -8,7 +8,7 @@ import Types
 
 -- so it prints multi-line strings on multiple lines for gods sake
 -- assertEqual_ expected actual = assertBool (expected == actual) failureMsg
--- 	where failureMsg = "expected:\n" ++ expected ++"\nbut got actual:\n" ++ actual ++ "\n"
+--   where failureMsg = "expected:\n" ++ expected ++"\nbut got actual:\n" ++ actual ++ "\n"
 
 matches str1 str2 = TestCase $ assertEqual "" str2 (build str1)
 
@@ -56,16 +56,16 @@ phpBlob = [r|
 longerTest = saltyBlob `matches` phpBlob
 
 transpileTests = [
-   -- "foo = 1" `matches` "$foo = 1",
-   --  "@foo = 1" `matches` "$this->foo = 1",
-   --  "@@foo = 1" `matches` "self::$foo = 1",
-   --  "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-   --  "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-   --  "@@build a b := 2" `matches` "static function build($a, $b) {\nreturn 2;\n}",
+   "foo = 1" `matches` "$foo = 1",
+    "@foo = 1" `matches` "$this->foo = 1",
+    "@@foo = 1" `matches` "self::$foo = 1",
+    "build a b := 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
+    "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
+    "@@build a b := 2" `matches` "static function build($a, $b) {\nreturn 2;\n}",
     "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}",
     "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",
-	"@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n$result []= x + 1;\n}"
+    "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n$result []= x + 1;\n}"
     -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
     -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
     -- "# hi" `matches` "// hi",
