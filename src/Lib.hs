@@ -296,11 +296,21 @@ functionCall = debug "functionCall" >> do
   <||> functionCallWithoutObject
 
 functionCallOnObject = debug "functionCallOnObject" >> do
+       functionCallWithArgs
+  <||> functionCallWithoutArgs
+
+functionCallWithArgs = debug "functionCallWithArgs" >> do
   obj <- variableName
   char '.'
   funcName <- letter `manyTill` (char '(')
   funcArgs <- anyChar `manyTill` (char ')')
   return $ FunctionCall (Just obj) (SimpleVar funcName) (split "," funcArgs)
+
+functionCallWithoutArgs = debug "functionCallWithArgs" >> do
+  obj <- variableName
+  char '.'
+  funcName <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
+  return $ FunctionCall (Just obj) (SimpleVar funcName) []
 
 functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   funcName <- letter `manyTill` (char '(')

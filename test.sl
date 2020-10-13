@@ -1,1 +1,1 @@
-foo a := a.map(\b -> b + 1#);
+foo := a.foo;
