@@ -1,2 +1,1 @@
-foo := a.foo
-
+foo a := a.map(\b -> b + 1)

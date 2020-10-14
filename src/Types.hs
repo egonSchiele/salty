@@ -49,7 +49,11 @@ data Operator = Add |
   DivideEquals |
   MultiplyEquals |
   OrOr |
-  AndAnd deriving (Show)
+  AndAnd |
+  LessThan |
+  LessThanOrEqualTo |
+  GreaterThan |
+  GreaterThanOrEqualTo deriving (Show)
 
 data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                oLeft :: Either VariableName Salty,
@@ -144,6 +148,10 @@ instance ConvertToPhp Salty where
   toPhp (Operation left Multiply right) = printf "%s + %s" (toPhp left) (toPhp right)
   toPhp (Operation left OrOr right) = printf "%s || %s" (toPhp left) (toPhp right)
   toPhp (Operation left AndAnd right) = printf "%s || %s" (toPhp left) (toPhp right)
+  toPhp (Operation left LessThan right) = printf "%s < %s" (toPhp left) (toPhp right)
+  toPhp (Operation left LessThanOrEqualTo right) = printf "%s <= %s" (toPhp left) (toPhp right)
+  toPhp (Operation left GreaterThan right) = printf "%s > %s" (toPhp left) (toPhp right)
+  toPhp (Operation left GreaterThanOrEqualTo right) = printf "%s >= %s" (toPhp left) (toPhp right)
 
   -- toPhp (Function name args (LambdaFunction _ _)) = "lambda function body not allowed as method body " ++ (show name)
   -- toPhp (Function name args (AmpersandFunction _)) = "ampersand function body not allowed as method body " ++ (show name)

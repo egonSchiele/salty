@@ -195,7 +195,7 @@ negateSalty = debug "negateSalty" >> do
   return $ Negate s
 
 emptyLine = debug "emptyLine" >> do
-  string "\n\n"
+  string "\n"
   return EmptyLine
 
 betweenQuotes = between (oneOf "\"'") (oneOf "\"'")
@@ -234,10 +234,8 @@ simpleVar = debug "simpleVar" >> do
 
 lambda = debug "lambda" >> do
   string "\\"
-  args <- anyToken `manyTill` (string "->")
-  spaces
-  body_ <- anyToken `manyTill` (char '#')
-  body <- parse_ body_ "lambda"
+  args <- anyToken `manyTill` (string " -> ")
+  body <- saltyParserSingle
   return $ LambdaFunction (words args) body
 
 -- ampersand = debug "ampersand" >> do
