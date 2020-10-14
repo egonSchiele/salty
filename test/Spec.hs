@@ -83,7 +83,7 @@ transpileTests = [
     "5 * 5" `matches` "5 * 5;",
     "foo + bar" `matches` "$foo + $bar;",
     "'foo' + 'bar'" `matches` "'foo' + 'bar'",
-    "a + b + c" `matches` "$a + $b + $c"
+    "a + b + c" `matches` "$a + $b + $c;"
 
     -- function definitions
     -- "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}",

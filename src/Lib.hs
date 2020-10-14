@@ -114,7 +114,7 @@ operation = debug "operation" >> do
   space
   op <- operator
   space
-  right <- atom
+  right <- ((Right <$> operation) <||> atom)
   return $ Operation left op right
 
 negateSalty = debug "negateSalty" >> do
