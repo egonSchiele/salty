@@ -3,6 +3,10 @@ module Utils where
 import Data.List(intersperse, concat, isPrefixOf, isSuffixOf, elemIndices,
                 elemIndex, elemIndices, tails, find, findIndex)
 
+import Text.Parsec
+import Text.ParserCombinators.Parsec.Char
+import Text.Parsec.Combinator
+import Data.Functor.Identity (Identity)
 
 isJust (Just _) = True
 isJust Nothing = False
@@ -409,3 +413,9 @@ last_ 0 str = ""
 last_ _ "" = ""
 last_ 1 str = [last str]
 last_ x str = (last_ (x-1) (init str)) ++ [last str]
+
+for = flip map
+
+-- if you don't use try, and the first parser consumes some input,
+-- parser #2 doesn't use that input
+(<||>) p1 p2 = try(p1) <|> p2

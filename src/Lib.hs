@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-
 module Lib where
 
 import Types
@@ -8,107 +6,38 @@ import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 --import Text.ParserCombinators.Parsec.Error(messageString)
 import Data.List (intercalate)
-import qualified Data.Functor.Identity
 import Utils
+import Formatting
 import System.IO.Unsafe
 import System.Environment
 import Debug.Trace (trace)
 
-debug :: String -> ParsecT String u Data.Functor.Identity.Identity Salty
-debug str = trace str $ return (SaltyString str)
--- debug str = return $ unsafePerformIO $ do
---   debugFlag <- lookupEnv "DEBUG"
---   case debugFlag of
---     Nothing -> return (SaltyString $ "debug flag off for debug: " ++ str)
---     Just _ -> putStrLn str >> return (SaltyString $ "debug: " ++ str)
+type SaltyParser = Parsec String SaltyState Salty
 
-for = flip map
+debug :: String -> SaltyParser
+debug str = return (SaltyString str)
+-- debug str = trace str $ return (SaltyString str)
+
+build :: String -> Either ParseError [Salty]
+build str = runParser saltyParser (SaltyState []) "saltyParser" (str ++ "\n")
 
 saltyToPhp :: String -> String
 saltyToPhp str = case (build str) of
                    Left err -> show err
                    Right xs -> saltyToPhp_ xs
 
+saltyToPhp_ :: [Salty] -> String
+saltyToPhp_ tree = unlines . indent . addSemicolons . lines . (intercalate "\n") . (map toPhp) $ tree
+
 saltyToDebugTree :: String -> String
 saltyToDebugTree str = case (build str) of
                    Left err -> show err
                    Right xs -> formatDebug (show xs)
 
-saltyToPhp_ :: [Salty] -> String
-saltyToPhp_ tree = unlines . indent . addSemicolons . lines . (intercalate "\n") . (map toPhp) $ tree
-
-formatDebug :: String -> String
-formatDebug str = unlines . indentDebug . (map strip) . lines . addNewlines $ str
-
-addNewlines str = replace "[" "[\n" . replace "{" "{\n" . replace "," ",\n" . replace "}" "\n}" . replace "]" "\n]" $ str
-
-addSemicolons :: [String] -> [String]
-addSemicolons phpLines = for phpLines $ \line ->
-                              if (line == "") || (last line) `elem` ['{', '}', ';']
-                                 then line
-                                 else (line ++ ";")
-
-indent :: [String] -> [String]
-indent lines_ = indent_ lines_ 0
-
-indent_ :: [String] -> Int -> [String]
-indent_ [] _ = []
-indent_ ("":lines_) indentAmt = "":(indent_ lines_ indentAmt)
-indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
-  where newLine = if (last l) == '}' || (last_ 2 l) == "};"
-                     then (replicate ((indentAmt-1)*4) ' ') ++ l
-                     else (replicate (indentAmt*4) ' ') ++ l
-        newAmt = newAmt_ l indentAmt
-
-
-newAmt_ l indentAmt
-  | (last l) == '{' = indentAmt + 1
-  | (last l) == '}' = indentAmt - 1
-  | (last_ 2 l) == "};" = indentAmt - 1
-  | otherwise = indentAmt
-
-
-indentDebug :: [String] -> [String]
-indentDebug lines_ = indentDebug_ lines_ 0
-
-indentDebug_ :: [String] -> Int -> [String]
-indentDebug_ [] _ = []
-indentDebug_ ("":lines_) indentAmt = "":(indentDebug_ lines_ indentAmt)
-indentDebug_ (l:lines_) indentAmt = newLine:(indentDebug_ lines_ newAmt)
-  where newLine = if (last l) `elem` ['}', ']'] || (last_ 2 l) `elem` ["},", "],"]
-                     then (replicate ((indentAmt-1)*4) ' ') ++ l
-                     else (replicate (indentAmt*4) ' ') ++ l
-        newAmt = getNewAmt l indentAmt
-
-getNewAmt l indentAmt
-  | (last l) `elem` ['}', ']'] = indentAmt - 1
-  | (last_ 2 l) `elem` ["},", "],"] = indentAmt - 1
-  | (last l) `elem` ['{', '['] = indentAmt + 1
-  | otherwise = indentAmt
-
-build :: String -> Either ParseError [Salty]
-build str = parse saltyParser "saltyParser" (str ++ "\n")
-
--- if you don't use try, and the first parser consumes some input,
--- parser #2 doesn't use that input
-(<||>) p1 p2 = try(p1) <|> p2
-
--- getRight (Right x) = x
--- getRight (Left x) = SaltyString $ "error adit: " ++ (show x)
-
--- parse_ :: String -> Either ParseError Salty
-parse_ :: String -> String -> ParsecT String u Data.Functor.Identity.Identity Salty
-parse_ "" caller = return EmptyLine
-parse_ str caller = case parsed of
-              (Left err) -> parserTraced (show err) (unexpected (show err))
-              (Right s) -> return s
-  where newStr = if (last str == '\n') then str else (str ++ "\n")
-        parsed = parse saltyParserSingle ("parse_ from " ++ caller) newStr
-
-saltyParser :: ParsecT String u Data.Functor.Identity.Identity [Salty]
+saltyParser :: Parsec String SaltyState [Salty]
 saltyParser = many saltyParserSingle
 
-saltyParserSingle :: ParsecT String u Data.Functor.Identity.Identity Salty
+saltyParserSingle :: SaltyParser
 saltyParserSingle = debug "saltyParserSingle" >> do
   parens
   <||> function
@@ -137,7 +66,7 @@ parens = debug "parens" >> do
   char ')'
   return $ Parens body
 
-parensWith :: ParsecT String u Data.Functor.Identity.Identity Salty -> ParsecT String u Data.Functor.Identity.Identity Salty
+parensWith :: SaltyParser -> SaltyParser
 parensWith parser = debug "parensWith" >> do
   char '('
   body <- parser
@@ -172,15 +101,11 @@ atom = debug "atom" >> do
   <||> (Right <$> saltyNumber)
 
 operation = debug "operation" >> do
-  parserTrace "a"
   left <- atom
   space
-  parserTrace "b"
   op <- operator
   space
-  parserTrace "c"
   right <- atom
-  parserTrace "d"
   return $ Operation left op right
 
 negateSalty = debug "negateSalty" >> do
@@ -262,15 +187,6 @@ higherOrderFunction = debug "higherOrderFunction" >> do
   <||> selectFunc
   <||> anyFunc
   <||> allFunc
-
-lastMatch ch = do
-  list <- many1 (char ch)
-  return $ (init list)
-
-manyTillChar ch = do
-  body <- anyToken `manyTill` (lookAhead . try $ char ch)
-  end <- lastMatch ')'
-  return (body ++ end)
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   obj <- variableName

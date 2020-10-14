@@ -17,14 +17,7 @@ varName x = case x of
     ClassVar str -> "static::$" ++ str
     SimpleVar str -> "$" ++ str
 
--- data FunctionBody = OneLine Salty -- e.g. incr x := x + 1
---                       | Block [Salty] -- fib x := do if x < 2 .... end
---                       | LambdaFunction { -- \a b -> a + b
---                         lArguments :: [String],
---                         lBody :: Salty
---                       }
---                       | AmpersandFunction VariableName -- &:@function (used for maps/each etc)
---                       deriving (Show)
+data SaltyState = SaltyState [String] deriving (Show)
 
 -- function args
 data Argument = Argument {
