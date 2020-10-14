@@ -13,7 +13,7 @@ import System.Environment
 import Debug.Trace (trace)
 import ToPhp
 
-type SaltyParser = Parsec String SaltyState Salty
+type SaltyParser = Parsec String Salty Salty
 
 debug :: String -> SaltyParser
 -- debug str = return (SaltyString str)
@@ -25,7 +25,7 @@ saltyToPhp str = case (build str) of
                    Right xs -> saltyToPhp_ xs
 
 saltyToPhp_ :: [Salty] -> String
-saltyToPhp_ tree = unlines . indent . addSemicolons . lines . (intercalate "\n") . (map toPhp) $ tree
+saltyToPhp_ tree = unlines . indent . addSemicolons . lines . (intercalate "\n") . (map toPhp) . (filter (not . isSaltyComment)) $ tree
 
 saltyToDebugTree :: String -> String
 saltyToDebugTree str = case (build str) of
@@ -33,9 +33,9 @@ saltyToDebugTree str = case (build str) of
                    Right xs -> formatDebug (show xs)
 
 build :: String -> Either ParseError [Salty]
-build str = runParser saltyParser (SaltyState []) "saltyParser" (str ++ "\n")
+build str = runParser saltyParser EmptyLine "saltyParser" (str ++ "\n")
 
-saltyParser :: Parsec String SaltyState [Salty]
+saltyParser :: Parsec String Salty [Salty]
 saltyParser = do
   parserTrace "start"
   many saltyParserSingle
@@ -212,7 +212,7 @@ saltyComment = do
   return $ SaltyComment line
 
 phpComment = do
-  string "//"
+  string "// "
   line <- anyChar `manyTill` (string "\n")
   return $ PhpComment line
 

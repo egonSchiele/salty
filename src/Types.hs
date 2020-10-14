@@ -14,8 +14,6 @@ varName x = case x of
     ClassVar str -> "static::$" ++ str
     SimpleVar str -> "$" ++ str
 
-data SaltyState = SaltyState [String] deriving (Show)
-
 -- function args
 data Argument = Argument {
                   argType :: Maybe String,
@@ -81,4 +79,6 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | Salt
              deriving (Show)
 
-
+isSaltyComment :: Salty -> Bool
+isSaltyComment (SaltyComment _) = True
+isSaltyComment _ = False
