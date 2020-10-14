@@ -5,6 +5,7 @@ import Text.RawString.QQ
 import Test.HUnit
 import Lib
 import Types
+import ToPhp
 
 -- so it prints multi-line strings on multiple lines for gods sake
 -- assertEqual_ expected actual = assertBool (expected == actual) failureMsg

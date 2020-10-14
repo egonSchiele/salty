@@ -11,6 +11,7 @@ import Formatting
 import System.IO.Unsafe
 import System.Environment
 import Debug.Trace (trace)
+import ToPhp
 
 type SaltyParser = Parsec String SaltyState Salty
 
@@ -182,14 +183,6 @@ returnStatement = debug "returnStatement" >> do
   string "return "
   salty <- saltyParserSingle
   return $ ReturnStatement salty
-
-hashLookup = debug "hashLookup" >> do
-  h <- variableName
-  space
-  char '>'
-  space
-  k <- variableName
-  return $ HashLookup (Left h) k
 
 eachFunc = string ".each" >> return Each
 mapFunc = string ".map" >> return Map
