@@ -55,13 +55,39 @@ phpBlob = [r|
 
 longerTest = saltyBlob `matches` phpBlob
 
+-- data Operator = Add |
+--   Subtract |
+--   Divide |
+--   Multiply |
+--   Equals |
+--   NotEquals |
+--   PlusEquals |
+--   MinusEquals |
+--   OrEquals |
+--   DivideEquals |
+--   MultiplyEquals |
+--   OrOr |
+--   AndAnd |
+--   LessThan |
+--   LessThanOrEqualTo |
+--   GreaterThan |
+--   GreaterThanOrEqualTo deriving (Show)
 transpileTests = [
-   "foo = 1" `matches` "$foo = 1;",
+    -- operations
+    "foo = 1" `matches` "$foo = 1;",
     "@foo = 1" `matches` "$this->foo = 1;",
     "@@foo = 1" `matches` "self::$foo = 1;",
-    "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}"
-    -- "build a b := return 2" `matches` "function build($a, $b) {\nreturn 2;\n}",
-    -- "@@build a b := 2" `matches` "static function build($a, $b) {\nreturn 2;\n}",
+
+    "a = a - 1" `matches` "$a = $a - 1;",
+    "a -= 1" `matches` "$a = $a - 1;",
+    "5 * 5" `matches` "5 * 5;",
+    "foo + bar" `matches` "$foo + $bar;",
+    "'foo' + 'bar'" `matches` "'foo' + 'bar'",
+    "a + b + c" `matches` "$a + $b + $c"
+
+    -- function definitions
+    -- "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}",
+    -- "@@build a b := return 2" `matches` "static function build($a, $b) {\nreturn 2;\n}",
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",
