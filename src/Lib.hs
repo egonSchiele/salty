@@ -47,7 +47,14 @@ saltyParserSingle = debug "saltyParserSingle" >> do
   return salty
 
 saltyParserSingle_ :: SaltyParser
-saltyParserSingle_ = debug "saltyParserSingle_" >> do
+saltyParserSingle_ = do
+  debug "saltyParserSingle_"
+  salty <- saltyParserSingle__
+  putState salty
+  return salty
+
+saltyParserSingle__ :: SaltyParser
+saltyParserSingle__ = do
   parens
   <||> function
   <||> operation
