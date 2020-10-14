@@ -42,7 +42,7 @@ saltyParser = do
 saltyParserSingle :: SaltyParser
 saltyParserSingle = debug "saltyParserSingle" >> do
   salty <- saltyParserSingle_
-  char '\n'
+  optional $ char '\n'
   return salty
 
 saltyParserSingle_ :: SaltyParser
