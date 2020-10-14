@@ -15,11 +15,8 @@ import Debug.Trace (trace)
 type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
-debug str = return (SaltyString str)
--- debug str = trace str $ return (SaltyString str)
-
-build :: String -> Either ParseError [Salty]
-build str = runParser saltyParser (SaltyState []) "saltyParser" (str ++ "\n")
+-- debug str = return (SaltyString str)
+debug str = parserTrace str >> return (SaltyString str)
 
 saltyToPhp :: String -> String
 saltyToPhp str = case (build str) of
@@ -34,11 +31,22 @@ saltyToDebugTree str = case (build str) of
                    Left err -> show err
                    Right xs -> formatDebug (show xs)
 
+build :: String -> Either ParseError [Salty]
+build str = runParser saltyParser (SaltyState []) "saltyParser" (str ++ "\n")
+
 saltyParser :: Parsec String SaltyState [Salty]
-saltyParser = many saltyParserSingle
+saltyParser = do
+  parserTrace "start"
+  many saltyParserSingle
 
 saltyParserSingle :: SaltyParser
 saltyParserSingle = debug "saltyParserSingle" >> do
+  salty <- saltyParserSingle_
+  char '\n'
+  return salty
+
+saltyParserSingle_ :: SaltyParser
+saltyParserSingle_ = debug "saltyParserSingle_" >> do
   parens
   <||> function
   <||> operation
@@ -55,11 +63,6 @@ variableName = debug "variableName" >> do
   <||>  instanceVar
   <||>  simpleVar
 
--- functionBody = debug "functionBody" >> do
---         lambda
---   <||>  ampersand
---   <||>  oneLine
-
 parens = debug "parens" >> do
   char '('
   body <- saltyParserSingle
@@ -75,9 +78,15 @@ parensWith parser = debug "parensWith" >> do
 
 function = debug "function" >> do
   name <- variableName
-  spaces
-  args <- anyToken `manyTill` (string " := ")
+  parserTrace "function-aa"
+  space
+  parserTrace "function-bb"
+  args <- many1 (letter <|> digit <|> space <|> (char '_'))
+  string ":="
+  space
+  parserTrace "function-cc"
   body <- saltyParserSingle
+  parserTrace "function-dd"
   return $ Function name (map argWithDefaults (words args)) body
 
 operator = debug "operator" >> do
@@ -130,18 +139,21 @@ saltyNumber = debug "saltyNumber" >> do
 -- @foo
 instanceVar = debug "instanceVar" >> do
   char '@'
-  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
+  variable <- many1 letter
+  lookAhead $ oneOf endDelim
   return $ InstanceVar variable
 
 -- @@foo
 classVar = debug "classVar" >> do
   string "@@"
-  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
+  variable <- many1 letter
+  lookAhead $ oneOf endDelim
   return $ ClassVar variable
 
 -- foo
 simpleVar = debug "simpleVar" >> do
-  variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
+  variable <- many1 letter
+  lookAhead $ oneOf endDelim
   return $ SimpleVar variable
 
 -- block = do

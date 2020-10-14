@@ -7,6 +7,10 @@ import Control.Monad
 import Control.Monad.State
 import System.Directory
 
+import Text.Parsec
+import Text.ParserCombinators.Parsec.Char
+import Text.Parsec.Combinator
+
 import Lib
 
 convert :: String -> String -> IO ()
@@ -25,6 +29,19 @@ debugFile infile = do
     contents <- readFile infile
     putStrLn . saltyToDebugTree $ contents
 
+-- foo = do
+--   name <- many1 letter
+--   oneOf " ,;)\n"
+--   return name
+
+-- bar = do
+--   variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
+--   return variable
+
+-- test = do
+--   parseTest bar "foo a"
+
+-- main = test
 main = do
   args <- getArgs
   case args of
