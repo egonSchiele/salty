@@ -156,7 +156,7 @@ instance ConvertToPhp Salty where
           funcArgs = intercalate ", " $ map toPhp args
 
   toPhp (SaltyNumber s) = s
-  toPhp (SaltyString s) = s
+  toPhp (SaltyString s) = "\"" ++ s ++ "\""
 
   toPhp (FunctionCall Nothing (SimpleVar str) args) = printf "%s(%s)" str (intercalate ", " args)
   toPhp (FunctionCall Nothing (InstanceVar str) args) = printf "$this->%s(%s)" str (intercalate ", " args)

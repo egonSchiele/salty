@@ -75,6 +75,7 @@ longerTest = saltyBlob `matches` phpBlob
 transpileTests = [
     -- operations
     "foo = 1" `matches` "$foo = 1;",
+    "bar = 'adit'" `matches` "$bar = \"adit\";",
     "@foo = 1" `matches` "$this->foo = 1;",
     "@@foo = 1" `matches` "self::$foo = 1;",
 
@@ -82,7 +83,7 @@ transpileTests = [
     "a -= 1" `matches` "$a = $a - 1;",
     "5 * 5" `matches` "5 * 5;",
     "foo + bar" `matches` "$foo + $bar;",
-    "'foo' + 'bar'" `matches` "'foo' + 'bar'",
+    "'foo' + 'bar'" `matches` "\"foo\" + \"bar\";",
     "a + b + c" `matches` "$a + $b + $c;"
 
     -- function definitions

@@ -126,10 +126,10 @@ emptyLine = debug "emptyLine" >> do
   string "\n"
   return EmptyLine
 
-betweenQuotes = between (oneOf "\"'") (oneOf "\"'")
-
 saltyString = debug "saltyString" >> do
-  str <- betweenQuotes (many anyToken)
+  oneOf "'\""
+  str <- many $ noneOf "\"'"
+  oneOf "'\""
   return $ SaltyString str
 
 saltyNumber = debug "saltyNumber" >> do
