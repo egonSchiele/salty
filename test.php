@@ -1,3 +1,1 @@
-function build($a, $b) {
-    2;
-}
+$a = $a - 1;

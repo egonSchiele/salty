@@ -90,11 +90,7 @@ function = debug "function" >> do
   return $ Function name (map argWithDefaults (words args)) body
 
 operator = debug "operator" >> do
-       (string "+" >> return Add)
-  <||> (string "+" >> return Subtract)
-  <||> (string "/" >> return Divide)
-  <||> (string "*" >> return Multiply)
-  <||> (string "=" >> return Equals)
+       (string "=" >> return Equals)
   <||> (string "!=" >> return NotEquals)
   <||> (string "+=" >> return PlusEquals)
   <||> (string "-=" >> return MinusEquals)
@@ -103,6 +99,14 @@ operator = debug "operator" >> do
   <||> (string "||=" >> return OrEquals)
   <||> (string "||" >> return OrOr)
   <||> (string "&&" >> return AndAnd)
+  <||> (string "<" >> return LessThan)
+  <||> (string "<=" >> return LessThanOrEqualTo)
+  <||> (string ">" >> return GreaterThan)
+  <||> (string ">=" >> return GreaterThanOrEqualTo)
+  <||> (string "+" >> return Add)
+  <||> (string "-" >> return Subtract)
+  <||> (string "/" >> return Divide)
+  <||> (string "*" >> return Multiply)
 
 atom = debug "atom" >> do
        (Left <$> variableName)
