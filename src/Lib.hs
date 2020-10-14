@@ -58,6 +58,7 @@ saltyParserSingle__ = do
   parens
   <||> function
   <||> operation
+  <||> partialOperation
   <||> saltyString
   <||> saltyNumber
   <||> returnStatement
@@ -131,6 +132,13 @@ operation = debug "operation" >> do
   space
   right <- ((Right <$> operation) <||> atom)
   return $ Operation left op right
+
+partialOperation = debug "partialOperation" >> do
+  op <- operator
+  space
+  right <- ((Right <$> operation) <||> atom)
+  leftHandSide <- getState
+  return $ Operation (Right leftHandSide) op right
 
 negateSalty = debug "negateSalty" >> do
   char '!'
