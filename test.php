@@ -1,3 +1,7 @@
 function foo($a) {
-    $a->map(\b -> b + 1);
+    $result = [];
+    foreach ($a as $b) {
+        $result []= $b + 1;
+    }
 }
+

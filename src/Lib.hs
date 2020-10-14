@@ -145,16 +145,10 @@ parensWith parser = debug "parensWith" >> do
   return $ Parens body
 
 function = debug "function" >> do
-  parserTrace "1"
   name <- variableName
-  parserTrace "2"
-  args <- anyToken `manyTill` (string ":=")
-  parserTrace "3"
-  space
-  parserTrace "4"
-  body_ <- anyChar `manyTill` char '\n'
-  parserTrace $ "5" ++ body_
-  body <- parse_ body_ "function"
+  spaces
+  args <- anyToken `manyTill` (string " := ")
+  body <- saltyParserSingle
   return $ Function name (map argWithDefaults (words args)) body
 
 operator = debug "operator" >> do
@@ -245,8 +239,7 @@ lambda = debug "lambda" >> do
 
 returnStatement = debug "returnStatement" >> do
   string "return "
-  line <- anyToken `manyTill` (try newline)
-  salty <- parse_ line "returnStatement"
+  salty <- saltyParserSingle
   return $ ReturnStatement salty
 
 hashLookup = debug "hashLookup" >> do
