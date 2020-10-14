@@ -103,7 +103,7 @@ instance ConvertToPhp Salty where
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
   toPhp (Parens s) = "(" ++ (toPhp s) ++ ")"
   toPhp (PhpLine line) = line
-  toPhp (PhpComment str) = str
+  toPhp (PhpComment str) = "// " ++ str
   toPhp (SaltyComment str) = ""
   toPhp (Negate s) = "!" ++ (toPhp s)
   toPhp EmptyLine = ""

@@ -57,6 +57,9 @@ saltyParserSingle_ = debug "saltyParserSingle_" >> do
   <||> higherOrderFunctionCall
   <||> functionCall
   <||> negateSalty
+  <||> saltyComment
+  <||> phpComment
+  <||> phpLine
   <||> emptyLine
 
 variableName = debug "variableName" >> do
@@ -203,9 +206,20 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   (Parens func) <- parensWith lambda
   return $ HigherOrderFunctionCall obj hof func
 
--- phpLine = do
---   line <- anyChar `manyTill` (string "\n")
---   return $ PhpLine line
+saltyComment = do
+  char '#'
+  line <- anyChar `manyTill` (string "\n")
+  return $ SaltyComment line
+
+phpComment = do
+  string "//"
+  line <- anyChar `manyTill` (string "\n")
+  return $ PhpComment line
+
+phpLine = do
+  char '-'
+  line <- anyChar `manyTill` (string "\n")
+  return $ PhpLine line
 
 functionCall = debug "functionCall" >> do
        functionCallOnObject
