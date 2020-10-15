@@ -98,7 +98,15 @@ transpileTests = [
     "incr a := return a + 1" `matches` "function incr($a) {\n    return $a + 1;\n}",
     "foo := a.foo()" `matches` "function foo() {\n    $a->foo();\n}",
     "foo a b := a + 1 + b + 2" `matches` "function foo($a, $b) {\n    $a + 1 + $b + 2;\n}",
-    "foo a b := (a + 1) + (b - 2)" `matches` "function foo($a, $b) {\n    ($a + 1) + ($b - 2);\n}"
+    "foo a b := (a + 1) + (b - 2)" `matches` "function foo($a, $b) {\n    ($a + 1) + ($b - 2);\n}",
+
+    -- parens tests
+    "(a + b)" `matches` "($a + $b);",
+    "((a + b))" `matches` "(($a + $b));",
+    "(((a + b)))" `matches` "((($a + $b)));",
+    "(((foo())))" `matches` "(((foo())));",
+    "(((a.foo())))" `matches` "((($a->foo())));",
+    "((a + 1) * (b - 4))" `matches` "wowowow"
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",

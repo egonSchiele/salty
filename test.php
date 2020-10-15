@@ -1,7 +1,7 @@
 function fib($x) {
     if ($x < 2) {
-        $x;
+        return $x;
     } else {
-        $x - 1;
-    }
+        return fib(x - 1);
+    } + fib(x - 2);
 }
