@@ -15,8 +15,8 @@ type SaltyState = Salty
 type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
-debug str = return (SaltyString str)
--- debug str = parserTrace str >> return (SaltyString str)
+-- debug str = return (SaltyString str)
+debug str = parserTrace str >> return (SaltyString str)
 
 saltyToPhp :: String -> String
 saltyToPhp str = case (build str) of
@@ -87,7 +87,7 @@ parensWith parser = debug "parensWith" >> do
 function = debug "function" >> do
   name <- variableName
   space
-  args <- many1 (letter <|> digit <|> space <|> (char '_'))
+  args <- many (letter <|> digit <|> space <|> (char '_'))
   string ":="
   space
   body <- saltyParserSingle

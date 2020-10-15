@@ -93,9 +93,11 @@ transpileTests = [
     "foo() + a.bar()" `matches` "foo() + $a->bar();",
 
     -- function definitions
-    "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}"
-    -- "@@build a b := return 2" `matches` "static function build($a, $b) {\nreturn 2;\n}",
-    -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}",
+    "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}",
+    "@@build a b := return 2" `matches` "static function build($a, $b) {\n    return 2;\n}",
+    "incr a := return a + 1" `matches` "function incr($a) {\n    return $a + 1;\n}",
+    "foo := a.foo()" `matches` "function foo() {\n    $a->foo();\n}"
+    -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",
     -- "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n$result []= x + 1;\n}"
