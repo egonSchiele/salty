@@ -224,8 +224,9 @@ lambda = debug "lambda" >> do
 
 returnStatement = debug "returnStatement" >> do
   string "return "
-  salty <- saltyParserSingle
-  return $ ReturnStatement salty
+  salty <- many1 saltyParserSingle_
+  optional $ char '\n'
+  return $ ReturnStatement (Braces salty)
 
 -- eachFunc = string ".each" >> return Each
 -- mapFunc = string ".map" >> return Map

@@ -1,11 +1,7 @@
 function fib($x) {
-    $a + $b;
-    $b + $c;
-
-}
-
-
-function foo($a, $b) {
-    $a + $b;
-
+    if ($x < 2) {
+        return $x;
+    } else {
+        return fib(x - 1)fib(x - 1) + fib(x - 2);
+    }
 }
