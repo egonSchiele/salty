@@ -1,9 +1,12 @@
 module Formatting where
 
 import Utils
+import Types
+import ToPhp
+import Data.List (intercalate)
 
-formatDebug :: String -> String
-formatDebug str = unlines . indentDebug . (map strip) . lines . addNewlines $ str
+formatDebug :: [Salty] -> String
+formatDebug list = unlines . indentDebug . (map strip) . lines . addNewlines . show . checkBackTracks  $ list
 
 addNewlines str = replace "[" "[\n" . replace "{" "{\n" . replace "," ",\n" . replace "}" "\n}" . replace "]" "\n]" $ str
 
@@ -52,4 +55,12 @@ getNewAmt l indentAmt
   | (last_ 4 l) `elem` ["})),"] = indentAmt - 1
   | (last l) `elem` ['{', '['] = indentAmt + 1
   | otherwise = indentAmt
+
+checkBackTracks [] = []
+checkBackTracks (x:[]) = [x]
+checkBackTracks (x:(BackTrack s):xs) = s:(checkBackTracks xs)
+checkBackTracks (x:xs) = x:(checkBackTracks xs)
+
+saltyToPhp_ :: [Salty] -> String
+saltyToPhp_ tree = unlines . indent . addSemicolons . lines . (intercalate "\n") . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
 

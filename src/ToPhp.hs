@@ -107,5 +107,6 @@ instance ConvertToPhp Salty where
   toPhp (SaltyComment str) = ""
   toPhp (Negate s) = "!" ++ (toPhp s)
   toPhp EmptyLine = ""
+  toPhp (BackTrack s) = toPhp s
 
   toPhp x = "not implemented yet: " ++ (show x)

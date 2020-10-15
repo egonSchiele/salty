@@ -5,15 +5,14 @@ import Text.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 --import Text.ParserCombinators.Parsec.Error(messageString)
-import Data.List (intercalate)
 import Utils
 import Formatting
 import System.IO.Unsafe
 import System.Environment
 import Debug.Trace (trace)
-import ToPhp
 
-type SaltyParser = Parsec String Salty Salty
+type SaltyState = Salty
+type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
 -- debug str = return (SaltyString str)
@@ -24,18 +23,15 @@ saltyToPhp str = case (build str) of
                    Left err -> show err
                    Right xs -> saltyToPhp_ xs
 
-saltyToPhp_ :: [Salty] -> String
-saltyToPhp_ tree = unlines . indent . addSemicolons . lines . (intercalate "\n") . (map toPhp) . (filter (not . isSaltyComment)) $ tree
-
 saltyToDebugTree :: String -> String
 saltyToDebugTree str = case (build str) of
                    Left err -> show err
-                   Right xs -> formatDebug (show xs)
+                   Right xs -> formatDebug xs
 
 build :: String -> Either ParseError [Salty]
 build str = runParser saltyParser EmptyLine "saltyParser" (str ++ "\n")
 
-saltyParser :: Parsec String Salty [Salty]
+saltyParser :: Parsec String SaltyState [Salty]
 saltyParser = do
   parserTrace "start"
   many saltyParserSingle
@@ -139,7 +135,7 @@ partialOperation = debug "partialOperation" >> do
   space
   right <- ((Right <$> operation) <||> atom)
   leftHandSide <- getState
-  return $ Operation (Right leftHandSide) op right
+  return $ BackTrack (Operation (Right leftHandSide) op right)
 
 negateSalty = debug "negateSalty" >> do
   char '!'

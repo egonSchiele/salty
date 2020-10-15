@@ -77,6 +77,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | PhpComment String
              | SaltyComment String
              | Salt
+             | BackTrack Salty
              deriving (Show)
 
 isSaltyComment :: Salty -> Bool
