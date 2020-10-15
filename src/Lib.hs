@@ -67,6 +67,8 @@ saltyParserSingle__ = do
   <||> returnStatement
   -- <||> higherOrderFunctionCall
   <||> functionCall
+  <||> hashLookup
+  <||> partialHashLookup
   <||> negateSalty
   <||> saltyComment
   <||> phpComment
@@ -260,8 +262,9 @@ phpComment = do
   return $ PhpComment line
 
 phpLine = do
-  char '-'
-  line <- anyChar `manyTill` (string "\n")
+  string "```"
+  line <- many1 anyChar
+  string "```"
   return $ PhpLine line
 
 functionCall = debug "functionCall" >> do
@@ -292,6 +295,20 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   funcArgs <- many $ noneOf ")"
   char ')'
   return $ FunctionCall Nothing (SimpleVar funcName) (split "," funcArgs)
+
+hashLookup = debug "hashLookup" >> do
+  hash <- variable
+  char '['
+  key <- saltyParserSingle
+  char ']'
+  return $ HashLookup hash key
+
+partialHashLookup = debug "partialHashLookup" >> do
+  hash <- getState
+  char '['
+  key <- saltyParserSingle
+  char ']'
+  return $ BackTrack (HashLookup hash key)
 
 ifStatement = debug "ifStatement" >> do
   ifWithElse <||> ifWithoutElse

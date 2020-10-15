@@ -61,6 +61,7 @@ getNewAmt l indentAmt
 checkBackTracks :: [Salty] -> [Salty]
 checkBackTracks [] = []
 checkBackTracks (a:(BackTrack s):xs) = s:(checkBackTracks xs)
+checkBackTracks (a:(WithNewLine (BackTrack s)):xs) = (WithNewLine s):(checkBackTracks xs)
 checkBackTracks (x:xs) = (checkBackTracksSingle x):(checkBackTracks xs)
 
 checkBackTracksSingle :: Salty -> Salty
@@ -78,6 +79,7 @@ checkBackTracksSingle (WithNewLine s) = WithNewLine (checkBackTracksSingle s)
 checkBackTracksSingle (Parens s) = Parens (checkBackTracks s)
 checkBackTracksSingle (Braces s) = Braces (checkBackTracks s)
 checkBackTracksSingle (BackTrack s) =  BackTrack (checkBackTracksSingle s)
+checkBackTracksSingle (HashLookup h k) =  HashLookup (checkBackTracksSingle h) (checkBackTracksSingle k)
 checkBackTracksSingle x = x
 
 saltyToPhp_ :: [Salty] -> String

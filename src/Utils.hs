@@ -420,4 +420,4 @@ for = flip map
 -- parser #2 doesn't use that input
 (<||>) p1 p2 = try(p1) <|> p2
 
-endDelim = " .),\n;"
+endDelim = " .(),\n;[]"

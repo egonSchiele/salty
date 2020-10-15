@@ -114,7 +114,8 @@ transpileTests = [
     "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "function fib($x) {\n    $a + $b;\n    $b + $c;\n}\nfunction foo($a, $b) {\n    $a + $b;\n}",
 
     -- hash tests
-    "argv[1]" `matches` "$argv[1]"
+    "argv[1]" `matches` "$argv[1];",
+    "argv[1][2]" `matches` "$argv[1][2];"
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",

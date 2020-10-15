@@ -115,5 +115,6 @@ instance ConvertToPhp Salty where
 
   toPhp (Variable x) = toPhp x
   toPhp (WithNewLine s) = (toPhp s) ++ "\n"
+  toPhp (HashLookup h k) = print2 "%[%]" (toPhp h) (toPhp k)
 
   toPhp x = "not implemented yet: " ++ (show x)

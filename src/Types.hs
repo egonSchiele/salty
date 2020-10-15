@@ -74,6 +74,10 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                thenPath :: Salty,
                elsePath :: Maybe Salty
              }
+             | HashLookup {
+                 hHash :: Salty,
+                 hKey :: Salty
+             }
              | ReturnStatement Salty
              | Negate Salty
              | EmptyLine
