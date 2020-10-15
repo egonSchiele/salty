@@ -31,7 +31,7 @@ library:
   source-dirs: src
 
 executables:
-  salty-exe:
+  salty:
     main:                Main.hs
     source-dirs:         app
     ghc-options:

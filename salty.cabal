@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5646a39b2f23efd49b454b73418855c405036bbf4e671a664f8067fb9dcf6f59
+-- hash: f4e369d2dfb94f3cfe38f2a3975e90d5e3a2fa1b2ff97fe2d17fa293c586854f
 
 name:           salty
 version:        0.1.0.0
@@ -46,7 +46,7 @@ library
     , raw-strings-qq
   default-language: Haskell2010
 
-executable salty-exe
+executable salty
   main-is: Main.hs
   other-modules:
       Paths_salty

@@ -14,3 +14,6 @@ debug:
 
 run:
 	stack build && stack exec salty && php test.php 3
+
+install:
+	stack build --copy-bins
