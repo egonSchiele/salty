@@ -29,7 +29,8 @@ saltyToDebugTree str = case (build str) of
                    Right xs -> formatDebug xs
 
 build :: String -> Either ParseError [Salty]
-build str = runParser saltyParser EmptyLine "saltyParser" (str ++ "\n")
+build str_ = runParser saltyParser EmptyLine "saltyParser" str
+  where str = unlines . (map strip) . lines $ str_
 
 saltyParser :: Parsec String SaltyState [Salty]
 saltyParser = do
