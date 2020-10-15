@@ -106,7 +106,7 @@ transpileTests = [
     "(((a + b)))" `matches` "((($a + $b)));",
     "(((foo())))" `matches` "(((foo())));",
     "(((a.foo())))" `matches` "((($a->foo())));",
-    "((a + 1) * (b - 4))" `matches` "wowowow"
+    "((a + 1) * (b - 4))" `matches` "(($a + 1) * ($b - 4));"
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",

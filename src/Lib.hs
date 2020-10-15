@@ -64,7 +64,7 @@ saltyParserSingle__ = do
   <||> saltyString
   <||> saltyNumber
   <||> returnStatement
-  <||> higherOrderFunctionCall
+  -- <||> higherOrderFunctionCall
   <||> functionCall
   <||> negateSalty
   <||> saltyComment
@@ -85,8 +85,9 @@ variableName = debug "variableName" >> do
 
 parens = debug "parens" >> do
   char '('
-  body <- saltyParserSingle
+  body <- saltyParserLine
   char ')'
+  parserTrace $ "parens done with: " ++ (show body)
   return $ Parens body
 
 parensWith :: SaltyParser -> SaltyParser
@@ -94,7 +95,7 @@ parensWith parser = debug "parensWith" >> do
   char '('
   body <- parser
   char ')'
-  return $ Parens body
+  return $ Parens [body]
 
 function = debug "function" >> do
   name <- variableName
@@ -131,10 +132,12 @@ atom = debug "atom" >> do
 
 operation = debug "operation" >> do
   left <- atom
+  parserTrace $ "op left: " ++ (show left)
   space
   op <- operator
   space
   right <- (saltyParserSingle <||> atom)
+  parserTrace $ "op right: " ++ (show right)
   return $ Operation left op right
 
 partialOperation = debug "partialOperation" >> do
@@ -162,6 +165,7 @@ saltyString = debug "saltyString" >> do
 
 saltyNumber = debug "saltyNumber" >> do
   number <- many1 (oneOf "1234567890.")
+  parserTrace $ "found number: " ++ number
   return $ SaltyNumber number
 
 -- @foo
@@ -202,24 +206,24 @@ returnStatement = debug "returnStatement" >> do
   salty <- saltyParserSingle
   return $ ReturnStatement salty
 
-eachFunc = string ".each" >> return Each
-mapFunc = string ".map" >> return Map
-selectFunc = string ".select" >> return Select
-anyFunc = string ".any" >> return Any
-allFunc = string ".all" >> return All
+-- eachFunc = string ".each" >> return Each
+-- mapFunc = string ".map" >> return Map
+-- selectFunc = string ".select" >> return Select
+-- anyFunc = string ".any" >> return Any
+-- allFunc = string ".all" >> return All
 
-higherOrderFunction = debug "higherOrderFunction" >> do
-       eachFunc
-  <||> mapFunc
-  <||> selectFunc
-  <||> anyFunc
-  <||> allFunc
+-- higherOrderFunction = debug "higherOrderFunction" >> do
+--        eachFunc
+--   <||> mapFunc
+--   <||> selectFunc
+--   <||> anyFunc
+--   <||> allFunc
 
-higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
-  obj <- variable
-  hof <- higherOrderFunction
-  (Parens func) <- parensWith lambda
-  return $ HigherOrderFunctionCall obj hof func
+-- higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
+--   obj <- variable
+--   hof <- higherOrderFunction
+--   (Parens func) <- parensWith lambda
+--   return $ HigherOrderFunctionCall obj hof func
 
 saltyComment = do
   char '#'

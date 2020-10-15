@@ -60,9 +60,10 @@ getNewAmt l indentAmt
 
 checkBackTracks :: [Salty] -> [Salty]
 checkBackTracks [] = []
-checkBackTracks ((Function n a body):x) = (Function n a (checkBackTracks body)):(checkBackTracks x)
-checkBackTracks (x:[]) = [x]
 checkBackTracks (x:(BackTrack s):xs) = s:(checkBackTracks xs)
+checkBackTracks ((Function n a body):x) = (Function n a (checkBackTracks body)):(checkBackTracks x)
+checkBackTracks ((Parens salties):x) = (Parens (checkBackTracks salties)):(checkBackTracks x)
+checkBackTracks (x:[]) = [x]
 checkBackTracks (x:xs) = x:(checkBackTracks xs)
 
 saltyToPhp_ :: [Salty] -> String
