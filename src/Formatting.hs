@@ -84,6 +84,6 @@ checkBackTracksSingle (HashLookup h k) =  HashLookup (checkBackTracksSingle h) (
 checkBackTracksSingle x = x
 
 saltyToPhp_ :: [Salty] -> String
-saltyToPhp_ tree = unlines . indent . addSemicolons . removeBlanks . lines . (intercalate "\n") . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
+saltyToPhp_ tree = unlines . indent . addSemicolons . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
 
 removeBlanks list = filter (\item -> (not (item `elem` ["", "\n", ";"]))) list

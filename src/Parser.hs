@@ -10,6 +10,7 @@ import Formatting
 import System.IO.Unsafe
 import System.Environment
 import Debug.Trace (trace)
+import ToPhp
 
 type SaltyState = Salty
 type SaltyParser = Parsec String SaltyState Salty
@@ -40,12 +41,12 @@ saltyParser = debug "start" >> (many saltyParserSingle)
 saltyParserSingle :: SaltyParser
 saltyParserSingle = debug "saltyParserSingle" >> do
   salty <- saltyParserSingle_
-  debug "checking for newline"
+  debug $ "checking for newline: " ++ (show salty)
   result <- optionMaybe $ char '\n'
   case result of
        Nothing -> return salty
-       (Just _) -> do
-         debug "found a newline!"
+       (Just s) -> do
+         debug $ "found a newline!" ++ [s]
          return (WithNewLine salty)
 
 saltyParserSingle_ :: SaltyParser
@@ -289,12 +290,12 @@ functionCallOnObject = debug "functionCallOnObject" >> do
   char ')'
   return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) (head funcArgs)
 
-parseBuiltInFuncName :: String -> Either BuiltInFunction VariableName
-parseBuiltInFuncName "p" = Left VarDumpShort
-parseBuiltInFuncName str = Right (SimpleVar str)
+parseBuiltInFuncName :: VariableName-> Either BuiltInFunction VariableName
+parseBuiltInFuncName (SimpleVar "p") = Left VarDumpShort
+parseBuiltInFuncName s = Right s
 
 functionCallWithoutObject = debug "functionCallWithoutObject" >> do
-  funcName <- many1 varNameChars
+  funcName <- variableName
   char '('
   funcArgs <- (many saltyParserSingle) `sepBy` (char ',')
   char ')'
