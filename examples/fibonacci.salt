@@ -7,7 +7,7 @@ fib x := {
 }
 
 a = 1
-while a <= 10 do {
+while a <= 10 {
   p(fib(a))
   a += 1
 }
