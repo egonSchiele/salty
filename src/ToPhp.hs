@@ -50,12 +50,12 @@ instance ConvertToPhp Salty where
   toPhp (SaltyNumber s) = s
   toPhp (SaltyString s) = "\"" ++ s ++ "\""
 
-  toPhp (FunctionCall Nothing (SimpleVar str) args) = print2 "%(%)" str (intercalate ", " args)
-  toPhp (FunctionCall Nothing (InstanceVar str) args) = print2 "$this->%(%)" str (intercalate ", " args)
-  toPhp (FunctionCall Nothing (ClassVar str) args) = print2 "static::%(%)" str (intercalate ", " args)
-  toPhp (FunctionCall (Just (Variable (SimpleVar obj))) funcName args) = print3 "$%->%(%)" obj (simpleVarName funcName) (intercalate ", " args)
-  toPhp (FunctionCall (Just (Variable (InstanceVar obj))) funcName args) = print3 "$this->%->%(%)" obj (simpleVarName funcName) (intercalate ", " args)
-  toPhp (FunctionCall (Just (Variable (ClassVar obj))) funcName args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " args)
+  toPhp (FunctionCall Nothing (SimpleVar str) args) = print2 "%(%)" str (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall Nothing (InstanceVar str) args) = print2 "$this->%(%)" str (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall Nothing (ClassVar str) args) = print2 "static::%(%)" str (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (SimpleVar obj))) funcName args) = print3 "$%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (InstanceVar obj))) funcName args) = print3 "$this->%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (ClassVar obj))) funcName args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   toPhp (LambdaFunction [] body) =  toPhp body
   toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)

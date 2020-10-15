@@ -272,29 +272,19 @@ functionCall = debug "functionCall" >> do
   <||> functionCallWithoutObject
 
 functionCallOnObject = debug "functionCallOnObject" >> do
-       functionCallWithArgs
-  <||> functionCallWithoutArgs
-
-functionCallWithArgs = debug "functionCallWithArgs" >> do
   obj <- variable
   char '.'
   funcName <- letter `manyTill` (char '(')
-  funcArgs <- anyChar `manyTill` (char ')')
-  return $ FunctionCall (Just obj) (SimpleVar funcName) (split "," funcArgs)
-
-functionCallWithoutArgs = debug "functionCallWithArgs" >> do
-  obj <- variable
-  char '.'
-  funcName <- many1 letter
-  string "()"
-  return $ FunctionCall (Just obj) (SimpleVar funcName) []
+  funcArgs <- (many saltyParserSingle) `sepBy` (char ',')
+  char ')'
+  return $ FunctionCall (Just obj) (SimpleVar funcName) (head funcArgs)
 
 functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   funcName <- many1 letter
   char '('
-  funcArgs <- many $ noneOf ")"
+  funcArgs <- (many saltyParserSingle) `sepBy` (char ',')
   char ')'
-  return $ FunctionCall Nothing (SimpleVar funcName) (split "," funcArgs)
+  return $ FunctionCall Nothing (SimpleVar funcName) (head funcArgs)
 
 hashLookup = debug "hashLookup" >> do
   hash <- variable

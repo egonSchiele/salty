@@ -58,7 +58,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | FunctionCall { -- e.g. obj.foo / obj.foo(1) / foo(1, 2)
                  fObject :: Maybe Salty,
                  fCallName :: VariableName,
-                 fCallArguments :: [String]
+                 fCallArguments :: [Salty]
              }
              | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
                hoObject :: Salty,
