@@ -60,12 +60,35 @@ getNewAmt l indentAmt
 
 checkBackTracks :: [Salty] -> [Salty]
 checkBackTracks [] = []
+checkBackTracks ((Operation (Parens l) o (Parens r)):xs) = (Operation (Parens (checkBackTracks l)) o (Parens (checkBackTracks r))):(checkBackTracks xs)
+checkBackTracks ((Operation l o (Parens r)):xs) = (Operation l o (Parens (checkBackTracks r))):(checkBackTracks xs)
+checkBackTracks ((Operation (Parens l) o r):xs) = (Operation (Parens (checkBackTracks l)) o r):(checkBackTracks xs)
+
+checkBackTracks ((FunctionCall (Just (Parens o)) c a):xs) = (FunctionCall (Just (Parens (checkBackTracks o))) c a):(checkBackTracks xs)
+
+checkBackTracks ((HigherOrderFunctionCall (Parens l) o (Parens r)):xs) =
+    (HigherOrderFunctionCall (Parens (checkBackTracks l)) o (Parens (checkBackTracks r))):(checkBackTracks xs)
+
+checkBackTracks ((HigherOrderFunctionCall l o (Parens r)):xs) =
+    (HigherOrderFunctionCall l o (Parens (checkBackTracks r))):(checkBackTracks xs)
+checkBackTracks ((HigherOrderFunctionCall (Parens l) o r):xs) =
+    (HigherOrderFunctionCall (Parens (checkBackTracks l)) o r):(checkBackTracks xs)
+
+checkBackTracks ((LambdaFunction args (Parens s)):xs) = (LambdaFunction args (Parens (checkBackTracks s))):(checkBackTracks xs)
+
 checkBackTracks (x:(BackTrack s):xs) = s:(checkBackTracks xs)
 checkBackTracks ((Function n a body):x) = (Function n a (checkBackTracks body)):(checkBackTracks x)
 checkBackTracks ((Parens salties):x) = (Parens (checkBackTracks salties)):(checkBackTracks x)
 checkBackTracks (x:[]) = [x]
 checkBackTracks (x:xs) = x:(checkBackTracks xs)
 
+             -- | If {
+             --   condition :: Salty,
+             --   thenPath :: Salty,
+             --   elsePath :: Maybe Salty
+             -- }
+             -- | ReturnStatement Salty
+             -- | Negate Salty
 saltyToPhp_ :: [Salty] -> String
 saltyToPhp_ tree = unlines . indent . addSemicolons . lines . (intercalate "\n") . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
 
