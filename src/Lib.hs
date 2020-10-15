@@ -134,6 +134,7 @@ operation = debug "operation" >> do
   return $ Operation left op right
 
 partialOperation = debug "partialOperation" >> do
+  space
   op <- operator
   space
   right <- ((Right <$> operation) <||> atom)

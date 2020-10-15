@@ -40,7 +40,7 @@ indentDebug_ :: [String] -> Int -> [String]
 indentDebug_ [] _ = []
 indentDebug_ ("":lines_) indentAmt = "":(indentDebug_ lines_ indentAmt)
 indentDebug_ (l:lines_) indentAmt = newLine:(indentDebug_ lines_ newAmt)
-  where newLine = if (last l) `elem` ['}', ']'] || (last_ 2 l) `elem` ["},", "],"]
+  where newLine = if (last l) `elem` ['}', ']'] || (last_ 2 l) `elem` ["},", "],"] || (last_ 3 l) `elem` ["}),"]  || (last_ 4 l) `elem` ["})),"]
                      then (replicate ((indentAmt-1)*4) ' ') ++ l
                      else (replicate (indentAmt*4) ' ') ++ l
         newAmt = getNewAmt l indentAmt
@@ -48,6 +48,8 @@ indentDebug_ (l:lines_) indentAmt = newLine:(indentDebug_ lines_ newAmt)
 getNewAmt l indentAmt
   | (last l) `elem` ['}', ']'] = indentAmt - 1
   | (last_ 2 l) `elem` ["},", "],"] = indentAmt - 1
+  | (last_ 3 l) `elem` ["}),"] = indentAmt - 1
+  | (last_ 4 l) `elem` ["})),"] = indentAmt - 1
   | (last l) `elem` ['{', '['] = indentAmt + 1
   | otherwise = indentAmt
 
