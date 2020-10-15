@@ -132,8 +132,7 @@ multilineFunction = debug "multilineFunction" >> do
   return $ Function name (map argWithDefaults (words args)) [body]
 
 operator = debug "operator" >> do
-       (string "=" >> return Equals)
-  <||> (string "!=" >> return NotEquals)
+       (string "!=" >> return NotEquals)
   <||> (string "+=" >> return PlusEquals)
   <||> (string "-=" >> return MinusEquals)
   <||> (string "/=" >> return DivideEquals)
@@ -141,6 +140,7 @@ operator = debug "operator" >> do
   <||> (string "||=" >> return OrEquals)
   <||> (string "||" >> return OrOr)
   <||> (string "&&" >> return AndAnd)
+  <||> (string "==" >> return EqualsEquals)
   <||> (string "<" >> return LessThan)
   <||> (string "<=" >> return LessThanOrEqualTo)
   <||> (string ">" >> return GreaterThan)
@@ -149,6 +149,7 @@ operator = debug "operator" >> do
   <||> (string "-" >> return Subtract)
   <||> (string "/" >> return Divide)
   <||> (string "*" >> return Multiply)
+  <||> (string "=" >> return Equals)
 
 atom = debug "atom" >> do
        variable

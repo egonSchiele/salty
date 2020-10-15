@@ -47,6 +47,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left Multiply right) = print2 "% * %" (toPhp left) (toPhp right)
   toPhp (Operation left OrOr right) = print2 "% || %" (toPhp left) (toPhp right)
   toPhp (Operation left AndAnd right) = print2 "% && %" (toPhp left) (toPhp right)
+  toPhp (Operation left EqualsEquals right) = print2 "% == %" (toPhp left) (toPhp right)
   toPhp (Operation left LessThan right) = print2 "% < %" (toPhp left) (toPhp right)
   toPhp (Operation left LessThanOrEqualTo right) = print2 "% <= %" (toPhp left) (toPhp right)
   toPhp (Operation left GreaterThan right) = print2 "% > %" (toPhp left) (toPhp right)

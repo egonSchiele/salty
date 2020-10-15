@@ -26,6 +26,7 @@ data Operator = Add |
   MultiplyEquals |
   OrOr |
   AndAnd |
+  EqualsEquals |
   LessThan |
   LessThanOrEqualTo |
   GreaterThan |
@@ -63,6 +64,10 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                condition :: Salty,
                thenPath :: Salty,
                elsePath :: Maybe Salty
+             }
+             | While {
+               condition :: Salty,
+               body :: Salty
              }
              | HashLookup {
                  hHash :: Salty,

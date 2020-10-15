@@ -1,8 +1,10 @@
+.PHONY: all test debug run
+
 all:
 	stack test
 
 test:
-	stack test
+	stack test 2> out && less out
 
 file:
 	stack build && stack exec salty && cat test.php
