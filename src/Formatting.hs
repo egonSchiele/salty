@@ -81,6 +81,8 @@ checkBackTracks ((HigherOrderFunctionCall (Parens l) o r):xs) =
 checkBackTracks ((LambdaFunction args (Parens s)):xs) = (LambdaFunction args (Parens (checkBackTracks s))):(checkBackTracks xs)
 
 checkBackTracks ((If c t Nothing):xs) = (If (check_ c) (check_ t) Nothing):(checkBackTracks xs)
+
+-- in the else we just check if it's a Just Paren, but it's a Just Return Paren!!!! With a BackTrack inside the Paren! ARGH.
 checkBackTracks ((If c t (Just e)):xs) = (If (check_ c) (check_ t) (Just (check_ e))):(checkBackTracks xs)
 
 checkBackTracks ((ReturnStatement s):xs) = (ReturnStatement (check_ s)):(checkBackTracks xs)

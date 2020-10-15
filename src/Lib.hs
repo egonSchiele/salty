@@ -34,7 +34,9 @@ build str = runParser saltyParser EmptyLine "saltyParser" (str ++ "\n")
 saltyParser :: Parsec String SaltyState [Salty]
 saltyParser = do
   parserTrace "start"
-  many saltyParserSingle
+  many $ do
+    optional $ char '\n'
+    saltyParserSingle
 
 saltyParserLine :: Parsec String SaltyState [Salty]
 saltyParserLine = debug "saltyParserLine" >> do
@@ -85,7 +87,7 @@ variableName = debug "variableName" >> do
 
 parens = debug "parens" >> do
   char '('
-  body <- saltyParserLine
+  body <- saltyParser
   char ')'
   parserTrace $ "parens done with: " ++ (show body)
   return $ Parens body
