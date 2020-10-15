@@ -51,7 +51,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | Function {
                fName :: VariableName,
                fArguments :: [Argument],
-               fBody :: Salty
+               fBody :: [Salty]
              }
              | SaltyNumber String
              | SaltyString String

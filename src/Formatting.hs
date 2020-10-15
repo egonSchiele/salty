@@ -56,7 +56,9 @@ getNewAmt l indentAmt
   | (last l) `elem` ['{', '['] = indentAmt + 1
   | otherwise = indentAmt
 
+checkBackTracks :: [Salty] -> [Salty]
 checkBackTracks [] = []
+checkBackTracks ((Function n a body):x) = (Function n a (checkBackTracks body)):(checkBackTracks x)
 checkBackTracks (x:[]) = [x]
 checkBackTracks (x:(BackTrack s):xs) = s:(checkBackTracks xs)
 checkBackTracks (x:xs) = x:(checkBackTracks xs)

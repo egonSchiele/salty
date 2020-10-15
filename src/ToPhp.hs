@@ -40,7 +40,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left GreaterThan right) = print2 "% > %" (toPhp left) (toPhp right)
   toPhp (Operation left GreaterThanOrEqualTo right) = print2 "% >= %" (toPhp left) (toPhp right)
 
-  toPhp (Function name args body) = print3 "%(%) {\n%\n}" funcName funcArgs (toPhp body)
+  toPhp (Function name args body) = print3 "%(%) {\n%\n}" funcName funcArgs (concat $ map toPhp body)
     where funcName = case name of
             InstanceVar str -> "function " ++ str
             ClassVar str -> "static function " ++ str
