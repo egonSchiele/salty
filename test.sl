@@ -1,4 +1,1 @@
-fib x := (
-  a + b
-  b + c
-)
+build a b := return 2

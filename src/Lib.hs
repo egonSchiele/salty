@@ -35,18 +35,18 @@ build str_ = runParser saltyParser EmptyLine "saltyParser" str
 saltyParser :: Parsec String SaltyState [Salty]
 saltyParser = do
   parserTrace "start"
-  many $ do
-    salty <- saltyParserSingle
-    result <- optionMaybe $ char '\n'
-    case result of
-         Nothing -> return salty
-         (Just _) -> return (WithNewLine salty)
+  many saltyParserSingle
 
 saltyParserSingle :: SaltyParser
 saltyParserSingle = debug "saltyParserSingle" >> do
   salty <- saltyParserSingle_
-  optional $ char '\n'
-  return salty
+  debug "checking for newline"
+  result <- optionMaybe $ char '\n'
+  case result of
+       Nothing -> return salty
+       (Just _) -> do
+         debug "found a newline!"
+         return (WithNewLine salty)
 
 saltyParserSingle_ :: SaltyParser
 saltyParserSingle_ = do
@@ -58,6 +58,7 @@ saltyParserSingle_ = do
 saltyParserSingle__ :: SaltyParser
 saltyParserSingle__ = do
   parens
+  <||> braces
   <||> function
   <||> operation
   <||> partialOperation
@@ -89,6 +90,13 @@ parens = debug "parens" >> do
   char ')'
   parserTrace $ "parens done with: " ++ (show body)
   return $ Parens body
+
+braces = debug "braces" >> do
+  char '{'
+  body <- saltyParser
+  char '}'
+  parserTrace $ "braces done with: " ++ (show body)
+  return $ Braces body
 
 parensWith :: SaltyParser -> SaltyParser
 parensWith parser = debug "parensWith" >> do

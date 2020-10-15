@@ -102,6 +102,7 @@ instance ConvertToPhp Salty where
   toPhp Salt = "I'm salty"
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
   toPhp (Parens s) = "(" ++ (concat $ map toPhp s) ++ ")"
+  toPhp (Braces s) = concat $ map toPhp s
   toPhp (PhpLine line) = line
   toPhp (PhpComment str) = "// " ++ str
   toPhp (SaltyComment str) = ""

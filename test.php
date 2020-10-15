@@ -1,3 +1,3 @@
-function fib($x) {
-    ($a + $b$b + $c);
+function build($a, $b) {
+    return 2;
 }
