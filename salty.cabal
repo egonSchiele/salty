@@ -46,7 +46,7 @@ library
     , raw-strings-qq
   default-language: Haskell2010
 
-executable salty-exe
+executable salty
   main-is: Main.hs
   other-modules:
       Paths_salty

@@ -2,7 +2,7 @@ all:
 	stack test
 
 file:
-	stack build && stack exec salty-exe && cat test.php
+	stack build && stack exec salty && cat test.php
 
 debug:
-	stack build && stack exec salty-exe debug
+	stack build && stack exec salty debug
