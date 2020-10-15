@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 167fb464280d9e88edb27409de484e4b2d07d9ab1ce890db6d14988e8607122c
+-- hash: 5646a39b2f23efd49b454b73418855c405036bbf4e671a664f8067fb9dcf6f59
 
 name:           salty
 version:        0.1.0.0
@@ -28,7 +28,7 @@ source-repository head
 library
   exposed-modules:
       Formatting
-      Lib
+      Parser
       Print
       ToPhp
       Types
@@ -46,7 +46,7 @@ library
     , raw-strings-qq
   default-language: Haskell2010
 
-executable salty
+executable salty-exe
   main-is: Main.hs
   other-modules:
       Paths_salty

@@ -3,7 +3,7 @@ import Text.RawString.QQ
 
 
 import Test.HUnit
-import Lib
+import Parser
 import Types
 import ToPhp
 

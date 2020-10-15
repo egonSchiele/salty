@@ -1,4 +1,4 @@
-module Lib where
+module Parser where
 
 import Types
 import Text.Parsec

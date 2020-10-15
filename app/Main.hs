@@ -11,7 +11,7 @@ import Text.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 
-import Lib
+import Parser
 
 convert :: String -> String -> IO ()
 convert infile outfile = do
