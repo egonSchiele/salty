@@ -193,23 +193,25 @@ saltyNumber = debug "saltyNumber" >> do
   parserTrace $ "found number: " ++ number
   return $ SaltyNumber number
 
+varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+
 -- @foo
 instanceVar = debug "instanceVar" >> do
   char '@'
-  variable <- many1 (letter <|> oneOf "_")
+  variable <- many1 varNameChars
   lookAhead $ oneOf endDelim
   return $ InstanceVar variable
 
 -- @@foo
 classVar = debug "classVar" >> do
   string "@@"
-  variable <- many1 (letter <|> oneOf "_")
+  variable <- many1 varNameChars
   lookAhead $ oneOf endDelim
   return $ ClassVar variable
 
 -- foo
 simpleVar = debug "simpleVar" >> do
-  variable <- many1 (letter <|> oneOf "_")
+  variable <- many1 varNameChars
   lookAhead $ oneOf endDelim
   return $ SimpleVar variable
 
@@ -274,13 +276,13 @@ functionCall = debug "functionCall" >> do
 functionCallOnObject = debug "functionCallOnObject" >> do
   obj <- variable
   char '.'
-  funcName <- letter `manyTill` (char '(')
+  funcName <- varNameChars `manyTill` (char '(')
   funcArgs <- (many saltyParserSingle) `sepBy` (char ',')
   char ')'
   return $ FunctionCall (Just obj) (SimpleVar funcName) (head funcArgs)
 
 functionCallWithoutObject = debug "functionCallWithoutObject" >> do
-  funcName <- many1 letter
+  funcName <- many1 varNameChars
   char '('
   funcArgs <- (many saltyParserSingle) `sepBy` (char ',')
   char ')'
