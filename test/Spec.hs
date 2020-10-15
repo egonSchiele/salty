@@ -87,10 +87,10 @@ transpileTests = [
     "'foo' + 'bar'" `matches` "\"foo\" + \"bar\";",
     "a + b + c" `matches` "$a + $b + $c;",
 
-    -- need to think about how to do these:
     "(a + 1) * 20" `matches` "($a + 1) * 20;",
-    "(a + 1) * (b - 10)" `matches` "($a + 1) * ($b - 10)",
-    "(a + (b * (c / 30)))" `matches` "($a + ($b"
+    "(a + 1) * (b - 10)" `matches` "($a + 1) * ($b - 10);",
+    "(a + (b * (c / 30)))" `matches` "($a + ($b * ($c / 30)));",
+    "foo() + a.bar()" `matches` "foo() + $a->bar();"
 
     -- function definitions
     -- "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}",
