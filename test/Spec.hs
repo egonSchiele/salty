@@ -122,6 +122,7 @@ transpileTests = [
 
     -- if statement
     "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}",
+    "if a != 'foo' then return 2 else return 3" `matches` "if ($a != \"foo\") {\n    return 2;\n} else {\n    return 3;\n}\n",
 
     -- while statement
     "while foo == 1 {\nfoo = 2\n}" `matches`"while ($foo == 1) {\n    $foo = 2;\n}",
@@ -150,7 +151,10 @@ transpileTests = [
     "a.foo(b.bar())" `matches` "$a->foo($b->bar());",
     "@a.foo(@bar())" `matches` "$this->a->foo($this->bar());",
     "@foo(@@bar())" `matches` "$this->foo(static::bar());",
-    "@@foo(@b.bar())" `matches` "static::foo($this->b->bar());"
+    "@@foo(@b.bar())" `matches` "static::foo($this->b->bar());",
+
+    -- negate
+    "!foo" `matches` "!$foo;"
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",
