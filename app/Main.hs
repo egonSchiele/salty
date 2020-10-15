@@ -17,7 +17,7 @@ convert :: String -> String -> IO ()
 convert infile outfile = do
     contents <- readFile infile
     let out = saltyToPhp contents
-    liftIO $ writeFile outfile out
+    liftIO $ writeFile outfile ("<?php\n" ++ out)
 
 printHelp = do
     putStrLn "Salty is Salmon for PHP."
