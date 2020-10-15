@@ -69,6 +69,11 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                lArguments :: [String],
                lBody :: Salty
              }
+             | If {
+               condition :: Salty,
+               thenPath :: Salty,
+               elsePath :: Maybe Salty
+             }
              | ReturnStatement Salty
              | Negate Salty
              | EmptyLine

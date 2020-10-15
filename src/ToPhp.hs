@@ -109,4 +109,7 @@ instance ConvertToPhp Salty where
   toPhp EmptyLine = ""
   toPhp (BackTrack s) = toPhp s
 
+  toPhp (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (toPhp thenFork) (toPhp elseFork)
+  toPhp (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (toPhp thenFork)
+
   toPhp x = "not implemented yet: " ++ (show x)

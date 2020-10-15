@@ -71,6 +71,7 @@ saltyParserSingle__ = do
   <||> phpComment
   <||> phpLine
   <||> emptyLine
+  <||> ifStatement
 
 variableName = debug "variableName" >> do
         classVar
@@ -263,6 +264,31 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   funcArgs <- many $ noneOf ")"
   char ')'
   return $ FunctionCall Nothing (SimpleVar funcName) (split "," funcArgs)
+
+ifStatement = debug "ifStatement" >> do
+  ifWithElse <||> ifWithoutElse
+
+ifWithElse = debug "ifWithElse" >> do
+  string "if"
+  space
+  condition <- saltyParserSingle
+  space
+  string "then"
+  thenFork <- saltyParserSingle
+  space
+  string "else"
+  elseFork <- saltyParserSingle
+  return $ If condition thenFork (Just elseFork)
+
+ifWithoutElse = debug "ifWithoutElse" >> do
+  string "if"
+  space
+  condition <- saltyParserSingle
+  space
+  string "then"
+  thenFork <- saltyParserSingle
+  return $ If condition thenFork Nothing
+
 -- build a b := 2
 -- function = do
 --   functionName <- many1 letter
