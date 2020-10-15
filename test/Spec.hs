@@ -90,10 +90,10 @@ transpileTests = [
     "(a + 1) * 20" `matches` "($a + 1) * 20;",
     "(a + 1) * (b - 10)" `matches` "($a + 1) * ($b - 10);",
     "(a + (b * (c / 30)))" `matches` "($a + ($b * ($c / 30)));",
-    "foo() + a.bar()" `matches` "foo() + $a->bar();"
+    "foo() + a.bar()" `matches` "foo() + $a->bar();",
 
     -- function definitions
-    -- "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}",
+    "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}"
     -- "@@build a b := return 2" `matches` "static function build($a, $b) {\nreturn 2;\n}",
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
