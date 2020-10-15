@@ -339,8 +339,6 @@ whileStatement = debug "whileStatement" >> do
   space
   condition <- saltyParserSingle
   space
-  string "do"
-  space
   body <- saltyParserSingle
   return $ While condition body
 

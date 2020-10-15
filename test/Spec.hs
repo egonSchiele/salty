@@ -121,7 +121,11 @@ transpileTests = [
     "var_dump(fib(argv[1]))" `matches` "var_dump(fib($argv[1]));",
 
     -- if statement
-    "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}"
+    "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}",
+
+    -- while statement
+    "while foo == 1 {\nfoo = 2\n}" `matches`"while ($foo == 1) {\n    $foo = 2;\n}",
+    "while foo == 1 {\nfoo = 2\nbar = 3\n}" `matches`"while ($foo == 1) {\n    $foo = 2;\n    $bar = 3;\n}"
 
 
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
