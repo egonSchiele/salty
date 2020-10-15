@@ -23,15 +23,17 @@ indent_ :: [String] -> Int -> [String]
 indent_ [] _ = []
 indent_ ("":lines_) indentAmt = "":(indent_ lines_ indentAmt)
 indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
-  where newLine = if (last l) == '}' || (last_ 2 l) == "};"
+  where newLine = if (last l) == '}' || (last_ 2 l) == "};" || (head l) == '}'
                      then (replicate ((indentAmt-1)*4) ' ') ++ l
                      else (replicate (indentAmt*4) ' ') ++ l
         newAmt = newAmt_ l indentAmt
 
 
 newAmt_ l indentAmt
+  | (head l) == '}' && (last l) == '{' = indentAmt
   | (last l) == '{' = indentAmt + 1
   | (last l) == '}' = indentAmt - 1
+  | (head l) == '}' = indentAmt - 1
   | (last_ 2 l) == "};" = indentAmt - 1
   | otherwise = indentAmt
 
