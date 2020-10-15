@@ -1,3 +1,11 @@
-function build($a, $b) {
-    return 2;
+function fib($x) {
+    $a + $b;
+    $b + $c;
+
+}
+
+
+function foo($a, $b) {
+    $a + $b;
+
 }

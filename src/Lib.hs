@@ -106,13 +106,26 @@ parensWith parser = debug "parensWith" >> do
   return $ Parens [body]
 
 function = debug "function" >> do
+  multilineFunction <||> onelineFunction
+
+onelineFunction = debug "onelineFunction" >> do
   name <- variableName
   space
   args <- many (letter <|> digit <|> space <|> (char '_'))
   string ":="
   space
-  body <- saltyParser
+  body <- many1 saltyParserSingle_
+  optional $ char '\n'
   return $ Function name (map argWithDefaults (words args)) body
+
+multilineFunction = debug "multilineFunction" >> do
+  name <- variableName
+  space
+  args <- many (letter <|> digit <|> space <|> (char '_'))
+  string ":="
+  space
+  body <- braces
+  return $ Function name (map argWithDefaults (words args)) [body]
 
 operator = debug "operator" >> do
        (string "=" >> return Equals)

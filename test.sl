@@ -1,1 +1,6 @@
-build a b := return 2
+fib x := {
+  a + b
+  b + c
+}
+
+foo a b := a + b
