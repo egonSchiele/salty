@@ -196,20 +196,20 @@ saltyNumber = debug "saltyNumber" >> do
 -- @foo
 instanceVar = debug "instanceVar" >> do
   char '@'
-  variable <- many1 letter
+  variable <- many1 (letter <|> oneOf "_")
   lookAhead $ oneOf endDelim
   return $ InstanceVar variable
 
 -- @@foo
 classVar = debug "classVar" >> do
   string "@@"
-  variable <- many1 letter
+  variable <- many1 (letter <|> oneOf "_")
   lookAhead $ oneOf endDelim
   return $ ClassVar variable
 
 -- foo
 simpleVar = debug "simpleVar" >> do
-  variable <- many1 letter
+  variable <- many1 (letter <|> oneOf "_")
   lookAhead $ oneOf endDelim
   return $ SimpleVar variable
 

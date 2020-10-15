@@ -116,7 +116,8 @@ transpileTests = [
     -- hash tests
     "argv[1]" `matches` "$argv[1];",
     "argv[1][2]" `matches` "$argv[1][2];",
-    "fib(argv[1])" `matches` "fib($argv[1]);"
+    "fib(argv[1])" `matches` "fib($argv[1]);",
+    "var_dump(fib(argv[1]))" `matches` "var_dump(fib($argv[1]));"
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",
