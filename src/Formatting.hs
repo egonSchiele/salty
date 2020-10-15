@@ -73,6 +73,7 @@ checkBackTracksSingle (HigherOrderFunctionCall o cn f) = HigherOrderFunctionCall
 checkBackTracksSingle (LambdaFunction args b) = LambdaFunction args (checkBackTracksSingle b)
 checkBackTracksSingle (If c t Nothing)  = If (checkBackTracksSingle c) (checkBackTracksSingle t) Nothing
 checkBackTracksSingle (If c t (Just e))  = If (checkBackTracksSingle c) (checkBackTracksSingle t) (Just (checkBackTracksSingle e))
+checkBackTracksSingle (While c b)  = While (checkBackTracksSingle c) (checkBackTracksSingle b)
 checkBackTracksSingle (ReturnStatement s) = ReturnStatement (checkBackTracksSingle s)
 checkBackTracksSingle (Negate s) = Negate (checkBackTracksSingle s)
 checkBackTracksSingle (WithNewLine s) = WithNewLine (checkBackTracksSingle s)

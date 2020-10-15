@@ -66,8 +66,8 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                elsePath :: Maybe Salty
              }
              | While {
-               condition :: Salty,
-               body :: Salty
+               wCondition :: Salty,
+               wBody :: Salty
              }
              | HashLookup {
                  hHash :: Salty,

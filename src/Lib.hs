@@ -32,6 +32,8 @@ build :: String -> Either ParseError [Salty]
 build str_ = runParser saltyParser EmptyLine "saltyParser" str
   where str = unlines . (map strip) . lines $ str_
 
+whileStatement_ = many whileStatement
+
 saltyParser :: Parsec String SaltyState [Salty]
 saltyParser = do
   parserTrace "start"
@@ -75,6 +77,7 @@ saltyParserSingle__ = do
   <||> phpLine
   <||> emptyLine
   <||> ifStatement
+  <||> whileStatement
   <||> variable
 
 variable = debug "variable" >> do
@@ -141,10 +144,10 @@ operator = debug "operator" >> do
   <||> (string "||" >> return OrOr)
   <||> (string "&&" >> return AndAnd)
   <||> (string "==" >> return EqualsEquals)
-  <||> (string "<" >> return LessThan)
   <||> (string "<=" >> return LessThanOrEqualTo)
-  <||> (string ">" >> return GreaterThan)
   <||> (string ">=" >> return GreaterThanOrEqualTo)
+  <||> (string "<" >> return LessThan)
+  <||> (string ">" >> return GreaterThan)
   <||> (string "+" >> return Add)
   <||> (string "-" >> return Subtract)
   <||> (string "/" >> return Divide)
@@ -333,6 +336,16 @@ ifWithoutElse = debug "ifWithoutElse" >> do
   space
   thenFork <- saltyParserSingle
   return $ If condition thenFork Nothing
+
+whileStatement = debug "whileStatement" >> do
+  string "while"
+  space
+  condition <- saltyParserSingle
+  space
+  string "do"
+  space
+  body <- saltyParserSingle
+  return $ While condition body
 
 -- build a b := 2
 -- function = do

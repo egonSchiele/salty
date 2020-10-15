@@ -126,6 +126,7 @@ instance ConvertToPhp Salty where
 
   toPhp (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (toPhp thenFork) (toPhp elseFork)
   toPhp (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (toPhp thenFork)
+  toPhp (While cond body) = print2 "while (%) {\n%\n}" (toPhp cond) (toPhp body)
 
   toPhp (Variable x) = toPhp x
   toPhp (WithNewLine s) = (toPhp s) ++ "\n"
