@@ -93,7 +93,9 @@ parens = debug "parens" >> do
 
 braces = debug "braces" >> do
   char '{'
+  optional space
   body <- saltyParser
+  optional space
   char '}'
   parserTrace $ "braces done with: " ++ (show body)
   return $ Braces body

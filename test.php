@@ -1,5 +1,3 @@
-function fib($x) {
+function foo($a, $b) {
     $a + $b;
-    $b + $c;
 }
-$foo;
