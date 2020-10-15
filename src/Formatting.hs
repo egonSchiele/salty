@@ -58,41 +58,27 @@ getNewAmt l indentAmt
   | (last l) `elem` ['{', '['] = indentAmt + 1
   | otherwise = indentAmt
 
-check_ :: Salty -> Salty
-check_ (Parens l) = Parens (checkBackTracks l)
-check_ x = x
-
 checkBackTracks :: [Salty] -> [Salty]
 checkBackTracks [] = []
-checkBackTracks ((Operation (Parens l) o (Parens r)):xs) = (Operation (Parens (checkBackTracks l)) o (Parens (checkBackTracks r))):(checkBackTracks xs)
-checkBackTracks ((Operation l o (Parens r)):xs) = (Operation l o (Parens (checkBackTracks r))):(checkBackTracks xs)
-checkBackTracks ((Operation (Parens l) o r):xs) = (Operation (Parens (checkBackTracks l)) o r):(checkBackTracks xs)
+checkBackTracks (a:(BackTrack s):xs) = s:(checkBackTracks xs)
+checkBackTracks (x:xs) = (checkBackTracksSingle x):(checkBackTracks xs)
 
-checkBackTracks ((FunctionCall (Just (Parens o)) c a):xs) = (FunctionCall (Just (Parens (checkBackTracks o))) c a):(checkBackTracks xs)
-
-checkBackTracks ((HigherOrderFunctionCall (Parens l) o (Parens r)):xs) =
-    (HigherOrderFunctionCall (Parens (checkBackTracks l)) o (Parens (checkBackTracks r))):(checkBackTracks xs)
-
-checkBackTracks ((HigherOrderFunctionCall l o (Parens r)):xs) =
-    (HigherOrderFunctionCall l o (Parens (checkBackTracks r))):(checkBackTracks xs)
-checkBackTracks ((HigherOrderFunctionCall (Parens l) o r):xs) =
-    (HigherOrderFunctionCall (Parens (checkBackTracks l)) o r):(checkBackTracks xs)
-
-checkBackTracks ((LambdaFunction args (Parens s)):xs) = (LambdaFunction args (Parens (checkBackTracks s))):(checkBackTracks xs)
-
-checkBackTracks ((If c t Nothing):xs) = (If (check_ c) (check_ t) Nothing):(checkBackTracks xs)
-
--- in the else we just check if it's a Just Paren, but it's a Just Return Paren!!!! With a BackTrack inside the Paren! ARGH.
-checkBackTracks ((If c t (Just e)):xs) = (If (check_ c) (check_ t) (Just (check_ e))):(checkBackTracks xs)
-
-checkBackTracks ((ReturnStatement s):xs) = (ReturnStatement (check_ s)):(checkBackTracks xs)
-checkBackTracks ((Negate s):xs) = (Negate (check_ s)):(checkBackTracks xs)
-
-checkBackTracks (x:(BackTrack s):xs) = s:(checkBackTracks xs)
-checkBackTracks ((Function n a body):x) = (Function n a (checkBackTracks body)):(checkBackTracks x)
-checkBackTracks ((Parens salties):x) = (Parens (checkBackTracks salties)):(checkBackTracks x)
-checkBackTracks (x:[]) = [x]
-checkBackTracks (x:xs) = x:(checkBackTracks xs)
+checkBackTracksSingle :: Salty -> Salty
+checkBackTracksSingle (Operation l o r) = Operation (checkBackTracksSingle l) o (checkBackTracksSingle r)
+checkBackTracksSingle (Function n a b) = Function n a (checkBackTracks b)
+checkBackTracksSingle fc@(FunctionCall Nothing cn ca) = fc
+checkBackTracksSingle fc@(FunctionCall (Just o) cn ca) = FunctionCall (Just (checkBackTracksSingle o)) cn ca
+checkBackTracksSingle (HigherOrderFunctionCall o cn f) = HigherOrderFunctionCall (checkBackTracksSingle o) cn (checkBackTracksSingle f)
+checkBackTracksSingle (LambdaFunction args b) = LambdaFunction args (checkBackTracksSingle b)
+checkBackTracksSingle (If c t Nothing)  = If (checkBackTracksSingle c) (checkBackTracksSingle t) Nothing
+checkBackTracksSingle (If c t (Just e))  = If (checkBackTracksSingle c) (checkBackTracksSingle t) (Just (checkBackTracksSingle e))
+checkBackTracksSingle (ReturnStatement s) = ReturnStatement (checkBackTracksSingle s)
+checkBackTracksSingle (Negate s) = Negate (checkBackTracksSingle s)
+checkBackTracksSingle (WithNewLine s) = WithNewLine (checkBackTracksSingle s)
+checkBackTracksSingle (Parens s) = Parens (checkBackTracks s)
+checkBackTracksSingle (Braces s) = Braces (checkBackTracks s)
+checkBackTracksSingle (BackTrack s) =  BackTrack (checkBackTracksSingle s)
+checkBackTracksSingle x = x
 
 saltyToPhp_ :: [Salty] -> String
 saltyToPhp_ tree = unlines . indent . addSemicolons . removeBlanks . lines . (intercalate "\n") . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
