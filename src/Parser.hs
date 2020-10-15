@@ -83,9 +83,10 @@ variable = debug "variable" >> do
   return $ Variable name
 
 variableName = debug "variableName" >> do
-        classVar
+        staticVar
   <||>  instanceVar
   <||>  simpleVar
+  <||>  classVar
 
 parens = debug "parens" >> do
   char '('
@@ -204,11 +205,11 @@ instanceVar = debug "instanceVar" >> do
   return $ InstanceVar variable
 
 -- @@foo
-classVar = debug "classVar" >> do
+staticVar = debug "staticVar" >> do
   string "@@"
   variable <- many1 varNameChars
   lookAhead $ oneOf endDelim
-  return $ ClassVar variable
+  return $ StaticVar variable
 
 -- foo
 simpleVar = debug "simpleVar" >> do
@@ -216,6 +217,12 @@ simpleVar = debug "simpleVar" >> do
   lookAhead $ oneOf endDelim
   return $ SimpleVar variable
 
+-- @@foo
+classVar = debug "classVar" >> do
+  start <- upper
+  variable <- many1 varNameChars
+  lookAhead $ oneOf endDelim
+  return $ ClassVar (start:variable)
 -- block = do
 --   string "do"
 --   newline

@@ -1,6 +1,11 @@
 module Types where
 
-data VariableName = InstanceVar String | ClassVar String | SimpleVar String deriving (Show)
+data VariableName =
+    InstanceVar String -- e.g. $this->foo
+  | StaticVar String -- e.g. self::foo or static::foo
+  | ClassVar String -- e.g.Blocklist::foo
+  | SimpleVar String -- e.g. foo
+  deriving (Show)
 
 -- function args
 data Argument = Argument {

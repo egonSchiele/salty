@@ -78,7 +78,7 @@ transpileTests = [
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",
     "@foo = 1" `matches` "$this->foo = 1;",
-    "@@foo = 1" `matches` "self::$foo = 1;",
+    "@@foo = 1" `matches` "static::$foo = 1;",
 
     "a = a - 1" `matches` "$a = $a - 1;",
     "a -= 1" `matches` "$a = $a - 1;",
