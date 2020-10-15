@@ -15,8 +15,8 @@ type SaltyState = Salty
 type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
--- debug str = return (SaltyString str)
-debug str = parserTrace str >> return (SaltyString str)
+debug str = return (SaltyString str)
+-- debug str = parserTrace str >> return (SaltyString str)
 
 saltyToPhp :: String -> String
 saltyToPhp str = case (build str) of
@@ -35,9 +35,7 @@ build str_ = runParser saltyParser EmptyLine "saltyParser" str
 whileStatement_ = many whileStatement
 
 saltyParser :: Parsec String SaltyState [Salty]
-saltyParser = do
-  parserTrace "start"
-  many saltyParserSingle
+saltyParser = debug "start" >> (many saltyParserSingle)
 
 saltyParserSingle :: SaltyParser
 saltyParserSingle = debug "saltyParserSingle" >> do
@@ -93,7 +91,7 @@ parens = debug "parens" >> do
   char '('
   body <- saltyParser
   char ')'
-  parserTrace $ "parens done with: " ++ (show body)
+  debug $ "parens done with: " ++ (show body)
   return $ Parens body
 
 braces = debug "braces" >> do
@@ -102,7 +100,7 @@ braces = debug "braces" >> do
   body <- saltyParser
   optional space
   char '}'
-  parserTrace $ "braces done with: " ++ (show body)
+  debug $ "braces done with: " ++ (show body)
   return $ Braces body
 
 parensWith :: SaltyParser -> SaltyParser
@@ -161,12 +159,12 @@ atom = debug "atom" >> do
 
 operation = debug "operation" >> do
   left <- atom
-  parserTrace $ "op left: " ++ (show left)
+  debug $ "op left: " ++ (show left)
   space
   op <- operator
   space
   right <- (saltyParserSingle <||> atom)
-  parserTrace $ "op right: " ++ (show right)
+  debug $ "op right: " ++ (show right)
   return $ Operation left op right
 
 partialOperation = debug "partialOperation" >> do
@@ -194,7 +192,6 @@ saltyString = debug "saltyString" >> do
 
 saltyNumber = debug "saltyNumber" >> do
   number <- many1 (oneOf "1234567890.")
-  parserTrace $ "found number: " ++ number
   return $ SaltyNumber number
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
