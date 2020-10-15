@@ -85,8 +85,8 @@ variable = debug "variable" >> do
 variableName = debug "variableName" >> do
         staticVar
   <||>  instanceVar
-  <||>  simpleVar
   <||>  classVar
+  <||>  simpleVar
 
 parens = debug "parens" >> do
   char '('

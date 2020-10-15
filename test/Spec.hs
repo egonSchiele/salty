@@ -125,9 +125,32 @@ transpileTests = [
 
     -- while statement
     "while foo == 1 {\nfoo = 2\n}" `matches`"while ($foo == 1) {\n    $foo = 2;\n}",
-    "while foo == 1 {\nfoo = 2\nbar = 3\n}" `matches`"while ($foo == 1) {\n    $foo = 2;\n    $bar = 3;\n}"
+    "while foo == 1 {\nfoo = 2\nbar = 3\n}" `matches`"while ($foo == 1) {\n    $foo = 2;\n    $bar = 3;\n}",
 
+    -- function calls
+    "Blocklist.foo()" `matches` "Blocklist::foo();",
+    "a.foo()" `matches` "$a->foo();",
+    "@a.foo()" `matches` "$this->a->foo();",
+    "@foo()" `matches` "$this->foo();",
+    "@@foo()" `matches` "static::foo();",
 
+    "Blocklist.foo(1, 2)" `matches` "Blocklist::foo(1, 2);",
+    "a.foo(1, 2)" `matches` "$a->foo(1, 2);",
+    "@a.foo(1, 2)" `matches` "$this->a->foo(1, 2);",
+    "@foo(1, 2)" `matches` "$this->foo(1, 2);",
+    "@@foo(1, 2)" `matches` "static::foo(1, 2);",
+
+    "Blocklist.foo(b)" `matches` "Blocklist::foo($b);",
+    "a.foo(b)" `matches` "$a->foo($b);",
+    "@a.foo(b)" `matches` "$this->a->foo($b);",
+    "@foo(b)" `matches` "$this->foo($b);",
+    "@@foo(b)" `matches` "static::foo($b);",
+
+    "Blocklist.foo(b.bar())" `matches` "Blocklist::foo($b->bar());",
+    "a.foo(b.bar())" `matches` "$a->foo($b->bar());",
+    "@a.foo(@bar())" `matches` "$this->a->foo($this->bar());",
+    "@foo(@@bar())" `matches` "$this->foo(static::bar());",
+    "@@foo(@b.bar())" `matches` "static::foo($this->b->bar());"
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",
