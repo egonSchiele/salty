@@ -21,8 +21,8 @@ convert infile outfile = do
 
 printHelp = do
     putStrLn "Salty is Salmon for PHP."
-    putStrLn "Usage: `salty test.sl` (writes to test.php)"
-    putStrLn "or `salty input.sl output.php` to write to output.php"
+    putStrLn "Usage: `salty test.salt` (writes to test.php)"
+    putStrLn "or `salty input.salt output.php` to write to output.php"
 
 debugFile :: String -> IO ()
 debugFile infile = do
@@ -45,5 +45,5 @@ debugFile infile = do
 main = do
   args <- getArgs
   case args of
-       ["debug"] -> debugFile "test.sl"
-       _ -> convert "test.sl" "test.php"
+       ["debug"] -> debugFile "test.salt"
+       _ -> convert "test.salt" "test.php"
