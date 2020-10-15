@@ -88,7 +88,7 @@ transpileTests = [
     "a + b + c" `matches` "$a + $b + $c;",
 
     -- need to think about how to do these:
-    "(a + 1) * 20" `matches` "($a + 1) * 20",
+    "(a + 1) * 20" `matches` "($a + 1) * 20;",
     "(a + 1) * (b - 10)" `matches` "($a + 1) * ($b - 10)",
     "(a + (b * (c / 30)))" `matches` "($a + ($b"
 

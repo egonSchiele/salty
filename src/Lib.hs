@@ -15,8 +15,8 @@ type SaltyState = Salty
 type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
--- debug str = return (SaltyString str)
-debug str = parserTrace str >> return (SaltyString str)
+debug str = return (SaltyString str)
+-- debug str = parserTrace str >> return (SaltyString str)
 
 saltyToPhp :: String -> String
 saltyToPhp str = case (build str) of
@@ -86,15 +86,11 @@ parensWith parser = debug "parensWith" >> do
 
 function = debug "function" >> do
   name <- variableName
-  parserTrace "function-aa"
   space
-  parserTrace "function-bb"
   args <- many1 (letter <|> digit <|> space <|> (char '_'))
   string ":="
   space
-  parserTrace "function-cc"
   body <- saltyParserSingle
-  parserTrace "function-dd"
   return $ Function name (map argWithDefaults (words args)) body
 
 operator = debug "operator" >> do
@@ -126,15 +122,15 @@ operation = debug "operation" >> do
   space
   op <- operator
   space
-  right <- ((Right <$> operation) <||> atom)
+  right <- ((Right <$> saltyParserSingle) <||> atom)
   return $ Operation left op right
 
 partialOperation = debug "partialOperation" >> do
+  leftHandSide <- getState
   space
   op <- operator
   space
-  right <- ((Right <$> operation) <||> atom)
-  leftHandSide <- getState
+  right <- ((Right <$> saltyParserSingle) <||> atom)
   return $ BackTrack (Operation (Right leftHandSide) op right)
 
 negateSalty = debug "negateSalty" >> do
@@ -251,12 +247,15 @@ functionCallWithArgs = debug "functionCallWithArgs" >> do
 functionCallWithoutArgs = debug "functionCallWithArgs" >> do
   obj <- variableName
   char '.'
-  funcName <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
+  funcName <- many1 letter
+  string "()"
   return $ FunctionCall (Just obj) (SimpleVar funcName) []
 
 functionCallWithoutObject = debug "functionCallWithoutObject" >> do
-  funcName <- letter `manyTill` (char '(')
-  funcArgs <- anyChar `manyTill` (char ')')
+  funcName <- many1 letter
+  char '('
+  funcArgs <- many $ noneOf ")"
+  char ')'
   return $ FunctionCall Nothing (SimpleVar funcName) (split "," funcArgs)
 -- build a b := 2
 -- function = do
