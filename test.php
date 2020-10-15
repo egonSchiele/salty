@@ -6,5 +6,4 @@ function fib($x) {
         return (fib($x - 1) + fib($x - 2));
     }
 }
-$var_dump;
-(fib($argv[1]));
+var_dump(fib($argv[1]));

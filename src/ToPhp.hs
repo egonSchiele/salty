@@ -3,6 +3,18 @@ import Types
 import Print
 import Data.List (intercalate)
 
+simpleVarName :: VariableName -> String
+simpleVarName x = case x of
+    InstanceVar s -> s
+    ClassVar s -> s
+    SimpleVar s -> s
+
+varName :: Salty -> String
+varName (Variable x) = case x of
+    InstanceVar str -> "$this->" ++ str
+    ClassVar str -> "static::$" ++ str
+    SimpleVar str -> "$" ++ str
+
 class ConvertToPhp a where
     toPhp :: a -> String
 
@@ -50,12 +62,13 @@ instance ConvertToPhp Salty where
   toPhp (SaltyNumber s) = s
   toPhp (SaltyString s) = "\"" ++ s ++ "\""
 
-  toPhp (FunctionCall Nothing (SimpleVar str) args) = print2 "%(%)" str (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall Nothing (InstanceVar str) args) = print2 "$this->%(%)" str (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall Nothing (ClassVar str) args) = print2 "static::%(%)" str (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Variable (SimpleVar obj))) funcName args) = print3 "$%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Variable (InstanceVar obj))) funcName args) = print3 "$this->%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Variable (ClassVar obj))) funcName args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall Nothing (Right (SimpleVar str)) args) = print2 "%(%)" str (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall Nothing (Right (InstanceVar str)) args) = print2 "$this->%(%)" str (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall Nothing (Right (ClassVar str)) args) = print2 "static::%(%)" str (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall Nothing (Left VarDumpShort) args) = "var_dump(" ++ (intercalate ", " . map toPhp $ args) ++ ")"
+  toPhp (FunctionCall (Just (Variable (SimpleVar obj))) (Right funcName) args) = print3 "$%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (InstanceVar obj))) (Right funcName) args) = print3 "$this->%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (ClassVar obj))) (Right funcName) args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   toPhp (LambdaFunction [] body) =  toPhp body
   toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)

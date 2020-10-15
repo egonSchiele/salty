@@ -2,18 +2,6 @@ module Types where
 
 data VariableName = InstanceVar String | ClassVar String | SimpleVar String deriving (Show)
 
-simpleVarName :: VariableName -> String
-simpleVarName x = case x of
-    InstanceVar s -> s
-    ClassVar s -> s
-    SimpleVar s -> s
-
-varName :: Salty -> String
-varName (Variable x) = case x of
-    InstanceVar str -> "$this->" ++ str
-    ClassVar str -> "static::$" ++ str
-    SimpleVar str -> "$" ++ str
-
 -- function args
 data Argument = Argument {
                   argType :: Maybe String,
@@ -43,6 +31,8 @@ data Operator = Add |
   GreaterThan |
   GreaterThanOrEqualTo deriving (Show)
 
+data BuiltInFunction = VarDumpShort deriving (Show)
+
 data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                oLeft :: Salty,
                oOperationType :: Operator,
@@ -57,7 +47,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | SaltyString String
              | FunctionCall { -- e.g. obj.foo / obj.foo(1) / foo(1, 2)
                  fObject :: Maybe Salty,
-                 fCallName :: VariableName,
+                 fCallName :: Either BuiltInFunction VariableName,
                  fCallArguments :: [Salty]
              }
              | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
