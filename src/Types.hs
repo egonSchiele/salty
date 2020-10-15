@@ -83,6 +83,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | SaltyComment String
              | Salt
              | BackTrack Salty
+             | Variable VariableName
              deriving (Show)
 
 isSaltyComment :: Salty -> Bool

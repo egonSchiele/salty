@@ -72,6 +72,11 @@ saltyParserSingle__ = do
   <||> phpLine
   <||> emptyLine
   <||> ifStatement
+  <||> variable
+
+variable = debug "variable" >> do
+  name <- variableName
+  return $ Variable name
 
 variableName = debug "variableName" >> do
         classVar
@@ -274,9 +279,11 @@ ifWithElse = debug "ifWithElse" >> do
   condition <- saltyParserSingle
   space
   string "then"
+  space
   thenFork <- saltyParserSingle
   space
   string "else"
+  space
   elseFork <- saltyParserSingle
   return $ If condition thenFork (Just elseFork)
 
@@ -286,6 +293,7 @@ ifWithoutElse = debug "ifWithoutElse" >> do
   condition <- saltyParserSingle
   space
   string "then"
+  space
   thenFork <- saltyParserSingle
   return $ If condition thenFork Nothing
 

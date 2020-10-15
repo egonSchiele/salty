@@ -1,1 +1,1 @@
-foo a b := (a + 1) + (b - 2)
+fib x := if x < 2 then x else x - 1
