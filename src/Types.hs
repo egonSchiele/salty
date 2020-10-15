@@ -8,8 +8,8 @@ simpleVarName x = case x of
     ClassVar s -> s
     SimpleVar s -> s
 
-varName :: VariableName -> String
-varName x = case x of
+varName :: Salty -> String
+varName (Variable x) = case x of
     InstanceVar str -> "$this->" ++ str
     ClassVar str -> "static::$" ++ str
     SimpleVar str -> "$" ++ str
@@ -44,9 +44,9 @@ data Operator = Add |
   GreaterThanOrEqualTo deriving (Show)
 
 data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
-               oLeft :: Either VariableName Salty,
+               oLeft :: Salty,
                oOperationType :: Operator,
-               oRight :: Either VariableName Salty
+               oRight :: Salty
              }
              | Function {
                fName :: VariableName,
@@ -56,12 +56,12 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | SaltyNumber String
              | SaltyString String
              | FunctionCall { -- e.g. obj.foo / obj.foo(1) / foo(1, 2)
-               fObject :: Maybe VariableName,
-               fCallName :: VariableName,
-               fCallArguments :: [String]
+                 fObject :: Maybe Salty,
+                 fCallName :: VariableName,
+                 fCallArguments :: [String]
              }
              | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
-               hoObject :: VariableName,
+               hoObject :: Salty,
                hoCallName :: HigherOrderFunction,
                hoFunction :: Salty  --  either lambda or ampersand function.
              }

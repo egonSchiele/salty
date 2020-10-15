@@ -125,16 +125,16 @@ operator = debug "operator" >> do
   <||> (string "*" >> return Multiply)
 
 atom = debug "atom" >> do
-       (Left <$> variableName)
-  <||> (Right <$> saltyString)
-  <||> (Right <$> saltyNumber)
+       variable
+  <||> saltyString
+  <||> saltyNumber
 
 operation = debug "operation" >> do
   left <- atom
   space
   op <- operator
   space
-  right <- ((Right <$> saltyParserSingle) <||> atom)
+  right <- (saltyParserSingle <||> atom)
   return $ Operation left op right
 
 partialOperation = debug "partialOperation" >> do
@@ -142,8 +142,8 @@ partialOperation = debug "partialOperation" >> do
   space
   op <- operator
   space
-  right <- ((Right <$> saltyParserSingle) <||> atom)
-  return $ BackTrack (Operation (Right leftHandSide) op right)
+  right <- (saltyParserSingle <||> atom)
+  return $ BackTrack (Operation leftHandSide op right)
 
 negateSalty = debug "negateSalty" >> do
   char '!'
@@ -197,11 +197,6 @@ lambda = debug "lambda" >> do
   body <- saltyParserSingle
   return $ LambdaFunction (words args) body
 
--- ampersand = debug "ampersand" >> do
---   char '&'
---   var <- variableName
---   return $ AmpersandFunction var
-
 returnStatement = debug "returnStatement" >> do
   string "return "
   salty <- saltyParserSingle
@@ -221,7 +216,7 @@ higherOrderFunction = debug "higherOrderFunction" >> do
   <||> allFunc
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
-  obj <- variableName
+  obj <- variable
   hof <- higherOrderFunction
   (Parens func) <- parensWith lambda
   return $ HigherOrderFunctionCall obj hof func
@@ -250,14 +245,14 @@ functionCallOnObject = debug "functionCallOnObject" >> do
   <||> functionCallWithoutArgs
 
 functionCallWithArgs = debug "functionCallWithArgs" >> do
-  obj <- variableName
+  obj <- variable
   char '.'
   funcName <- letter `manyTill` (char '(')
   funcArgs <- anyChar `manyTill` (char ')')
   return $ FunctionCall (Just obj) (SimpleVar funcName) (split "," funcArgs)
 
 functionCallWithoutArgs = debug "functionCallWithArgs" >> do
-  obj <- variableName
+  obj <- variable
   char '.'
   funcName <- many1 letter
   string "()"
