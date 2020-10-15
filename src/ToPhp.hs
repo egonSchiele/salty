@@ -113,5 +113,6 @@ instance ConvertToPhp Salty where
   toPhp (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (toPhp thenFork)
 
   toPhp (Variable x) = toPhp x
+  toPhp (WithNewLine s) = (toPhp s) ++ "\n"
 
   toPhp x = "not implemented yet: " ++ (show x)

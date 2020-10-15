@@ -77,6 +77,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | ReturnStatement Salty
              | Negate Salty
              | EmptyLine
+             | WithNewLine Salty
              | Parens [Salty]
              | PhpLine String
              | PhpComment String

@@ -36,14 +36,11 @@ saltyParser :: Parsec String SaltyState [Salty]
 saltyParser = do
   parserTrace "start"
   many $ do
-    optional $ char '\n'
-    saltyParserSingle
-
-saltyParserLine :: Parsec String SaltyState [Salty]
-saltyParserLine = debug "saltyParserLine" >> do
-  saltys <- many saltyParserSingle
-  optional $ char '\n'
-  return saltys
+    salty <- saltyParserSingle
+    result <- optionMaybe $ char '\n'
+    case result of
+         Nothing -> return salty
+         (Just _) -> return (WithNewLine salty)
 
 saltyParserSingle :: SaltyParser
 saltyParserSingle = debug "saltyParserSingle" >> do
@@ -106,7 +103,7 @@ function = debug "function" >> do
   args <- many (letter <|> digit <|> space <|> (char '_'))
   string ":="
   space
-  body <- saltyParserLine
+  body <- saltyParser
   return $ Function name (map argWithDefaults (words args)) body
 
 operator = debug "operator" >> do
