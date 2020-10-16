@@ -7,6 +7,7 @@ class Compliance_Blocklist {
     return @@is_performance_feature_enabled
   }
 
+  buildCompleteBlocklist :: ?array -> EP_Locale
   buildCompleteBlocklist blocklists loc := {
     locale = loc ?? EP_Locale.makeDefaultLocale()
     if ~product_compliance.blocklist_local_cache then {

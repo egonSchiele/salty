@@ -414,6 +414,8 @@ last_ _ "" = ""
 last_ 1 str = [last str]
 last_ x str = (last_ (x-1) (init str)) ++ [last str]
 
+first_ x str = reverse (last_ x (reverse str))
+
 for = flip map
 
 -- if you don't use try, and the first parser consumes some input,

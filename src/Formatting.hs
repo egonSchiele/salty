@@ -12,7 +12,7 @@ addNewlines str = replace "[" "[\n" . replace "{" "{\n" . replace "," ",\n" . re
 
 addSemicolons :: [String] -> [String]
 addSemicolons phpLines = for phpLines $ \line ->
-                              if (line == "") || (last line) `elem` ['{', '}', ';']
+                              if (line == "") || (last line) `elem` ['{', '}', ';'] || (head line) `elem` ['/', '*'] || (first_ 2 line) `elem` [" *"]
                                  then line
                                  else (line ++ ";")
 

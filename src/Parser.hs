@@ -47,11 +47,16 @@ saltyParserSingle = debug "saltyParserSingle" >> do
          debug $ "found a newline!" ++ [s]
          return (WithNewLine salty)
 
+worthSaving EmptyLine = False
+worthSaving _ = True
+
 saltyParserSingle_ :: SaltyParser
 saltyParserSingle_ = do
   debug "saltyParserSingle_"
   salty <- saltyParserSingle__
-  putState salty
+  if worthSaving salty
+     then putState salty
+     else return ()
   return salty
 
 saltyParserSingle__ :: SaltyParser
@@ -59,7 +64,7 @@ saltyParserSingle__ = do
   parens
   <||> braces
   <||> function
-  <||> functionDefinition
+  <||> functionTypeSignature
   <||> operation
   <||> partialOperation
   <||> saltyString
@@ -117,41 +122,53 @@ parensWith parser = debug "parensWith" >> do
 function = debug "function" >> do
   multilineFunction <||> onelineFunction
 
+argWithDefaults name = Argument Nothing name Nothing
+argWithTypes [] _ = []
+argWithTypes (a:args) [] = (Argument Nothing a Nothing):(argWithTypes args [])
+argWithTypes (a:args) (t:types) = (Argument (Just t) a Nothing):(argWithTypes args types)
+
+
 onelineFunction = debug "onelineFunction" >> do
+  prevSalty <- getState
   name <- variableName
   space
-  args <- many (letter <|> digit <|> space <|> (char '_'))
+  args <- words <$> (many (letter <|> digit <|> space <|> (char '_')))
   string ":="
   space
   body <- many1 saltyParserSingle_
   optional $ char '\n'
-  return $ Function name (map argWithDefaults (words args)) body
+  case prevSalty of
+       FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) body
+       _ -> return $ Function name (map argWithDefaults args) body
 
 multilineFunction = debug "multilineFunction" >> do
+  prevSalty <- getState
   name <- variableName
   space
-  args <- many (letter <|> digit <|> space <|> (char '_'))
+  args <- words <$> many (letter <|> digit <|> space <|> (char '_'))
   string ":="
   space
   body <- braces
-  return $ Function name (map argWithDefaults (words args)) [body]
+  case prevSalty of
+     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body]
+     _ -> return $ Function name (map argWithDefaults args) [body]
 
 findArgTypes = debug "findArgTypes" >> do
   args <- many1 $ do
-            typ <- many1 letter
+            typ <- many1 typeChars
             optional $ string " -> "
             if (head typ == '?')
                then return (ArgumentType True (tail typ))
                else return (ArgumentType False typ)
   return args
 
-functionDefinition = debug "functionDefinition" >> do
+functionTypeSignature = debug "functionTypeSignature" >> do
   name <- variableName
   space
   string "::"
   space
   argTypes <- findArgTypes
-  return $ FunctionDefinition name argTypes
+  return $ FunctionTypeSignature name argTypes
 
 operator = debug "operator" >> do
        (string "!=" >> return NotEquals)
@@ -218,6 +235,7 @@ saltyNumber = debug "saltyNumber" >> do
   return $ SaltyNumber number
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?"
 flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
 
 -- @foo

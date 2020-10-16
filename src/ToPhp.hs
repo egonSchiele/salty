@@ -22,6 +22,10 @@ instance ConvertToPhp VariableName where
   toPhp (ClassVar s) = s
   toPhp (SimpleVar s) = '$':s
 
+instance ConvertToPhp ArgumentType where
+  toPhp (ArgumentType True typ) = "@param " ++ typ ++ "|null"
+  toPhp (ArgumentType False typ) = "@param " ++ typ
+
 instance ConvertToPhp Argument where
   toPhp (Argument (Just (ArgumentType False typ)) name (Just default_)) = print3 "?% $% = %" typ name default_
   toPhp (Argument (Just (ArgumentType True typ)) name (Just default_)) = print3 "?% $% = %" typ name default_
@@ -56,7 +60,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left GreaterThan right) = print2 "% > %" (toPhp left) (toPhp right)
   toPhp (Operation left GreaterThanOrEqualTo right) = print2 "% >= %" (toPhp left) (toPhp right)
 
-  toPhp (Function name args body) = print3 "%(%) {\n%\n}" funcName funcArgs (concat $ map toPhp body)
+  toPhp (Function name args body) = print3 "%(%) {\n%\n}\n" funcName funcArgs (concat $ map toPhp body)
     where funcName = case name of
             InstanceVar str -> "function " ++ str
             StaticVar str -> "static function " ++ str
@@ -144,5 +148,8 @@ instance ConvertToPhp Salty where
   toPhp (Variable x) = toPhp x
   toPhp (WithNewLine s) = (toPhp s) ++ "\n"
   toPhp (HashLookup h k) = print2 "%[%]" (toPhp h) (toPhp k)
+  toPhp (FunctionTypeSignature n types) = "/**\n" ++ (concat $ map showType types) ++ " */\n"
+    where showType t = " * " ++ (toPhp t) ++ "\n"
 
   toPhp x = "not implemented yet: " ++ (show x)
+

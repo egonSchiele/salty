@@ -19,8 +19,6 @@ data ArgumentType = ArgumentType {
                       aType :: String
                     } deriving (Show)
 
-argWithDefaults name = Argument Nothing name Nothing
-
 data HigherOrderFunction = Each | Map | Select | Any | All deriving (Show)
 
 data Operator = Add |
@@ -56,7 +54,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                fArguments :: [Argument],
                fBody :: [Salty]
              }
-             | FunctionDefinition {
+             | FunctionTypeSignature {
                fName :: VariableName,
                fTypes :: [ArgumentType]
              }
