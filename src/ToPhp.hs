@@ -160,6 +160,7 @@ instance ConvertToPhp Salty where
     where kvtoPhp (name, val) = print2 "% => %" name (toPhp val)
           hashBody = intercalate ",\n" $ map kvtoPhp nameValuePairs
 
+  toPhp (Array salties) = intercalate ", " . map toPhp $ salties
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
   toPhp SaltyNull = "null"

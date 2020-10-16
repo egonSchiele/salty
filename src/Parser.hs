@@ -69,6 +69,7 @@ saltyParserSingle__ :: SaltyParser
 saltyParserSingle__ = do
   parens
   <||> hashTable
+  <||> arrayValue
   <||> braces
   <||> function
   <||> functionTypeSignature
@@ -117,6 +118,8 @@ validHashValue = debug "validHashValue" >> do
        saltyString
   <||> saltyNumber
   <||> hashLookup
+  <||> hashTable
+  <||> array
   <||> flagName
   <||> saltyBool
   <||> saltyNull
@@ -138,6 +141,18 @@ hashTable = debug "hashTable" >> do
   optional (oneOf " \n")
   char '}'
   return $ HashTable kvPairs
+
+arrayValue = debug "arrayValue" >> do
+  value <- validHashValue
+  char ','
+  optional space
+  return value
+
+array = debug "array" >> do
+  char '['
+  salties <- many arrayValue
+  char ']'
+  return $ Array salties
 
 braces = debug "braces" >> do
   char '{'
