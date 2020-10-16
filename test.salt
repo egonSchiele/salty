@@ -1,6 +1,3 @@
-func := {
-a = null
-b = true
-c = false
+class Blocklist {
+  _SAMPLE_RATE = 0.001
 }
-

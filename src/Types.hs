@@ -100,6 +100,11 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                  hHash :: Salty,
                  hKey :: Salty
              }
+             | Constant {
+                 constantVisibility :: Visibility,
+                 constantName :: String,
+                 constantValue :: Salty
+             }
              | ReturnStatement Salty
              | Negate Salty
              | EmptyLine

@@ -155,6 +155,8 @@ instance ConvertToPhp Salty where
   toPhp (FunctionTypeSignature n types) = "/**\n" ++ (concat $ map showType types) ++ " */\n"
     where showType t = " * " ++ (toPhp t) ++ "\n"
 
+  toPhp (Constant vis name val) = print3 "% const % = %" (toPhp vis) name (toPhp val)
+
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
   toPhp SaltyNull = "null"

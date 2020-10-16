@@ -73,16 +73,17 @@ checkBackTracksSingle (HigherOrderFunctionCall o cn f) = HigherOrderFunctionCall
 checkBackTracksSingle (LambdaFunction args b) = LambdaFunction args (checkBackTracksSingle b)
 checkBackTracksSingle (If c t Nothing)  = If (checkBackTracksSingle c) (checkBackTracksSingle t) Nothing
 checkBackTracksSingle (If c t (Just e))  = If (checkBackTracksSingle c) (checkBackTracksSingle t) (Just (checkBackTracksSingle e))
-checkBackTracksSingle (While c b)  = While (checkBackTracksSingle c) (checkBackTracksSingle b)
-checkBackTracksSingle (New c args)  = New c (checkBackTracks args)
-checkBackTracksSingle (Class n s)  = Class n (checkBackTracksSingle s)
+checkBackTracksSingle (While c b) = While (checkBackTracksSingle c) (checkBackTracksSingle b)
+checkBackTracksSingle (New c args) = New c (checkBackTracks args)
+checkBackTracksSingle (Class n s) = Class n (checkBackTracksSingle s)
 checkBackTracksSingle (ReturnStatement s) = ReturnStatement (checkBackTracksSingle s)
 checkBackTracksSingle (Negate s) = Negate (checkBackTracksSingle s)
 checkBackTracksSingle (WithNewLine s) = WithNewLine (checkBackTracksSingle s)
 checkBackTracksSingle (Parens s) = Parens (checkBackTracks s)
 checkBackTracksSingle (Braces s) = Braces (checkBackTracks s)
-checkBackTracksSingle (BackTrack s) =  BackTrack (checkBackTracksSingle s)
-checkBackTracksSingle (HashLookup h k) =  HashLookup (checkBackTracksSingle h) (checkBackTracksSingle k)
+checkBackTracksSingle (BackTrack s) = BackTrack (checkBackTracksSingle s)
+checkBackTracksSingle (HashLookup h k) = HashLookup (checkBackTracksSingle h) (checkBackTracksSingle k)
+checkBackTracksSingle (Constant v n b) = Constant v n (checkBackTracksSingle b)
 checkBackTracksSingle x = x
 
 saltyToPhp_ :: [Salty] -> String

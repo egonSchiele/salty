@@ -12,6 +12,11 @@ import System.Environment
 import Debug.Trace (trace)
 import ToPhp
 
+varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?"
+flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
+
 type SaltyState = Salty
 type SaltyParser = Parsec String SaltyState Salty
 
@@ -65,6 +70,7 @@ saltyParserSingle__ = do
   <||> braces
   <||> function
   <||> functionTypeSignature
+  <||> constant
   <||> operation
   <||> partialOperation
   <||> saltyString
@@ -221,6 +227,15 @@ atom = debug "atom" >> do
   <||> saltyString
   <||> saltyNumber
 
+constant = debug "constant" >> do
+  name_ <- many1 constChars
+  let (visibility, name) = _getVisibility name_
+  space
+  char '='
+  space
+  value <- (saltyString <||> saltyNumber <||> saltyBool <||> saltyNull)
+  return $ Constant visibility name value
+
 operation = debug "operation" >> do
   left <- atom
   debug $ "op left: " ++ (show left)
@@ -258,9 +273,6 @@ saltyNumber = debug "saltyNumber" >> do
   number <- many1 (oneOf "1234567890.-")
   return $ SaltyNumber number
 
-varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?"
-flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
 
 -- @foo
 instanceVar = debug "instanceVar" >> do

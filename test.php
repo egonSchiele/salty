@@ -1,6 +1,4 @@
 <?php
-public function func() {
-    $a = null;
-    $b = true;
-    $c = false;
+class Blocklist {
+    private const SAMPLE_RATE = 0.001;
 }
