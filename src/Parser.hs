@@ -33,8 +33,6 @@ build :: String -> Either ParseError [Salty]
 build str_ = runParser saltyParser EmptyLine "saltyParser" str
   where str = unlines . (map strip) . lines $ str_
 
-whileStatement_ = many whileStatement
-
 saltyParser :: Parsec String SaltyState [Salty]
 saltyParser = debug "start" >> (many saltyParserSingle)
 
@@ -193,7 +191,7 @@ saltyString = debug "saltyString" >> do
   return $ SaltyString str
 
 saltyNumber = debug "saltyNumber" >> do
-  number <- many1 (oneOf "1234567890.")
+  number <- many1 (oneOf "1234567890.-")
   return $ SaltyNumber number
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
@@ -357,7 +355,7 @@ whileStatement = debug "whileStatement" >> do
   space
   condition <- saltyParserSingle
   space
-  body <- saltyParserSingle
+  body <- braces
   return $ While condition body
 
 -- build a b := 2

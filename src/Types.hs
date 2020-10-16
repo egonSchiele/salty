@@ -74,6 +74,10 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                wCondition :: Salty,
                wBody :: Salty
              }
+             | Class {
+               cName :: VariableName,
+               wBody :: Salty
+             }
              | HashLookup {
                  hHash :: Salty,
                  hKey :: Salty
