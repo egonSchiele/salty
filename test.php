@@ -4,3 +4,5 @@ class Blocklist {
         var_dump("hi!");
     }
 }
+$b = new Blocklist();
+$b->foo();

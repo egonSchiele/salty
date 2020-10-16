@@ -2,3 +2,5 @@ class Blocklist {
   @foo := p("hi!")
 }
 
+b = new Blocklist()
+b.foo()

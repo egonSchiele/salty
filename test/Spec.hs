@@ -157,7 +157,10 @@ transpileTests = [
     "!foo" `matches` "!$foo;",
 
     -- class definition
-    "class Blocklist {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist {\n    function foo() {\n        var_dump(\"hi!\");\n    }\n}"
+    "class Blocklist {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist {\n    function foo() {\n        var_dump(\"hi!\");\n    }\n}",
+
+    -- object creation
+    "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    function foo() {\n        var_dump(\"hi!\");\n    }\n}\n$b = new Blocklist();\n$b->foo();\n"
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",

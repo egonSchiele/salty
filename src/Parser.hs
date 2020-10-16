@@ -76,6 +76,7 @@ saltyParserSingle__ = do
   <||> ifStatement
   <||> whileStatement
   <||> classDefinition
+  <||> objectCreation
   <||> variable
 
 variable = debug "variable" >> do
@@ -360,3 +361,12 @@ classDefinition = debug "classDefinition" >> do
   space
   body <- braces
   return $ Class name body
+
+objectCreation = debug "objectCreation" >> do
+  string "new"
+  space
+  className <- classVar
+  char '('
+  constructorArgs <- findArgs
+  char ')'
+  return $ New className constructorArgs

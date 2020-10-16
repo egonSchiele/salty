@@ -74,6 +74,10 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                wCondition :: Salty,
                wBody :: Salty
              }
+             | New {
+               fClassName :: VariableName,
+               fConstructorArgs :: [Salty]
+             }
              | Class {
                cName :: VariableName,
                wBody :: Salty

@@ -134,6 +134,7 @@ instance ConvertToPhp Salty where
   toPhp (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (toPhp thenFork)
   toPhp (While cond body) = print2 "while (%) {\n%\n}" (toPhp cond) (toPhp body)
   toPhp (Class name body) = print2 "class % {\n%\n}" (toPhp name) (toPhp body)
+  toPhp (New name args) = print2 "new %(%)" (toPhp name) (intercalate "," . map toPhp $ args)
 
   toPhp (Variable x) = toPhp x
   toPhp (WithNewLine s) = (toPhp s) ++ "\n"
