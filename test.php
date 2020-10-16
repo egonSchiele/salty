@@ -1,2 +1,6 @@
 <?php
-Blocklist::foo(1, 2);
+class Blocklist {
+    function foo() {
+        var_dump("hi!");
+    }
+}

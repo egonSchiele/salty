@@ -1,1 +1,4 @@
-Blocklist.foo(1, 2)
+class Blocklist {
+  @foo := p("hi!")
+}
+

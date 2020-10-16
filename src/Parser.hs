@@ -75,6 +75,7 @@ saltyParserSingle__ = do
   <||> emptyLine
   <||> ifStatement
   <||> whileStatement
+  <||> classDefinition
   <||> variable
 
 variable = debug "variable" >> do
@@ -222,12 +223,6 @@ classVar = debug "classVar" >> do
   variable <- many1 varNameChars
   lookAhead $ oneOf endDelim
   return $ ClassVar (start:variable)
--- block = do
---   string "do"
---   newline
---   blockLines <- anyToken `manyTill` (string "end")
---   let l = lines blockLines
---   return $ Block (map parse_ l)
 
 lambda = debug "lambda" >> do
   string "\\"
@@ -355,35 +350,13 @@ whileStatement = debug "whileStatement" >> do
   space
   condition <- saltyParserSingle
   space
-  body <- braces
+  body <- saltyParserSingle
   return $ While condition body
 
--- build a b := 2
--- function = do
---   functionName <- many1 letter
---   space
---   parameters <- many1 functionParameter
---   string ":="
---   spaces
---   body_ <- (singleLinefunctionBody <||> multiLineFunctionBody)
---   let body = build body_
---   return $ "function " ++ functionName ++ "(" ++ (intercalate ", " (map (\n -> '$':n) parameters)) ++ ") {\n" ++ body ++ "\n}"
-
--- singleLineFunctionBody = do
---   skipMany $ string "return" >> spaces
---   body <- many1 $ noneOf "\r\n"
---   return $ "return " ++ body ++ ";"
-
--- multiLineFunctionBody = anyToken `manyTill` eof
-
--- functionParameter = do
---   name <- many1 letter
---   space
---   return name
-
--- invertedIf = do
---   action <- manyTill anyToken (lookAhead (string "if"))
---   string "if"
---   space
---   condition <- manyTill anyToken eof
---   return $ "if (" ++ condition ++ ") {\n" ++ action ++ "\n}"
+classDefinition = debug "classDefinition" >> do
+  string "class"
+  space
+  name <- classVar
+  space
+  body <- braces
+  return $ Class name body
