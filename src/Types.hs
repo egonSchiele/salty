@@ -9,10 +9,15 @@ data VariableName =
 
 -- function args
 data Argument = Argument {
-                  argType :: Maybe String,
+                  argType :: Maybe ArgumentType,
                   argName :: String,
                   argDefault :: Maybe String
                 } deriving (Show)
+
+data ArgumentType = ArgumentType {
+                      aOptional :: Bool,
+                      aType :: String
+                    } deriving (Show)
 
 argWithDefaults name = Argument Nothing name Nothing
 
@@ -50,6 +55,10 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                fName :: VariableName,
                fArguments :: [Argument],
                fBody :: [Salty]
+             }
+             | FunctionDefinition {
+               fName :: VariableName,
+               fTypes :: [ArgumentType]
              }
              | SaltyNumber String
              | SaltyString String

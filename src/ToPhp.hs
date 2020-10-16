@@ -23,8 +23,10 @@ instance ConvertToPhp VariableName where
   toPhp (SimpleVar s) = '$':s
 
 instance ConvertToPhp Argument where
-  toPhp (Argument (Just typ) name (Just default_)) = print3 "?% $% = %" typ name default_
-  toPhp (Argument (Just typ) name Nothing) = typ ++ " $" ++ name
+  toPhp (Argument (Just (ArgumentType False typ)) name (Just default_)) = print3 "?% $% = %" typ name default_
+  toPhp (Argument (Just (ArgumentType True typ)) name (Just default_)) = print3 "?% $% = %" typ name default_
+  toPhp (Argument (Just (ArgumentType False typ)) name Nothing) = typ ++ " $" ++ name
+  toPhp (Argument (Just (ArgumentType True typ)) name Nothing) = print2 "?% $% = null" typ name
   toPhp (Argument Nothing name (Just default_)) = print2 "$% = %" name default_
   toPhp (Argument Nothing name Nothing) = "$" ++ name
 

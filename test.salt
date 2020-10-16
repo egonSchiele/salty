@@ -6,4 +6,13 @@ class Compliance_Blocklist {
     @@is_performance_feature_enabled ||= ~product_compliance.blocklist_perf
     return @@is_performance_feature_enabled
   }
+
+  buildCompleteBlocklist blocklists loc := {
+    locale = loc ?? EP_Locale.makeDefaultLocale()
+    if ~product_compliance.blocklist_local_cache then {
+      return @@getLocallyCachedBlocklist(blocklists, locale)
+    } else {
+      return @@getCachedBlocklist(blocklists, locale)
+    }
+  }
 }

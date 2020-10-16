@@ -59,6 +59,7 @@ saltyParserSingle__ = do
   parens
   <||> braces
   <||> function
+  <||> functionDefinition
   <||> operation
   <||> partialOperation
   <||> saltyString
@@ -134,6 +135,23 @@ multilineFunction = debug "multilineFunction" >> do
   space
   body <- braces
   return $ Function name (map argWithDefaults (words args)) [body]
+
+findArgTypes = debug "findArgTypes" >> do
+  args <- many1 $ do
+            typ <- many1 letter
+            optional $ string " -> "
+            if (head typ == '?')
+               then return (ArgumentType True (tail typ))
+               else return (ArgumentType False typ)
+  return args
+
+functionDefinition = debug "functionDefinition" >> do
+  name <- variableName
+  space
+  string "::"
+  space
+  argTypes <- findArgTypes
+  return $ FunctionDefinition name argTypes
 
 operator = debug "operator" >> do
        (string "!=" >> return NotEquals)
