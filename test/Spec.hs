@@ -146,7 +146,12 @@ transpileTests = [
     "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    public function foo() {\n        var_dump(\"hi!\");\n    }\n}\n$b = new Blocklist();\n$b->foo();",
 
     -- feature flag
-    "~foo.bar" `matches` "Feature::isEnabled('foo.bar');"
+    "~foo.bar" `matches` "Feature::isEnabled('foo.bar');",
+
+    -- null, true, false
+    "a = true" `matches` "$a = true;",
+    "b = false" `matches` "$b = false;",
+    "c = null" `matches` "$c = null;"
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",

@@ -84,6 +84,8 @@ saltyParserSingle__ = do
   <||> whileStatement
   <||> classDefinition
   <||> objectCreation
+  <||> saltyBool
+  <||> saltyNull
   <||> variable
 
 variable = debug "variable" >> do
@@ -437,3 +439,17 @@ objectCreation = debug "objectCreation" >> do
   constructorArgs <- findArgs
   char ')'
   return $ New className constructorArgs
+
+saltyBool = debug "saltyBool" >> (saltyTrue <||> saltyFalse)
+
+saltyTrue = debug "saltyTrue" >> do
+  s <- string "true"
+  return $ SaltyBool TRUE
+
+saltyFalse = debug "saltyFalse" >> do
+  s <- string "false"
+  return $ SaltyBool FALSE
+
+saltyNull = debug "saltyNull" >> do
+  s <- string "null"
+  return SaltyNull

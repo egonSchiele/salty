@@ -2,6 +2,8 @@ module Types where
 
 data Visibility = Public | Private deriving (Show)
 
+data Boolean = TRUE | FALSE deriving (Show)
+
 data VariableName =
     InstanceVar String -- e.g. $this->foo
   | StaticVar String -- e.g. self::foo or static::foo
@@ -111,6 +113,8 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | BackTrack Salty
              | Variable VariableName
              | FlagName String
+             | SaltyBool Boolean
+             | SaltyNull
              deriving (Show)
 
 isSaltyComment :: Salty -> Bool

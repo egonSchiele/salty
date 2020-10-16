@@ -155,5 +155,8 @@ instance ConvertToPhp Salty where
   toPhp (FunctionTypeSignature n types) = "/**\n" ++ (concat $ map showType types) ++ " */\n"
     where showType t = " * " ++ (toPhp t) ++ "\n"
 
+  toPhp (SaltyBool TRUE) = "true"
+  toPhp (SaltyBool FALSE) = "false"
+  toPhp SaltyNull = "null"
   toPhp x = "not implemented yet: " ++ (show x)
 

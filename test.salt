@@ -1,4 +1,6 @@
-__construct a := @a = a
+func := {
+a = null
+b = true
+c = false
+}
 
-myPubFunc := p("asd")
-_myPriFunc := p("asd")
