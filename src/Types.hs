@@ -31,6 +31,7 @@ data Operator = Add |
   MultiplyEquals |
   OrOr |
   AndAnd |
+  NullCoalesce |
   PlusPlus |
   EqualsEquals |
   LessThan |
@@ -99,6 +100,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | Salt
              | BackTrack Salty
              | Variable VariableName
+             | FlagName String
              deriving (Show)
 
 isSaltyComment :: Salty -> Bool

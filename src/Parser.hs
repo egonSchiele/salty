@@ -72,6 +72,7 @@ saltyParserSingle__ = do
   <||> saltyComment
   <||> phpComment
   <||> phpLine
+  <||> flagName
   <||> emptyLine
   <||> ifStatement
   <||> whileStatement
@@ -143,6 +144,7 @@ operator = debug "operator" >> do
   <||> (string "||=" >> return OrEquals)
   <||> (string "||" >> return OrOr)
   <||> (string "&&" >> return AndAnd)
+  <||> (string "??" >> return NullCoalesce)
   <||> (string "++" >> return PlusPlus)
   <||> (string "==" >> return EqualsEquals)
   <||> (string "<=" >> return LessThanOrEqualTo)
@@ -198,6 +200,7 @@ saltyNumber = debug "saltyNumber" >> do
   return $ SaltyNumber number
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
 
 -- @foo
 instanceVar = debug "instanceVar" >> do
@@ -272,6 +275,11 @@ phpLine = do
   line <- many1 anyChar
   string "```"
   return $ PhpLine line
+
+flagName = do
+  char '~'
+  name <- many1 flagNameChars
+  return $ FlagName name
 
 functionCall = debug "functionCall" >> do
        functionCallOnObject

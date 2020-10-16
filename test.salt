@@ -1,1 +1,9 @@
-"asdasd" ++ "asdasdasd"
+class Compliance_Blocklist {
+
+  __construct blocklists := @blocklists = blocklists ?? DataType_Compliance_BlocklistType.getValues()
+
+  isPerformanceFeatureEnabled := {
+    @@is_performance_feature_enabled ||= ~product_compliance.blocklist_perf
+    return @@is_performance_feature_enabled
+  }
+}

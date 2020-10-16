@@ -46,6 +46,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left Multiply right) = print2 "% * %" (toPhp left) (toPhp right)
   toPhp (Operation left OrOr right) = print2 "% || %" (toPhp left) (toPhp right)
   toPhp (Operation left AndAnd right) = print2 "% && %" (toPhp left) (toPhp right)
+  toPhp (Operation left NullCoalesce right) = print2 "% ?? %" (toPhp left) (toPhp right)
   toPhp (Operation left PlusPlus right) = print2 "% . %" (toPhp left) (toPhp right)
   toPhp (Operation left EqualsEquals right) = print2 "% == %" (toPhp left) (toPhp right)
   toPhp (Operation left LessThan right) = print2 "% < %" (toPhp left) (toPhp right)
@@ -125,6 +126,7 @@ instance ConvertToPhp Salty where
   toPhp (Parens s) = "(" ++ (concat $ map toPhp s) ++ ")"
   toPhp (Braces s) = concat $ map toPhp s
   toPhp (PhpLine line) = line
+  toPhp (FlagName name) = "Feature::isEnabled('" ++ name ++ "')"
   toPhp (PhpComment str) = "// " ++ str
   toPhp (SaltyComment str) = ""
   toPhp (Negate s) = "!" ++ (toPhp s)
