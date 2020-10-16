@@ -143,6 +143,7 @@ operator = debug "operator" >> do
   <||> (string "||=" >> return OrEquals)
   <||> (string "||" >> return OrOr)
   <||> (string "&&" >> return AndAnd)
+  <||> (string "++" >> return PlusPlus)
   <||> (string "==" >> return EqualsEquals)
   <||> (string "<=" >> return LessThanOrEqualTo)
   <||> (string ">=" >> return GreaterThanOrEqualTo)

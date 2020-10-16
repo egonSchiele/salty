@@ -31,6 +31,7 @@ data Operator = Add |
   MultiplyEquals |
   OrOr |
   AndAnd |
+  PlusPlus |
   EqualsEquals |
   LessThan |
   LessThanOrEqualTo |

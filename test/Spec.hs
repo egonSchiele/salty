@@ -56,23 +56,6 @@ phpBlob = [r|
 
 longerTest = saltyBlob `matches` phpBlob
 
--- data Operator = Add |
---   Subtract |
---   Divide |
---   Multiply |
---   Equals |
---   NotEquals |
---   PlusEquals |
---   MinusEquals |
---   OrEquals |
---   DivideEquals |
---   MultiplyEquals |
---   OrOr |
---   AndAnd |
---   LessThan |
---   LessThanOrEqualTo |
---   GreaterThan |
---   GreaterThanOrEqualTo deriving (Show)
 transpileTests = [
     -- operations
     "foo = 1" `matches` "$foo = 1;",
