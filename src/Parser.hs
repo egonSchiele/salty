@@ -282,13 +282,23 @@ functionCall = debug "functionCall" >> do
        functionCallOnObject
   <||> functionCallWithoutObject
 
+endDelim = " .(),\n;[]"
+
+findArgs = debug "findArgs" >> do
+  args <- many $ do
+            s <- saltyParserSingle_
+            optional $ char ','
+            many space
+            return s
+  return args
+
 functionCallOnObject = debug "functionCallOnObject" >> do
   obj <- variable
   char '.'
   funcName <- varNameChars `manyTill` (char '(')
-  funcArgs <- (many saltyParserSingle) `sepBy` (char ',')
+  funcArgs <- findArgs
   char ')'
-  return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) (head funcArgs)
+  return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) funcArgs
 
 parseBuiltInFuncName :: VariableName-> Either BuiltInFunction VariableName
 parseBuiltInFuncName (SimpleVar "p") = Left VarDumpShort
@@ -297,9 +307,9 @@ parseBuiltInFuncName s = Right s
 functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   funcName <- variableName
   char '('
-  funcArgs <- (many saltyParserSingle) `sepBy` (char ',')
+  funcArgs <- findArgs
   char ')'
-  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) (head funcArgs)
+  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs
 
 hashLookup = debug "hashLookup" >> do
   hash <- variable

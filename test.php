@@ -1,2 +1,2 @@
 <?php
-static::foo();
+Blocklist::foo(1, 2);
