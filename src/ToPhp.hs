@@ -156,6 +156,9 @@ instance ConvertToPhp Salty where
     where showType t = " * " ++ (toPhp t) ++ "\n"
 
   toPhp (Constant vis name val) = print3 "% const % = %" (toPhp vis) name (toPhp val)
+  toPhp (HashTable nameValuePairs) = "{\n" ++ hashBody ++ "\n}"
+    where kvtoPhp (name, val) = print2 "% => %" name (toPhp val)
+          hashBody = intercalate ",\n" $ map kvtoPhp nameValuePairs
 
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"

@@ -105,6 +105,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                  constantName :: String,
                  constantValue :: Salty
              }
+             | HashTable [(String, Salty)]
              | ReturnStatement Salty
              | Negate Salty
              | EmptyLine

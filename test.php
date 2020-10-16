@@ -1,4 +1,6 @@
 <?php
-class Blocklist {
-    private const SAMPLE_RATE = 0.001;
+$a = {
+    foo => 1,
+    bar => 2,
+    cat => "hello"
 }

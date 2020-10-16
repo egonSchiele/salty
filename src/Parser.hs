@@ -13,6 +13,7 @@ import Debug.Trace (trace)
 import ToPhp
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?"
 flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
@@ -67,6 +68,7 @@ saltyParserSingle_ = do
 saltyParserSingle__ :: SaltyParser
 saltyParserSingle__ = do
   parens
+  <||> hashTable
   <||> braces
   <||> function
   <||> functionTypeSignature
@@ -110,6 +112,32 @@ parens = debug "parens" >> do
   char ')'
   debug $ "parens done with: " ++ (show body)
   return $ Parens body
+
+validHashValue = debug "validHashValue" >> do
+       saltyString
+  <||> saltyNumber
+  <||> hashLookup
+  <||> flagName
+  <||> saltyBool
+  <||> saltyNull
+  <||> variable
+
+keyValuePair = debug "keyValuePair" >> do
+  key <- many1 hashKeyChars
+  char ':'
+  space
+  value <- validHashValue
+  char ','
+  optional (oneOf " \n")
+  return (key, value)
+
+hashTable = debug "hashTable" >> do
+  char '{'
+  optional (oneOf " \n")
+  kvPairs <- many1 keyValuePair
+  optional (oneOf " \n")
+  char '}'
+  return $ HashTable kvPairs
 
 braces = debug "braces" >> do
   char '{'

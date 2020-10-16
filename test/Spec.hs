@@ -153,7 +153,8 @@ transpileTests = [
     "b = false" `matches` "$b = false;",
     "c = null" `matches` "$c = null;",
     "_SAMPLE_RATE = 0.001" `matches` "private const SAMPLE_RATE = 0.001;",
-    "MYCONST = 'foo'" `matches` "public const MYCONST = \"foo\";"
+    "MYCONST = 'foo'" `matches` "public const MYCONST = \"foo\";",
+    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches`"$a = {\n    foo => 1,\n    bar => 2,\n    cat => \"hello\"\n}"
     -- "arr.any(\\x -> x + 1)" `matches`"$result = false;\nforeach ($arr as $x) {\nif(x + 1) {\n$result = true;\nbreak;\n}"
     -- "arr.any(&even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif(even($i)) {\n$result = true;\nbreak;\n}",
     -- "arr.any(&@even)" `matches`"$result = false;\nforeach ($arr as $i) {\nif($i->even()) {\n$result = true;\nbreak;\n}",

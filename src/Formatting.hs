@@ -3,7 +3,11 @@ module Formatting where
 import Utils
 import Types
 import ToPhp
-import Data.List (intercalate)
+import Data.List
+import Data.Maybe
+
+findString :: (Eq a) => [a] -> [a] -> Int
+findString search str = fromMaybe (-1) $ findIndex (isPrefixOf search) (tails str)
 
 formatDebug :: [Salty] -> String
 formatDebug list = unlines . indentDebug . (map strip) . lines . addNewlines . show $ list
@@ -12,7 +16,7 @@ addNewlines str = replace "[" "[\n" . replace "{" "{\n" . replace "," ",\n" . re
 
 addSemicolons :: [String] -> [String]
 addSemicolons phpLines = for phpLines $ \line ->
-                              if (line == "") || (last line) `elem` ['{', '}', ';'] || (head line) `elem` ['/', '*'] || (first_ 2 line) `elem` [" *"]
+                              if (line == "") || (last line) `elem` ['{', '}', ';', ','] || (head line) `elem` ['/', '*'] || (first_ 2 line) `elem` [" *"] || ((findString "=>" line) > -1)
                                  then line
                                  else (line ++ ";")
 
