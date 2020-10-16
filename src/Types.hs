@@ -1,5 +1,7 @@
 module Types where
 
+data Visibility = Public | Private deriving (Show)
+
 data VariableName =
     InstanceVar String -- e.g. $this->foo
   | StaticVar String -- e.g. self::foo or static::foo
@@ -52,7 +54,8 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | Function {
                fName :: VariableName,
                fArguments :: [Argument],
-               fBody :: [Salty]
+               fBody :: [Salty],
+               fVisibility :: Visibility
              }
              | FunctionTypeSignature {
                fName :: VariableName,

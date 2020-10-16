@@ -127,10 +127,31 @@ argWithTypes [] _ = []
 argWithTypes (a:args) [] = (Argument Nothing a Nothing):(argWithTypes args [])
 argWithTypes (a:args) (t:types) = (Argument (Just t) a Nothing):(argWithTypes args types)
 
+getVisibility :: VariableName  -> (VariableName, Visibility)
+getVisibility (InstanceVar name) = ((InstanceVar newName), visibility)
+  where (visibility, newName) = _getVisibility name
+getVisibility (StaticVar name) = ((StaticVar newName), visibility)
+  where (visibility, newName) = _getVisibility name
+getVisibility (ClassVar name) = ((ClassVar newName), visibility)
+  where (visibility, newName) = _getVisibility name
+getVisibility (SimpleVar name) = ((SimpleVar newName), visibility)
+  where (visibility, newName) = _getVisibility name
+
+_getVisibility :: String -> (Visibility, String)
+_getVisibility "__construct" = (Public, "__construct")
+_getVisibility ('_':xs) = (Private, xs)
+_getVisibility str = (Public, str)
+
+getVarName :: VariableName -> String
+getVarName (InstanceVar str) = str
+getVarName (StaticVar str) = str
+getVarName (ClassVar str) = str
+getVarName (SimpleVar str) = str
 
 onelineFunction = debug "onelineFunction" >> do
   prevSalty <- getState
-  name <- variableName
+  name_ <- variableName
+  let (name, visibility) = getVisibility name_
   space
   args <- words <$> (many (letter <|> digit <|> space <|> (char '_')))
   string ":="
@@ -138,20 +159,21 @@ onelineFunction = debug "onelineFunction" >> do
   body <- many1 saltyParserSingle_
   optional $ char '\n'
   case prevSalty of
-       FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) body
-       _ -> return $ Function name (map argWithDefaults args) body
+       FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) body visibility
+       _ -> return $ Function name (map argWithDefaults args) body visibility
 
 multilineFunction = debug "multilineFunction" >> do
   prevSalty <- getState
-  name <- variableName
+  name_ <- variableName
+  let (name, visibility) = getVisibility name_
   space
   args <- words <$> many (letter <|> digit <|> space <|> (char '_'))
   string ":="
   space
   body <- braces
   case prevSalty of
-     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body]
-     _ -> return $ Function name (map argWithDefaults args) [body]
+     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility
+     _ -> return $ Function name (map argWithDefaults args) [body] visibility
 
 findArgTypes = debug "findArgTypes" >> do
   args <- many1 $ do

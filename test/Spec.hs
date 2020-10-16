@@ -76,13 +76,13 @@ transpileTests = [
     "(a + (b * (c / 30)))" `matches` "($a + ($b * ($c / 30)));",
     "foo() + a.bar()" `matches` "foo() + $a->bar();",
 
-    -- function definitions
-    "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}",
-    "@@build a b := return 2" `matches` "static function build($a, $b) {\n    return 2;\n}",
-    "incr a := return a + 1" `matches` "function incr($a) {\n    return $a + 1;\n}",
-    "foo := a.foo()" `matches` "function foo() {\n    $a->foo();\n}",
-    "foo a b := a + 1 + b + 2" `matches` "function foo($a, $b) {\n    $a + 1 + $b + 2;\n}",
-    "foo a b := (a + 1) + (b - 2)" `matches` "function foo($a, $b) {\n    ($a + 1) + ($b - 2);\n}",
+    -- public function definitions
+    "build a b := return 2" `matches` "public function build($a, $b) {\n    return 2;\n}",
+    "@@build a b := return 2" `matches` "public static function build($a, $b) {\n    return 2;\n}",
+    "incr a := return a + 1" `matches` "public function incr($a) {\n    return $a + 1;\n}",
+    "foo := a.foo()" `matches` "public function foo() {\n    $a->foo();\n}",
+    "foo a b := a + 1 + b + 2" `matches` "public function foo($a, $b) {\n    $a + 1 + $b + 2;\n}",
+    "foo a b := (a + 1) + (b - 2)" `matches` "public function foo($a, $b) {\n    ($a + 1) + ($b - 2);\n}",
 
     -- parens tests
     "(a + b)" `matches` "($a + $b);",
@@ -93,9 +93,9 @@ transpileTests = [
     "((a + 1) * (b - 4))" `matches` "(($a + 1) * ($b - 4));",
 
     -- braces tests
-    "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",
-    "fib x := {\na + b\n b + c\n }\n \n foo a b := a + b" `matches` "function fib($x) {\n    $a + $b;\n    $b + $c;\n}\nfunction foo($a, $b) {\n    $a + $b;\n}",
-    "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "function fib($x) {\n    $a + $b;\n    $b + $c;\n}\nfunction foo($a, $b) {\n    $a + $b;\n}",
+    "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",
+    "fib x := {\na + b\n b + c\n }\n \n foo a b := a + b" `matches` "public function fib($x) {\n    $a + $b;\n    $b + $c;\n}\npublic function foo($a, $b) {\n    $a + $b;\n}",
+    "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "public function fib($x) {\n    $a + $b;\n    $b + $c;\n}\npublic function foo($a, $b) {\n    $a + $b;\n}",
 
     -- hash tests
     "argv[1]" `matches` "$argv[1];",
@@ -140,10 +140,10 @@ transpileTests = [
     "!foo" `matches` "!$foo;",
 
     -- class definition
-    "class Blocklist {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist {\n    function foo() {\n        var_dump(\"hi!\");\n    }\n}",
+    "class Blocklist {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist {\n    public function foo() {\n        var_dump(\"hi!\");\n    }\n}",
 
     -- object creation
-    "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    function foo() {\n        var_dump(\"hi!\");\n    }\n}\n$b = new Blocklist();\n$b->foo();",
+    "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    public function foo() {\n        var_dump(\"hi!\");\n    }\n}\n$b = new Blocklist();\n$b->foo();",
 
     -- feature flag
     "~foo.bar" `matches` "Feature::isEnabled('foo.bar');"

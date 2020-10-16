@@ -23,6 +23,22 @@ print3_ (x:str) Nothing Nothing (Just c)
   | x == '%' = c ++ str
   | otherwise = x:(print3_ str Nothing Nothing (Just c))
 
+print4 :: String -> String -> String -> String -> String -> String
+print4 str a b c d = print4_ str (Just a) (Just b) (Just c) (Just d)
+print4_"" _ _ _ _ = ""
+print4_ (x:str) (Just a) b c d
+  | x == '%' = a ++ (print4_ str Nothing b c d)
+  | otherwise = x:(print4_ str (Just a) b c d)
+print4_ (x:str) Nothing (Just b) c d
+  | x == '%' = b ++ (print4_ str Nothing Nothing c d)
+  | otherwise = x:(print4_ str Nothing (Just b) c d)
+print4_ (x:str) Nothing Nothing (Just c) d
+  | x == '%' = c ++ (print4_ str Nothing Nothing Nothing d)
+  | otherwise = x:(print4_ str Nothing Nothing (Just c) d)
+print4_ (x:str) Nothing Nothing Nothing (Just d)
+  | x == '%' = d ++ str
+  | otherwise = x:(print4_ str Nothing Nothing Nothing (Just d))
+
 print5 :: String -> String -> String -> String -> String -> String -> String
 print5 str a b c d e = print5_ str (Just a) (Just b) (Just c) (Just d) (Just e)
 print5_"" _ _ _ _ _ = ""

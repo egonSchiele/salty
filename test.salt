@@ -1,19 +1,4 @@
-class Compliance_Blocklist {
+__construct a := @a = a
 
-  __construct blocklists := @blocklists = blocklists ?? DataType_Compliance_BlocklistType.getValues()
-
-  isPerformanceFeatureEnabled := {
-    @@is_performance_feature_enabled ||= ~product_compliance.blocklist_perf
-    return @@is_performance_feature_enabled
-  }
-
-  buildCompleteBlocklist :: ?array -> EP_Locale
-  buildCompleteBlocklist blocklists loc := {
-    locale = loc ?? EP_Locale.makeDefaultLocale()
-    if ~product_compliance.blocklist_local_cache then {
-      return @@getLocallyCachedBlocklist(blocklists, locale)
-    } else {
-      return @@getCachedBlocklist(blocklists, locale)
-    }
-  }
-}
+myPubFunc := p("asd")
+_myPriFunc := p("asd")

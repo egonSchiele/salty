@@ -26,6 +26,10 @@ instance ConvertToPhp ArgumentType where
   toPhp (ArgumentType True typ) = "@param " ++ typ ++ "|null"
   toPhp (ArgumentType False typ) = "@param " ++ typ
 
+instance ConvertToPhp Visibility where
+  toPhp Public = "public"
+  toPhp Private = "private"
+
 instance ConvertToPhp Argument where
   toPhp (Argument (Just (ArgumentType False typ)) name (Just default_)) = print3 "?% $% = %" typ name default_
   toPhp (Argument (Just (ArgumentType True typ)) name (Just default_)) = print3 "?% $% = %" typ name default_
@@ -60,7 +64,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left GreaterThan right) = print2 "% > %" (toPhp left) (toPhp right)
   toPhp (Operation left GreaterThanOrEqualTo right) = print2 "% >= %" (toPhp left) (toPhp right)
 
-  toPhp (Function name args body) = print3 "%(%) {\n%\n}\n" funcName funcArgs (concat $ map toPhp body)
+  toPhp (Function name args body visibility) = print4 "% %(%) {\n%\n}\n" (toPhp visibility) funcName funcArgs (concat $ map toPhp body)
     where funcName = case name of
             InstanceVar str -> "function " ++ str
             StaticVar str -> "static function " ++ str
