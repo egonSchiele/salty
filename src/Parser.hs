@@ -20,8 +20,8 @@ type SaltyState = Salty
 type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
--- debug str = return (SaltyString str)
-debug str = parserTrace str >> return (SaltyString str)
+debug str = return (SaltyString str)
+-- debug str = parserTrace str >> return (SaltyString str)
 
 saltyToPhp :: String -> String
 saltyToPhp str = case (build str) of
