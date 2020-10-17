@@ -1,7 +1,4 @@
 <?php
-/**
- * @param String
- */
-public function foo(String $a) {
-    $a;
-}
+"saltyParser" (line 1, column 7):
+unexpected ","
+expecting "\n" or "]"

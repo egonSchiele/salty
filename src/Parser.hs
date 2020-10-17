@@ -1,14 +1,11 @@
 module Parser where
 
 import Types
+import Utils
+import Formatting
 import Text.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
---import Text.ParserCombinators.Parsec.Error(messageString)
-import Utils
-import Formatting
-import System.IO.Unsafe
-import System.Environment
 import Debug.Trace (trace)
 import ToPhp
 
@@ -23,8 +20,8 @@ type SaltyState = Salty
 type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
-debug str = return (SaltyString str)
--- debug str = parserTrace str >> return (SaltyString str)
+-- debug str = return (SaltyString str)
+debug str = parserTrace str >> return (SaltyString str)
 
 saltyToPhp :: String -> String
 saltyToPhp str = case (build str) of
@@ -51,23 +48,23 @@ saltyParserSingle = debug "saltyParserSingle" >> do
   case result of
        Nothing -> return salty
        (Just s) -> do
-         debug $ "found a newline!" ++ [s]
-         return (WithNewLine salty)
-
-worthSaving EmptyLine = False
-worthSaving _ = True
+          debug $ "found a newline!" ++ [s]
+          return (WithNewLine salty)
 
 saltyParserSingle_ :: SaltyParser
 saltyParserSingle_ = do
   debug "saltyParserSingle_"
-  salty <- saltyParserSingle__
+  salty <- saltyParserSingleWithoutNewline
   if worthSaving salty
      then putState salty
      else return ()
   return salty
 
-saltyParserSingle__ :: SaltyParser
-saltyParserSingle__ = do
+worthSaving EmptyLine = False
+worthSaving _ = True
+
+saltyParserSingleWithoutNewline :: SaltyParser
+saltyParserSingleWithoutNewline = do
   parens
   <||> hashTable
   <||> array
@@ -80,7 +77,6 @@ saltyParserSingle__ = do
   <||> saltyString
   <||> saltyNumber
   <||> returnStatement
-  -- <||> higherOrderFunctionCall
   <||> functionCall
   <||> hashLookup
   <||> partialHashLookup
@@ -163,13 +159,6 @@ braces = debug "braces" >> do
   char '}'
   debug $ "braces done with: " ++ (show body)
   return $ Braces body
-
-parensWith :: SaltyParser -> SaltyParser
-parensWith parser = debug "parensWith" >> do
-  char '('
-  body <- parser
-  char ')'
-  return $ Parens [body]
 
 function = debug "function" >> do
   multilineFunction <||> onelineFunction
@@ -366,25 +355,6 @@ returnStatement = debug "returnStatement" >> do
   salty <- many1 saltyParserSingle_
   optional $ char '\n'
   return $ ReturnStatement (Braces salty)
-
--- eachFunc = string ".each" >> return Each
--- mapFunc = string ".map" >> return Map
--- selectFunc = string ".select" >> return Select
--- anyFunc = string ".any" >> return Any
--- allFunc = string ".all" >> return All
-
--- higherOrderFunction = debug "higherOrderFunction" >> do
---        eachFunc
---   <||> mapFunc
---   <||> selectFunc
---   <||> anyFunc
---   <||> allFunc
-
--- higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
---   obj <- variable
---   hof <- higherOrderFunction
---   (Parens func) <- parensWith lambda
---   return $ HigherOrderFunctionCall obj hof func
 
 saltyComment = do
   char '#'
