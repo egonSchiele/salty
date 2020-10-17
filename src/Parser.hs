@@ -13,6 +13,7 @@ import Debug.Trace (trace)
 import ToPhp
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?"
@@ -173,6 +174,43 @@ parensWith parser = debug "parensWith" >> do
 function = debug "function" >> do
   multilineFunction <||> onelineFunction
 
+functionArgs = debug "functionArgs" >> many (do
+  arg <- many1 functionArgsChars
+  space
+  return arg)
+
+onelineFunction = debug "onelineFunction" >> do
+  prevSalty <- getState
+  name_ <- variableName
+  let (name, visibility) = getVisibility name_
+  space
+  args <- functionArgs
+  string ":="
+  space
+  body_ <- many1 (noneOf "\n")
+  optional $ char '\n'
+  case (build body_) of
+       Left err -> return $ SaltyString (show err)
+       Right body -> do
+          case prevSalty of
+               FunctionTypeSignature _ types ->
+                  return $ Function name (argWithTypes args types) body visibility
+               _ ->
+                  return $ Function name (map argWithDefaults args) body visibility
+
+multilineFunction = debug "multilineFunction" >> do
+  prevSalty <- getState
+  name_ <- variableName
+  let (name, visibility) = getVisibility name_
+  space
+  args <- functionArgs
+  string ":="
+  space
+  body <- braces
+  case prevSalty of
+     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility
+     _ -> return $ Function name (map argWithDefaults args) [body] visibility
+
 argWithDefaults name = Argument Nothing name Nothing
 argWithTypes [] _ = []
 argWithTypes (a:args) [] = (Argument Nothing a Nothing):(argWithTypes args [])
@@ -198,33 +236,6 @@ getVarName (InstanceVar str) = str
 getVarName (StaticVar str) = str
 getVarName (ClassVar str) = str
 getVarName (SimpleVar str) = str
-
-onelineFunction = debug "onelineFunction" >> do
-  prevSalty <- getState
-  name_ <- variableName
-  let (name, visibility) = getVisibility name_
-  space
-  args <- words <$> (many (letter <|> digit <|> space <|> (char '_')))
-  string ":="
-  space
-  body <- many1 saltyParserSingle_
-  optional $ char '\n'
-  case prevSalty of
-       FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) body visibility
-       _ -> return $ Function name (map argWithDefaults args) body visibility
-
-multilineFunction = debug "multilineFunction" >> do
-  prevSalty <- getState
-  name_ <- variableName
-  let (name, visibility) = getVisibility name_
-  space
-  args <- words <$> many (letter <|> digit <|> space <|> (char '_'))
-  string ":="
-  space
-  body <- braces
-  case prevSalty of
-     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility
-     _ -> return $ Function name (map argWithDefaults args) [body] visibility
 
 findArgTypes = debug "findArgTypes" >> do
   args <- many1 $ do

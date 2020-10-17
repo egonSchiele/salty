@@ -1,1 +1,4 @@
-b = [1, 2, 3,]
+__construct a := @a = a
+
+myPubFunc := p("asd")
+_myPriFunc := p("asd")

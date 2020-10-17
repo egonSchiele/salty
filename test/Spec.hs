@@ -76,13 +76,15 @@ transpileTests = [
     "(a + (b * (c / 30)))" `matches` "($a + ($b * ($c / 30)));",
     "foo() + a.bar()" `matches` "foo() + $a->bar();",
 
-    -- public function definitions
+    -- function definitions
     "build a b := return 2" `matches` "public function build($a, $b) {\n    return 2;\n}",
     "@@build a b := return 2" `matches` "public static function build($a, $b) {\n    return 2;\n}",
     "incr a := return a + 1" `matches` "public function incr($a) {\n    return $a + 1;\n}",
     "foo := a.foo()" `matches` "public function foo() {\n    $a->foo();\n}",
     "foo a b := a + 1 + b + 2" `matches` "public function foo($a, $b) {\n    $a + 1 + $b + 2;\n}",
     "foo a b := (a + 1) + (b - 2)" `matches` "public function foo($a, $b) {\n    ($a + 1) + ($b - 2);\n}",
+    "_foo a := @a = a" `matches` "private function foo($a) {\n    $this->a = $a;\n}",
+    "__construct a := @a = a\n\n myPubFunc := p(\"asd\")\n _myPriFunc := p(\"asd\")" `matches` "public function __construct($a) {\n    $this->a = $a;\n}\npublic function myPubFunc() {\n    var_dump(\"asd\");\n}\nprivate function myPriFunc() {\n    var_dump(\"asd\");\n}",
 
     -- parens tests
     "(a + b)" `matches` "($a + $b);",
