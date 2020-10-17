@@ -70,7 +70,7 @@ saltyParserSingle__ :: SaltyParser
 saltyParserSingle__ = do
   parens
   <||> hashTable
-  <||> arrayValue
+  <||> array
   <||> braces
   <||> function
   <||> functionTypeSignature

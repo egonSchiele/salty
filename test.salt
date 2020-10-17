@@ -1,2 +1,1 @@
-foo :: string -> string
-foo a := a
+b = [1, 2, 3,]
