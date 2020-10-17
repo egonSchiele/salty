@@ -94,6 +94,24 @@ saltyParserSingleWithoutNewline = do
   <||> saltyNull
   <||> variable
 
+validFuncArgTypes :: SaltyParser
+validFuncArgTypes = debug "validFuncArgTypes" >> do
+       hashTable
+  <||> array
+  <||> operation
+  <||> partialOperation
+  <||> saltyString
+  <||> saltyNumber
+  <||> functionCall
+  <||> hashLookup
+  <||> partialHashLookup
+  <||> negateSalty
+  <||> flagName
+  <||> objectCreation
+  <||> saltyBool
+  <||> saltyNull
+  <||> variable
+
 variable = debug "variable" >> do
   name <- variableName
   return $ Variable name
@@ -361,7 +379,7 @@ phpComment = do
 
 phpLine = do
   string "```"
-  line <- many1 anyChar
+  line <- many1 $ noneOf "`"
   string "```"
   return $ PhpLine line
 
@@ -374,11 +392,9 @@ functionCall = debug "functionCall" >> do
        functionCallOnObject
   <||> functionCallWithoutObject
 
-endDelim = " .(),\n;[]"
-
 findArgs = debug "findArgs" >> do
   args <- many $ do
-            s <- saltyParserSingle_
+            s <- validFuncArgTypes
             optional $ char ','
             many space
             return s
@@ -387,7 +403,8 @@ findArgs = debug "findArgs" >> do
 functionCallOnObject = debug "functionCallOnObject" >> do
   obj <- variable
   char '.'
-  funcName <- varNameChars `manyTill` (char '(')
+  funcName <- many1 varNameChars
+  char '('
   funcArgs <- findArgs
   char ')'
   return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) funcArgs
