@@ -64,12 +64,15 @@ instance ConvertToPhp Salty where
   toPhp (Operation left GreaterThan right) = print2 "% > %" (toPhp left) (toPhp right)
   toPhp (Operation left GreaterThanOrEqualTo right) = print2 "% >= %" (toPhp left) (toPhp right)
 
-  toPhp (Function name args body visibility) = print5 "% %(%) {\n%\n%\n}\n" (toPhp visibility) funcName funcArgs (concat $ map toPhp (init body)) (addReturn (last body))
+  toPhp (Function name args body visibility) = print4 "% %(%) {\n%\n}\n" (toPhp visibility) funcName funcArgs funcBody
     where funcName = case name of
             InstanceVar str -> "function " ++ str
             StaticVar str -> "static function " ++ str
             SimpleVar str -> "function " ++ str
           funcArgs = intercalate ", " $ map toPhp args
+          funcBody = case body of
+                          [Braces salties] -> print2 "%\n%" (concat . map toPhp . init $ salties) (addReturn . last $ salties)
+                          x -> print2 "%\n%" (concat . map toPhp . init $ x) (addReturn . last $ x)
 
   toPhp (SaltyNumber s) = s
   toPhp (SaltyString s) = "\"" ++ s ++ "\""
@@ -176,4 +179,5 @@ addReturn (Braces s) = (concat . map toPhp . init $ s) ++ "\n" ++ (addReturn . l
 addReturn (Variable s) = "return " ++ (toPhp s)
 addReturn (WithNewLine x) = (addReturn x) ++ "\n"
 addReturn p@(Parens x) = "return " ++ (toPhp p)
+addReturn f@(FunctionCall o n a) = "return " ++ (toPhp f)
 addReturn x = toPhp x
