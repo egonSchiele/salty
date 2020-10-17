@@ -289,7 +289,7 @@ partialOperation = debug "partialOperation" >> do
   space
   op <- operator
   space
-  right <- (saltyParserSingle <||> atom)
+  right <- saltyParserSingle
   return $ BackTrack (Operation leftHandSide op right)
 
 negateSalty = debug "negateSalty" >> do
@@ -316,27 +316,23 @@ saltyNumber = debug "saltyNumber" >> do
 instanceVar = debug "instanceVar" >> do
   char '@'
   variable <- many1 varNameChars
-  lookAhead $ oneOf endDelim
   return $ InstanceVar variable
 
 -- @@foo
 staticVar = debug "staticVar" >> do
   string "@@"
   variable <- many1 varNameChars
-  lookAhead $ oneOf endDelim
   return $ StaticVar variable
 
 -- foo
 simpleVar = debug "simpleVar" >> do
   variable <- many1 varNameChars
-  lookAhead $ oneOf endDelim
   return $ SimpleVar variable
 
--- @@foo
+-- Foo
 classVar = debug "classVar" >> do
   start <- upper
   variable <- many1 varNameChars
-  lookAhead $ oneOf endDelim
   return $ ClassVar (start:variable)
 
 lambda = debug "lambda" >> do
