@@ -170,8 +170,7 @@ functionArgs = debug "functionArgs" >> many (do
 
 onelineFunction = debug "onelineFunction" >> do
   prevSalty <- getState
-  name_ <- variableName
-  let (name, visibility) = getVisibility name_
+  (name, visibility) <- getVisibility <$> variableName
   space
   args <- functionArgs
   string ":="
@@ -189,8 +188,7 @@ onelineFunction = debug "onelineFunction" >> do
 
 multilineFunction = debug "multilineFunction" >> do
   prevSalty <- getState
-  name_ <- variableName
-  let (name, visibility) = getVisibility name_
+  (name, visibility) <- getVisibility <$> variableName
   space
   args <- functionArgs
   string ":="
@@ -271,8 +269,7 @@ atom = debug "atom" >> do
   <||> saltyNumber
 
 constant = debug "constant" >> do
-  name_ <- many1 constChars
-  let (visibility, name) = _getVisibility name_
+  (visibility, name) <- _getVisibility <$> (many1 constChars)
   space
   char '='
   space
@@ -281,12 +278,10 @@ constant = debug "constant" >> do
 
 operation = debug "operation" >> do
   left <- atom
-  debug $ "op left: " ++ (show left)
   space
   op <- operator
   space
-  right <- (saltyParserSingle <||> atom)
-  debug $ "op right: " ++ (show right)
+  right <- saltyParserSingle
   return $ Operation left op right
 
 partialOperation = debug "partialOperation" >> do
