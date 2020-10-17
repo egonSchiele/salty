@@ -349,12 +349,14 @@ returnStatement = debug "returnStatement" >> do
 
 saltyComment = do
   char '#'
-  line <- anyChar `manyTill` (string "\n")
+  line <- many1 $ noneOf "\n"
+  string "\n"
   return $ SaltyComment line
 
 phpComment = do
   string "// "
-  line <- anyChar `manyTill` (string "\n")
+  line <- many1 $ noneOf "\n"
+  string "\n"
   return $ PhpComment line
 
 phpLine = do
