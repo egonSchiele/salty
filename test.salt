@@ -1,4 +1,2 @@
-__construct a := @a = a
-
-myPubFunc := p("asd")
-_myPriFunc := p("asd")
+foo :: string -> string
+foo a := a
