@@ -409,7 +409,7 @@ functionCallOnObject = debug "functionCallOnObject" >> do
   char ')'
   return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) funcArgs
 
-parseBuiltInFuncName :: VariableName-> Either BuiltInFunction VariableName
+parseBuiltInFuncName :: VariableName -> Either BuiltInFunction VariableName
 parseBuiltInFuncName (SimpleVar "p") = Left VarDumpShort
 parseBuiltInFuncName s = Right s
 
@@ -423,14 +423,14 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
 hashLookup = debug "hashLookup" >> do
   hash <- variable
   char '['
-  key <- saltyParserSingle
+  key <- validFuncArgTypes
   char ']'
   return $ HashLookup hash key
 
 partialHashLookup = debug "partialHashLookup" >> do
   hash <- getState
   char '['
-  key <- saltyParserSingle
+  key <- validFuncArgTypes
   char ']'
   return $ BackTrack (HashLookup hash key)
 
@@ -466,7 +466,7 @@ whileStatement = debug "whileStatement" >> do
   space
   condition <- saltyParserSingle
   space
-  body <- saltyParserSingle
+  body <- braces
   return $ While condition body
 
 classDefinition = debug "classDefinition" >> do
