@@ -1,23 +1,16 @@
 module Main where
 
 import System.Environment
-import Control.Applicative
-import Text.Printf
-import Control.Monad
-import Control.Monad.State
 import System.Directory
 
-import Text.Parsec
-import Text.ParserCombinators.Parsec.Char
-import Text.Parsec.Combinator
-
 import Parser
+import Utils
 
 convert :: String -> String -> IO ()
 convert infile outfile = do
     contents <- readFile infile
     let out = saltyToPhp contents
-    liftIO $ writeFile outfile ("<?php\n" ++ out)
+    writeFile outfile ("<?php\n" ++ out)
 
 printHelp = do
     putStrLn "Salty is Salmon for PHP."
@@ -29,21 +22,17 @@ debugFile infile = do
     contents <- readFile infile
     putStrLn . saltyToDebugTree $ contents
 
--- foo = do
---   name <- many1 letter
---   oneOf " ,;)\n"
---   return name
+readFromStdin = do
+    contents <- getContents
+    putStrLn $ saltyToPhp contents
 
--- bar = do
---   variable <- letter `manyTill` (lookAhead . try $ (oneOf " .),\n;"))
---   return variable
-
--- test = do
---   parseTest bar "foo a"
-
--- main = test
 main = do
   args <- getArgs
   case args of
+       ["-h"] -> printHelp
+       ["help"] -> printHelp
        ["debug"] -> debugFile "test.salt"
-       _ -> convert "test.salt" "test.php"
+       [inputFile] -> convert inputFile (replace ".salt" ".php" inputFile)
+       [inputFile, outputFile] -> convert inputFile outputFile
+       [] -> readFromStdin
+       _ -> printHelp
