@@ -152,9 +152,9 @@ transpileTests = [
 
     -- function type signature
     "foo :: string\nfoo a := a" `matches` "/**\n * @param string\n */\npublic function foo(string $a) {\n    $a;\n}",
-    "foo :: string -> string\nfoo a := a" `matches` "two",
-    "foo :: int, int -> int\nfoo a b := a + b" `matches` "three",
-    "foo :: int -> int -> int\nfoo a b := a + b" `matches` "four",
+    -- "foo :: string -> string\nfoo a := a" `matches` "two",
+    -- "foo :: int, int -> int\nfoo a b := a + b" `matches` "three",
+    -- "foo :: int -> int -> int\nfoo a b := a + b" `matches` "four",
     "foo :: ?string\nfoo a := a" `matches` "/**\n * @param string|null\n */\npublic function foo(?string $a = null) {\n    $a;\n}",
     "foo :: ?string -> int\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n */\npublic function foo(?string $a = null, int $b) {\n    $a;\n}",
     -- null, true, false
