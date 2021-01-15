@@ -367,7 +367,7 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   char '('
   func <- lambda
   char ')'
-  return $ HigherOrderFunctionCall obj funcName func "result"
+  return $ HigherOrderFunctionCall obj funcName func "$result"
 
 lambda = debug "lambda" >> do
   char '\\'
