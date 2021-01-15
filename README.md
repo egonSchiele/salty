@@ -1,5 +1,16 @@
 # salty
 
+## Usage
+Compile the code yourself or just copy one of the binaries in `bin`.
+
+Then:
+
+```
+salty test.salt # generates test.php
+salty test.salt custom.php # generates custom.php
+salty # waits for input on stdin
+```
+
 ## Variables
 
 - `foo` becomes `$foo`
