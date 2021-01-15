@@ -101,23 +101,23 @@ instance ConvertToPhp Salty where
 
   -- each
   toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body) _)  =
-                print3 "foreach (% as $%) {\n%;\n}" (varName obj) loopVar (toPhp body)
+                print3 "foreach (% as $%) {\n%;\n}\n" (varName obj) loopVar (toPhp body)
 
   -- map
   toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:[]) body) accVar) =
-                print5 "% = [];\nforeach (% as $%) {\n% []= %;\n}" accVar (varName obj) loopVar accVar (toPhp body)
+                print5 "% = [];\nforeach (% as $%) {\n% []= %;\n}\n" accVar (varName obj) loopVar accVar (toPhp body)
 
   -- select
   toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:[]) body) accVar) =
-                print6 "% = [];\nforeach (% as $%) {\nif(%) {\n% []= %;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
+                print6 "% = [];\nforeach (% as $%) {\nif(%) {\n% []= %;\n}\n}\n" accVar (varName obj) loopVar (toPhp body) accVar loopVar
 
   -- any
   toPhp (HigherOrderFunctionCall obj Any (LambdaFunction (loopVar:xs) body) accVar) =
-                print5 "% = false;\nforeach (% as $%) {\nif(%) {\n% = true;\nbreak;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar
+                print5 "% = false;\nforeach (% as $%) {\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar (varName obj) loopVar (toPhp body) accVar
 
   -- all
   toPhp (HigherOrderFunctionCall obj All (LambdaFunction (loopVar:xs) body) accVar) =
-                print5 "% = true;\nforeach (% as $%) {\nif(!%) {\n% = false;\nbreak;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar
+                print5 "% = true;\nforeach (% as $%) {\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (varName obj) loopVar (toPhp body) accVar
 
   toPhp Salt = "I'm salty"
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
@@ -157,6 +157,8 @@ instance ConvertToPhp Salty where
 
 addReturn :: Salty -> String
 addReturn x@(ReturnStatement _) = toPhp x
+addReturn x@(Operation var@(Variable _) Equals h@(HigherOrderFunctionCall obj callName func accVar)) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
+addReturn x@(Operation var@(Variable _) Equals (WithNewLine(h@(HigherOrderFunctionCall obj callName func accVar)))) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
 addReturn x@(Operation _ _ _) = "return " ++ (toPhp x)
 addReturn (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (addReturn thenFork) (addReturn elseFork)
 addReturn (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn thenFork)
@@ -168,5 +170,5 @@ addReturn f@(FunctionCall o n a) = "return " ++ (toPhp f)
 addReturn h@(HashTable kv) = "return " ++ (toPhp h)
 addReturn a@(Array xs) = "return " ++ (toPhp a)
 addReturn f@(HigherOrderFunctionCall _ Each _ _) = toPhp f
-addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toPhp f) ++ "\nreturn $" ++ accVar
+addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toPhp f) ++ "\nreturn " ++ accVar
 addReturn x = toPhp x

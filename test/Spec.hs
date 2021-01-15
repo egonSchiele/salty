@@ -180,15 +180,30 @@ transpileTests = [
     "arr.all(\\x -> x.isEven())" `matches`"$result = true;\nforeach ($arr as $x) {\n    if(!$x->isEven()) {\n        $result = false;\n        break;\n    }\n}",
     "arr.select(\\x -> x.isEven())" `matches`"$result = [];\nforeach ($arr as $x) {\n    if($x->isEven()) {\n        $result []= x;\n    }\n}",
     "arr.each(\\x -> print(x))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
-    "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}"
+    "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
+
+    -- assigning accVar manually
+    "myAcc = foo.each(\\x -> print(x))" `matches` "foreach ($foo as $x) {\n    print($x);\n}",
+    "@myAcc = foo.map(\\x -> x + 1)" `matches` "$this->myAcc = [];\nforeach ($foo as $x) {\n    $this->myAcc []= $x + 1;\n}",
+    "@@myAcc = foo.any(\\x -> x.isEven())" `matches` "static::$myAcc = false;\nforeach ($foo as $x) {\n    if($x->isEven()) {\n        static::$myAcc = true;\n        break;\n    }\n}",
+    "myAcc = foo.all(\\x -> x.isEven())" `matches` "$myAcc = true;\nforeach ($foo as $x) {\n    if(!$x->isEven()) {\n        $myAcc = false;\n        break;\n    }\n}",
+
+    -- assigning accVar manually plus implicit return
+    "bar := myAcc = foo.each(\\x -> print(x))" `matches` "public function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
+    "bar := @myAcc = foo.map(\\x -> x + 1)" `matches` "public function bar() {\n    $this->myAcc = [];\n    foreach ($foo as $x) {\n        $this->myAcc []= $x + 1;\n    }\n    return $this->myAcc;\n}",
+    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "public function bar() {\n    static::$myAcc = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            static::$myAcc = true;\n            break;\n        }\n    }\n    return static::$myAcc;\n}",
+    "bar := myAcc = foo.all(\\x -> x.isEven())" `matches` "public function bar() {\n    $myAcc = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $myAcc = false;\n            break;\n        }\n    }\n    return $myAcc;\n}",
 
     -- implicit returns for higher order functions
-    -- these keep giving me a "lexical error".
-    -- "bar := foo.each(\x -> print(x))" `matches` "public function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
-    -- "bar := foo.map(\x -> x + 1)" `matches`"public function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n    return $result;\n}"
-    -- "bar := foo.any(\x -> x.isEven())" `matches`"public function bar() {\n    $result = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result = true;\n            break;\n        }\n    }\n    return $result;\n}",
-    -- "bar := foo.all(\x -> x.isEven())" `matches`"public function bar() {\n    $result = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $result = false;\n            break;\n        }\n    }\n    return $result;\n}",
-    -- "bar := foo.select(\x -> x.isEven())" `matches` "public function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= x;\n        }\n    }\n    return $result;\n}"
+    "bar := foo.each(\\x -> print(x))" `matches` "public function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
+    "bar := foo.map(\\x -> x + 1)" `matches`"public function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n    return $result;\n}",
+    "bar := foo.any(\\x -> x.isEven())" `matches`"public function bar() {\n    $result = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result = true;\n            break;\n        }\n    }\n    return $result;\n}",
+    "bar := foo.all(\\x -> x.isEven())" `matches`"public function bar() {\n    $result = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $result = false;\n            break;\n        }\n    }\n    return $result;\n}",
+    "bar := foo.select(\\x -> x.isEven())" `matches` "public function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= x;\n        }\n    }\n    return $result;\n}"
+
+
+
+
     -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
     -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
     -- matches [r|
