@@ -229,3 +229,12 @@ Blocklist::foo()
 ## Feature flags
 
 - `~foo.bar` becomes `Feature::isEnabled('foo.bar')`
+
+## Comments
+
+```
+# Comments like this are just for salty and don't get translated to php.
+// Comments like this are passed as php comments
+
+Any code between three backticks is passed verbatim. This code can be across multiple lines.
+```
