@@ -136,6 +136,29 @@ public function foo(?string $a = null, int $b) {
 }
 ```
 
+
+## Hash creation
+
+```
+a = {
+  foo: 1,
+  bar: 2,
+  baz: 'hi',
+}
+```
+
+becomes
+
+```
+$a = [
+foo => 1,
+bar => 2,
+baz => "hi"
+]
+```
+
+the trailing comma is currently **required**.
+
 ## Dot notation
 
 ```
