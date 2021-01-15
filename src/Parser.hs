@@ -344,7 +344,7 @@ staticVar = debug "staticVar" >> do
 
 -- foo
 simpleVar = debug "simpleVar" >> do
-  first <- letter
+  first <- (letter <||> char '_')
   rest <- many varNameChars
   return $ SimpleVar (first:rest)
 
