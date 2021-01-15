@@ -182,5 +182,6 @@ addReturn p@(Parens x) = "return " ++ (toPhp p)
 addReturn f@(FunctionCall o n a) = "return " ++ (toPhp f)
 addReturn h@(HashTable kv) = "return " ++ (toPhp h)
 addReturn a@(Array xs) = "return " ++ (toPhp a)
+addReturn f@(HigherOrderFunctionCall _ Each _) = toPhp f
 addReturn f@(HigherOrderFunctionCall _ _ _) = (toPhp f) ++ "\nreturn $result"
 addReturn x = toPhp x
