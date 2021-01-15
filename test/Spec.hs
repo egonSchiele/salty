@@ -80,12 +80,12 @@ transpileTests = [
     "build a b := return 2" `matches` "public function build($a, $b) {\n    return 2;\n}",
     "@@build a b := return 2" `matches` "public static function build($a, $b) {\n    return 2;\n}",
     "incr a := return a + 1" `matches` "public function incr($a) {\n    return $a + 1;\n}",
-    "foo := a.foo()" `matches` "public function foo() {\n    $a->foo();\n}",
-    "foo a b := a + 1 + b + 2" `matches` "public function foo($a, $b) {\n    $a + 1 + $b + 2;\n}",
-    "foo a b := (a + 1) + (b - 2)" `matches` "public function foo($a, $b) {\n    ($a + 1) + ($b - 2);\n}",
+    "foo := a.foo()" `matches` "public function foo() {\n    return $a->foo();\n}",
+    "foo a b := a + 1 + b + 2" `matches` "public function foo($a, $b) {\n    return $a + 1 + $b + 2;\n}",
+    "foo a b := (a + 1) + (b - 2)" `matches` "public function foo($a, $b) {\n    return ($a + 1) + ($b - 2);\n}",
     "foo a b := { a + b }" `matches` "public function foo($a, $b) {\n    return $a + $b;\n}",
     "_foo a := @a = a" `matches` "private function foo($a) {\n    $this->a = $a;\n}",
-    "foo2 := 2 + 2" `matches` "public function foo2 {\n    return 2 + 2;\n}",
+    "foo2 := 2 + 2" `matches` "public function foo2() {\n    return 2 + 2;\n}",
     "__construct a := @a = a\n\n myPubFunc := p(\"asd\")\n _myPriFunc := p(\"asd\")" `matches` "public function __construct($a) {\n    $this->a = $a;\n}\npublic function myPubFunc() {\n    var_dump(\"asd\");\n}\nprivate function myPriFunc() {\n    var_dump(\"asd\");\n}",
 
     -- parens tests
@@ -98,14 +98,17 @@ transpileTests = [
 
     -- braces tests
     "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",
-    "fib x := {\na + b\n b + c\n }\n \n foo a b := a + b" `matches` "public function fib($x) {\n    $a + $b;\n    $b + $c;\n}\npublic function foo($a, $b) {\n    $a + $b;\n}",
-    "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "public function fib($x) {\n    $a + $b;\n    $b + $c;\n}\npublic function foo($a, $b) {\n    $a + $b;\n}",
+    "fib x := {\na + b\n b + c\n }\n \n foo a b := a + b" `matches` "public function fib($x) {\n    $a + $b;\n    return $b + $c;\n}\npublic function foo($a, $b) {\n    return $a + $b;\n}",
+    "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "public function fib($x) {\n    $a + $b;\n    return $b + $c;\n}\npublic function foo($a, $b) {\n    return $a + $b;\n}",
 
     -- hash tests
     "argv[1]" `matches` "$argv[1];",
     "argv[1][2]" `matches` "$argv[1][2];",
     "fib(argv[1])" `matches` "fib($argv[1]);",
     "var_dump(fib(argv[1]))" `matches` "var_dump(fib($argv[1]));",
+
+    -- hash dot notation tests
+    ":foo.bar.baz" `matches` "$foo['bar']['baz']",
 
     -- if statement
     "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}",
@@ -144,28 +147,28 @@ transpileTests = [
     "!foo" `matches` "!$foo;",
 
     -- class definition
-    "class Blocklist {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist {\n    public function foo() {\n        var_dump(\"hi!\");\n    }\n}",
+    "class Blocklist {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}",
 
     -- object creation
-    "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    public function foo() {\n        var_dump(\"hi!\");\n    }\n}\n$b = new Blocklist();\n$b->foo();",
+    "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}\n$b = new Blocklist();\n$b->foo();",
 
     -- feature flag
     "~foo.bar" `matches` "Feature::isEnabled('foo.bar');",
 
     -- function type signature
-    "foo :: string\nfoo a := a" `matches` "/**\n * @param string\n */\npublic function foo(string $a) {\n    $a;\n}",
+    "foo :: string\nfoo a := a" `matches` "/**\n * @param string\n */\npublic function foo(string $a) {\n    return $a;\n}",
     -- "foo :: string -> string\nfoo a := a" `matches` "two",
     -- "foo :: int, int -> int\nfoo a b := a + b" `matches` "three",
     -- "foo :: int -> int -> int\nfoo a b := a + b" `matches` "four",
-    "foo :: ?string\nfoo a := a" `matches` "/**\n * @param string|null\n */\npublic function foo(?string $a = null) {\n    $a;\n}",
-    "foo :: ?string -> int\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n */\npublic function foo(?string $a = null, int $b) {\n    $a;\n}",
+    "foo :: ?string\nfoo a := a" `matches` "/**\n * @param string|null\n */\npublic function foo(?string $a = null) {\n    return $a;\n}",
+    "foo :: ?string -> int\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n */\npublic function foo(?string $a = null, int $b) {\n    return $a;\n}",
     -- null, true, false
     "a = true" `matches` "$a = true;",
     "b = false" `matches` "$b = false;",
     "c = null" `matches` "$c = null;",
     "_SAMPLE_RATE = 0.001" `matches` "private const SAMPLE_RATE = 0.001;",
     "MYCONST = 'foo'" `matches` "public const MYCONST = \"foo\";",
-    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches`"$a = {\n    foo => 1,\n    bar => 2,\n    cat => \"hello\"\n}",
+    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches`"$a = [\nfoo => 1,\nbar => 2,\ncat => \"hello\"\n]",
     "b = [1, 2, 3,]" `matches`"$b = [1, 2, 3];",
 
     -- return statements
