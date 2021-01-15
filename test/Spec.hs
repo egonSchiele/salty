@@ -108,7 +108,7 @@ transpileTests = [
     "var_dump(fib(argv[1]))" `matches` "var_dump(fib($argv[1]));",
 
     -- hash dot notation tests
-    ":foo.bar.baz" `matches` "$foo['bar']['baz']",
+    ":foo.bar.baz" `matches` "$foo[\"bar\"][\"baz\"]",
 
     -- if statement
     "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}",
