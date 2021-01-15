@@ -238,3 +238,72 @@ Blocklist::foo()
 
 Any code between three backticks is passed verbatim. This code can be across multiple lines.
 ```
+
+## Higher-order functions
+
+```
+foo.each(\x -> print(x))
+foo.map(\x -> x + 1)
+foo.any(\x -> x.isEven())
+foo.all(\x -> x.isEven())
+foo.select(\x -> x.isEven())
+```
+
+become
+
+```
+// each
+foreach ($foo as $x) {
+    print($x);
+}
+
+// map
+$result = [];
+foreach ($foo as $x) {
+    $result []= $x + 1;
+}
+
+// any
+$result = false;
+foreach ($foo as $x) {
+    if($x->isEven()) {
+        $result = true;
+        break;
+    }
+}
+
+// all
+$result = true;
+foreach ($foo as $x) {
+    if(!$x->isEven()) {
+        $result = false;
+        break;
+    }
+}
+
+// select
+$result = [];
+foreach ($foo as $x) {
+    if($x->isEven()) {
+        $result []= x;
+    }
+}
+```
+
+Implicit return works correctly with these too.
+
+```
+bar := foo.map(\x -> x + 1)
+```
+
+becomes
+
+```
+public function bar() {
+    $result = [];
+    foreach ($foo as $x) {
+        $result []= $x + 1;
+    }
+    return $result;
+}
+```

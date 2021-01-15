@@ -1,7 +1,11 @@
-# this should be recognized as a const
-WORD
+foo.each(\x -> print(x))
+foo.map(\x -> x + 1)
+foo.any(\x -> x.isEven())
+foo.all(\x -> x.isEven())
+foo.select(\x -> x.isEven())
 
-## what about this
-@@WORD
-
-# (constants whould be refered to as self::WORD in the code)
+bar := foo.each(\x -> print(x))
+bar := foo.map(\x -> x + 1)
+bar := foo.any(\x -> x.isEven())
+bar := foo.all(\x -> x.isEven())
+bar := foo.select(\x -> x.isEven())
