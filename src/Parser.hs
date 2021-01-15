@@ -71,6 +71,7 @@ saltyParserSingleWithoutNewline = do
   <||> braces
   <||> function
   <||> functionTypeSignature
+  <||> higherOrderFunctionCall
   <||> lambda
   <||> constant
   <||> operation
@@ -354,6 +355,19 @@ classVar = debug "classVar" >> do
   start <- upper
   variable <- many1 varNameChars
   return $ ClassVar (start:variable)
+
+higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
+  obj <- variable
+  char '.'
+  funcName <-      (string "map" >> return Map)
+              <||> (string "each" >> return Each)
+              <||> (string "select" >> return Select)
+              <||> (string "any" >> return Any)
+              <||> (string "all" >> return All)
+  char '('
+  func <- lambda
+  char ')'
+  return $ HigherOrderFunctionCall obj funcName func
 
 lambda = debug "lambda" >> do
   char '\\'
