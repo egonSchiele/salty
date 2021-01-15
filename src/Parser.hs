@@ -71,6 +71,7 @@ saltyParserSingleWithoutNewline = do
   <||> braces
   <||> function
   <||> functionTypeSignature
+  <||> lambda
   <||> constant
   <||> operation
   <||> partialOperation
@@ -355,7 +356,7 @@ classVar = debug "classVar" >> do
   return $ ClassVar (start:variable)
 
 lambda = debug "lambda" >> do
-  string "\\"
+  char '\\'
   args <- anyToken `manyTill` (string " -> ")
   body <- saltyParserSingle
   return $ LambdaFunction (words args) body
