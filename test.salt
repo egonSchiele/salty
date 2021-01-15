@@ -1,1 +1,7 @@
-fib x := if x < 2 then x else (fib(x - 1) + fib(x - 2))
+# this should be recognized as a const
+WORD
+
+## what about this
+@@WORD
+
+# (constants whould be refered to as self::WORD in the code)

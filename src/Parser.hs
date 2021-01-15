@@ -421,6 +421,17 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs
 
 hashLookup = debug "hashLookup" >> do
+       shortHashLookup
+  <||> standardHashLookup
+
+shortHashLookup = debug "shortHashLookup" >> do
+  char ':'
+  hash <- variable
+  char '.'
+  key <- many1 varNameChars
+  return $ HashLookup hash (SaltyString key)
+
+standardHashLookup = debug "standardHashLookup" >> do
   hash <- variable
   char '['
   key <- validFuncArgTypes

@@ -140,7 +140,7 @@ instance ConvertToPhp Salty where
   toPhp (Braces s) = concat $ map toPhp s
   toPhp (PhpLine line) = line
   toPhp (FlagName name) = "Feature::isEnabled('" ++ name ++ "')"
-  toPhp (PhpComment str) = "// " ++ str
+  toPhp (PhpComment str) = "// " ++ str ++ "\n"
   toPhp (SaltyComment str) = ""
   toPhp (Negate s) = "!" ++ (toPhp s)
   toPhp EmptyLine = ""
@@ -159,7 +159,7 @@ instance ConvertToPhp Salty where
     where showType t = " * " ++ (toPhp t) ++ "\n"
 
   toPhp (Constant vis name val) = print3 "% const % = %" (toPhp vis) name (toPhp val)
-  toPhp (HashTable nameValuePairs) = "{\n" ++ hashBody ++ "\n}"
+  toPhp (HashTable nameValuePairs) = "[\n" ++ hashBody ++ "\n]"
     where kvtoPhp (name, val) = print2 "% => %" name (toPhp val)
           hashBody = intercalate ",\n" $ map kvtoPhp nameValuePairs
 
@@ -180,4 +180,6 @@ addReturn (Variable s) = "return " ++ (toPhp s)
 addReturn (WithNewLine x) = (addReturn x) ++ "\n"
 addReturn p@(Parens x) = "return " ++ (toPhp p)
 addReturn f@(FunctionCall o n a) = "return " ++ (toPhp f)
+addReturn h@(HashTable kv) = "return " ++ (toPhp h)
+addReturn a@(Array xs) = "return " ++ (toPhp a)
 addReturn x = toPhp x

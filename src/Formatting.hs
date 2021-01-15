@@ -16,7 +16,7 @@ addNewlines str = replace "[" "[\n" . replace "{" "{\n" . replace "," ",\n" . re
 
 addSemicolons :: [String] -> [String]
 addSemicolons phpLines = for phpLines $ \line ->
-                              if (line == "") || (last line) `elem` ['{', '}', ';', ','] || (head line) `elem` ['/', '*'] || (first_ 2 line) `elem` [" *"] || ((findString "=>" line) > -1)
+                              if (line == "") || (last line) `elem` ['{', '}', ';', ',', '[', ']'] || (head line) `elem` ['/', '*'] || (first_ 2 line) `elem` [" *"] || ((findString "=>" line) > -1)
                                  then line
                                  else (line ++ ";")
 
@@ -36,8 +36,10 @@ indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
 newAmt_ l indentAmt
   | (head l) == '}' && (last l) == '{' = indentAmt
   | (last l) == '{' = indentAmt + 1
+  | (head l) == '[' = indentAmt + 1
   | (last l) == '}' = indentAmt - 1
   | (head l) == '}' = indentAmt - 1
+  | (head l) == ']' = indentAmt - 1
   | (last_ 2 l) == "};" = indentAmt - 1
   | otherwise = indentAmt
 
