@@ -102,8 +102,8 @@ transpileTests = [
     "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "public function fib($x) {\n    $a + $b;\n    return $b + $c;\n}\npublic function foo($a, $b) {\n    return $a + $b;\n}",
 
     -- hash tests
-    "argv[1]" `matches` "$argv[1];",
-    "argv[1][2]" `matches` "$argv[1][2];",
+    "argv[1]" `matches` "$argv[1]",
+    "argv[1][2]" `matches` "$argv[1][2]",
     "fib(argv[1])" `matches` "fib($argv[1]);",
     "var_dump(fib(argv[1]))" `matches` "var_dump(fib($argv[1]));",
 
@@ -169,7 +169,7 @@ transpileTests = [
     "_SAMPLE_RATE = 0.001" `matches` "private const SAMPLE_RATE = 0.001;",
     "MYCONST = 'foo'" `matches` "public const MYCONST = \"foo\";",
     "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches`"$a = [\nfoo => 1,\nbar => 2,\ncat => \"hello\"\n]",
-    "b = [1, 2, 3,]" `matches`"$b = [1, 2, 3];",
+    "b = [1, 2, 3,]" `matches`"$b = [1, 2, 3]",
 
     -- return statements
     "return foo" `matches` "return $foo;",
