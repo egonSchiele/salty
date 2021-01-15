@@ -96,43 +96,24 @@ instance ConvertToPhp Salty where
   toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)
 
   -- each
-  toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body)) =
+  toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body) _)  =
                 print3 "foreach (% as $%) {\n%;\n}" (varName obj) loopVar (toPhp body)
 
-  -- toPhp (HigherOrderFunctionCall obj Each af@(AmpersandFunction name)) =
-  --               print3 "foreach (% as $i) {\n%;\n}" (varName obj) (toPhp af)
-
   -- map
-  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:accVar:[]) body)) =
+  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:[]) body) accVar) =
                 print5 "$% = [];\nforeach (% as $%) {\n$% []= %;\n}" accVar (varName obj) loopVar accVar (toPhp body)
-
-  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:[]) body)) =
-                print5 "$% = [];\nforeach (% as $%) {\n$% []= %;\n}" accVar (varName obj) loopVar accVar (toPhp body)
-                  where accVar = "result"
-
-  -- toPhp (HigherOrderFunctionCall obj Map af@(AmpersandFunction name)) =
-  --               print3 "$acc = [];\nforeach (% as $i) {\n$acc []= %;\n}" (varName obj) (toPhp af)
 
   -- select
-  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:accVar:[]) body)) =
+  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:[]) body) accVar) =
                 print6 "$% = [];\nforeach (% as $%) {\nif(%) {\n$% []= %;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
-  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:[]) body)) =
-                print6 "$% = [];\nforeach (% as $%) {\nif(%) {\n$% []= %;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar loopVar
-                        where accVar = "result"
-  -- toPhp (HigherOrderFunctionCall obj Select af@(AmpersandFunction name)) =
-  --               print3 "$acc = [];\nforeach (% as $i) {\nif(%) {\n$acc []= $i;\n}\n}" (varName obj) (toPhp af)
 
   -- any
-  toPhp (HigherOrderFunctionCall obj Any (LambdaFunction (loopVar:xs) body)) =
-                print3 "$result = false;\nforeach (% as $%) {\nif(%) {\n$result = true;\nbreak;\n}\n}" (varName obj) loopVar (toPhp body)
-  -- toPhp (HigherOrderFunctionCall obj Any af@(AmpersandFunction name)) =
-  --               print3 "$result = false;\nforeach (% as $i) {\nif(%) {\n$result = true;\nbreak;\n}\n}" (varName obj) (toPhp af)
+  toPhp (HigherOrderFunctionCall obj Any (LambdaFunction (loopVar:xs) body) accVar) =
+                print5 "$% = false;\nforeach (% as $%) {\nif(%) {\n$% = true;\nbreak;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar
 
   -- all
-  toPhp (HigherOrderFunctionCall obj All (LambdaFunction (loopVar:xs) body)) =
-                print3 "$result = true;\nforeach (% as $%) {\nif(!%) {\n$result = false;\nbreak;\n}\n}" (varName obj) loopVar (toPhp body)
-  -- toPhp (HigherOrderFunctionCall obj All af@(AmpersandFunction name)) =
-  --               print3 "$result = true;\nforeach (% as $i) {\nif(!%) {\n$result = false;\nbreak;\n}\n}" (varName obj) (toPhp af)
+  toPhp (HigherOrderFunctionCall obj All (LambdaFunction (loopVar:xs) body) accVar) =
+                print5 "$% = true;\nforeach (% as $%) {\nif(!%) {\n$% = false;\nbreak;\n}\n}" accVar (varName obj) loopVar (toPhp body) accVar
 
   toPhp Salt = "I'm salty"
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
@@ -182,6 +163,6 @@ addReturn p@(Parens x) = "return " ++ (toPhp p)
 addReturn f@(FunctionCall o n a) = "return " ++ (toPhp f)
 addReturn h@(HashTable kv) = "return " ++ (toPhp h)
 addReturn a@(Array xs) = "return " ++ (toPhp a)
-addReturn f@(HigherOrderFunctionCall _ Each _) = toPhp f
-addReturn f@(HigherOrderFunctionCall _ _ _) = (toPhp f) ++ "\nreturn $result"
+addReturn f@(HigherOrderFunctionCall _ Each _ _) = toPhp f
+addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toPhp f) ++ "\nreturn $" ++ accVar
 addReturn x = toPhp x

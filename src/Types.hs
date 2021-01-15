@@ -73,7 +73,8 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | HigherOrderFunctionCall { -- higher order function call. I'm adding support for a few functions like map/filter/each
                hoObject :: Salty,
                hoCallName :: HigherOrderFunction,
-               hoFunction :: Salty  --  either lambda or ampersand function.
+               hoFunction :: Salty, -- a lambda function
+               hoAccVar :: String
              }
              | LambdaFunction { -- \a b -> a + b
                lArguments :: [String],
