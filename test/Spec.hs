@@ -84,6 +84,7 @@ transpileTests = [
     "foo a b := a + 1 + b + 2" `matches` "public function foo($a, $b) {\n    $a + 1 + $b + 2;\n}",
     "foo a b := (a + 1) + (b - 2)" `matches` "public function foo($a, $b) {\n    ($a + 1) + ($b - 2);\n}",
     "_foo a := @a = a" `matches` "private function foo($a) {\n    $this->a = $a;\n}",
+    "foo2 := 2 + 2" `matches` "public function foo2 {\n    return 2 + 2;\n}",
     "__construct a := @a = a\n\n myPubFunc := p(\"asd\")\n _myPriFunc := p(\"asd\")" `matches` "public function __construct($a) {\n    $this->a = $a;\n}\npublic function myPubFunc() {\n    var_dump(\"asd\");\n}\nprivate function myPriFunc() {\n    var_dump(\"asd\");\n}",
 
     -- parens tests
