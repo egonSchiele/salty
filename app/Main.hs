@@ -13,7 +13,6 @@ convert infile = do
     putStrLn ("<?php\n" ++ out)
 
 printHelp = do
-    putStrLn "Salty is Salmon for PHP."
     putStrLn "Usage: `salty test.salt` prints to stdout"
     putStrLn "Usage: `salty` reads from stdin and prints to stdout"
     putStrLn "Usage: `salty debug <filename>` reads file and prints tree to stdout"

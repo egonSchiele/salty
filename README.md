@@ -6,9 +6,10 @@ Compile the code yourself or just copy one of the binaries in `bin`.
 Then:
 
 ```
-salty test.salt # generates test.php
-salty test.salt custom.php # generates custom.php
-salty # waits for input on stdin
+printHelp = do
+    putStrLn "Usage: `salty test.salt` prints to stdout"
+    putStrLn "Usage: `salty` reads from stdin and prints to stdout"
+    putStrLn "Usage: `salty debug <filename>` reads file and prints tree to stdout"
 ```
 
 ## Variables
