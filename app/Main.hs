@@ -6,16 +6,17 @@ import System.Directory
 import Parser
 import Utils
 
-convert :: String -> String -> IO ()
-convert infile outfile = do
+convert :: String -> IO ()
+convert infile = do
     contents <- readFile infile
     let out = saltyToPhp contents
-    writeFile outfile ("<?php\n" ++ out)
+    putStrLn ("<?php\n" ++ out)
 
 printHelp = do
     putStrLn "Salty is Salmon for PHP."
-    putStrLn "Usage: `salty test.salt` (writes to test.php)"
-    putStrLn "or `salty input.salt output.php` to write to output.php"
+    putStrLn "Usage: `salty test.salt` prints to stdout"
+    putStrLn "Usage: `salty` reads from stdin and prints to stdout"
+    putStrLn "Usage: `salty debug <filename>` reads file and prints tree to stdout"
 
 debugFile :: String -> IO ()
 debugFile infile = do
@@ -31,8 +32,7 @@ main = do
   case args of
        ["-h"] -> printHelp
        ["help"] -> printHelp
-       ["debug"] -> debugFile "test.salt"
-       [inputFile] -> convert inputFile (replace ".salt" ".php" inputFile)
-       [inputFile, outputFile] -> convert inputFile outputFile
+       ["debug", inputFile] -> debugFile inputFile
+       [inputFile] -> convert inputFile
        [] -> readFromStdin
        _ -> printHelp
