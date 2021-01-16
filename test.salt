@@ -1,9 +1,5 @@
-myAcc = foo.each(\x -> print(x))
-@myAcc = foo.map(\x -> x + 1)
-@@myAcc = foo.any(\x -> x.isEven())
-myAcc = foo.all(\x -> x.isEven())
+getUsers :: array
+getUsers shops := shops.map(\shop -> shop.user)
 
-bar := myAcc = foo.each(\x -> print(x))
-bar := @myAcc = foo.map(\x -> x + 1)
-bar := @@myAcc = foo.any(\x -> x.isEven())
-bar := myAcc = foo.all(\x -> x.isEven())
+
+foo.bar

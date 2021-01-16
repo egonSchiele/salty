@@ -143,6 +143,9 @@ transpileTests = [
     "@foo(@@bar())" `matches` "$this->foo(static::bar());",
     "@@foo(@b.bar())" `matches` "static::foo($this->b->bar());",
 
+    -- attr access
+    "foo.bar" `matches` "$foo->bar",
+
     -- negate
     "!foo" `matches` "!$foo;",
 
