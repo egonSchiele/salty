@@ -80,6 +80,7 @@ saltyParserSingleWithoutNewline = do
   <||> saltyNumber
   <||> returnStatement
   <||> functionCall
+  <||> attrAccess
   <||> hashLookup
   <||> partialHashLookup
   <||> negateSalty
@@ -415,6 +416,12 @@ findArgs = debug "findArgs" >> do
             many space
             return s
   return args
+
+attrAccess = debug "attrAccess" >> do
+  obj <- variable
+  char '.'
+  attrName <- many1 varNameChars
+  return $ AttrAccess obj attrName
 
 functionCallOnObject = debug "functionCallOnObject" >> do
   obj <- variable

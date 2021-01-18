@@ -144,7 +144,13 @@ transpileTests = [
     "@@foo(@b.bar())" `matches` "static::foo($this->b->bar());",
 
     -- attr access
-    "foo.bar" `matches` "$foo->bar",
+    "foo.bar" `matches` "$foo->bar;",
+    "@foo.bar" `matches` "$this->foo->bar;",
+    "@@foo.bar" `matches` "static::$foo->bar;",
+    "Blocklist.foo" `matches` "Blocklist::foo;",
+    "foo.bar = 1" `matches` "$foo->bar = 1;",
+    "foo.bar = 'hello'" `matches` "$foo->bar = \"hello\";",
+    "foo.bar = 2 + 2" `matches` "$foo->bar = 2 + 2;",
 
     -- negate
     "!foo" `matches` "!$foo;",
@@ -184,6 +190,7 @@ transpileTests = [
     "arr.select(\\x -> x.isEven())" `matches`"$result = [];\nforeach ($arr as $x) {\n    if($x->isEven()) {\n        $result []= x;\n    }\n}",
     "arr.each(\\x -> print(x))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
     "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
+    "users = shops.map(\\s -> s.user)" `matches`"$users = [];\nforeach ($shops as $s) {\n    $users []= $s->user;\n}",
 
     -- assigning accVar manually
     "myAcc = foo.each(\\x -> print(x))" `matches` "foreach ($foo as $x) {\n    print($x);\n}",

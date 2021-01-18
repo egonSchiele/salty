@@ -65,7 +65,11 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              }
              | SaltyNumber String
              | SaltyString String
-             | FunctionCall { -- e.g. obj.foo / obj.foo(1) / foo(1, 2)
+             | AttrAccess { -- e.g. obj.foo
+                 attrObject :: Salty,
+                 attrAttr :: String
+             }
+             | FunctionCall { -- e.g. obj.foo(1) / foo(1, 2)
                  fObject :: Maybe Salty,
                  fCallName :: Either BuiltInFunction VariableName,
                  fCallArguments :: [Salty]

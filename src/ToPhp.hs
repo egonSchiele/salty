@@ -148,6 +148,10 @@ instance ConvertToPhp Salty where
     where kvtoPhp (name, val) = print2 "% => %" name (toPhp val)
           hashBody = intercalate ",\n" $ map kvtoPhp nameValuePairs
 
+  toPhp (AttrAccess (Variable (SimpleVar obj)) attrName) = print2 "$%->%" obj attrName
+  toPhp (AttrAccess (Variable (InstanceVar obj)) attrName) = print2 "$this->%->%" obj attrName
+  toPhp (AttrAccess (Variable (StaticVar obj)) attrName) = print2 "static::$%->%" obj attrName
+  toPhp (AttrAccess (Variable (ClassVar obj)) attrName) = print2 "%::%" obj attrName
   toPhp (Array salties) = "[" ++ (intercalate ", " . map toPhp $ salties) ++ "]"
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
@@ -171,4 +175,5 @@ addReturn h@(HashTable kv) = "return " ++ (toPhp h)
 addReturn a@(Array xs) = "return " ++ (toPhp a)
 addReturn f@(HigherOrderFunctionCall _ Each _ _) = toPhp f
 addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toPhp f) ++ "\nreturn " ++ accVar
+addReturn a@(AttrAccess _ _) = "return " ++ (toPhp a)
 addReturn x = toPhp x
