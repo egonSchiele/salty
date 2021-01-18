@@ -84,9 +84,9 @@ transpileTests = [
     "foo a b := a + 1 + b + 2" `matches` "public function foo($a, $b) {\n    return $a + 1 + $b + 2;\n}",
     "foo a b := (a + 1) + (b - 2)" `matches` "public function foo($a, $b) {\n    return ($a + 1) + ($b - 2);\n}",
     "foo a b := { a + b }" `matches` "public function foo($a, $b) {\n    return $a + $b;\n}",
-    "_foo a := @a = a" `matches` "private function foo($a) {\n    return $this->a = $a;\n}",
+    "_foo a := @a = a" `matches` "private function foo($a) {\n    $this->a = $a;\n}",
     "foo2 := 2 + 2" `matches` "public function foo2() {\n    return 2 + 2;\n}",
-    "__construct a := @a = a" `matches` "public function __construct($a) {\n    return $this->a = $a;\n}",
+    "__construct a := @a = a" `matches` "public function __construct($a) {\n    $this->a = $a;\n}",
 
     -- parens tests
     "(a + b)" `matches` "($a + $b);",
@@ -183,6 +183,11 @@ transpileTests = [
     -- return statements
     "return foo" `matches` "return $foo;",
     "return (1 + 2)" `matches` "return (1 + 2);",
+
+    -- implicit returns
+    "foo := 5" `matches` "public function foo() {\n    return 5;\n}",
+    "foo := bar = 5" `matches` "public function foo() {\n    $bar = 5;\n}",
+    "foo := \"hello\"" `matches` "public function foo() {\n    return \"hello\";\n}",
 
     -- higher order functions
     "arr.any(\\x -> x == 1)" `matches`"$result = false;\nforeach ($arr as $x) {\n    if($x == 1) {\n        $result = true;\n        break;\n    }\n}",
