@@ -5,6 +5,9 @@ import Types
 import ToPhp
 import Data.List
 import Data.Maybe
+import Data.Char (isSpace)
+
+rstrip = reverse . dropWhile isSpace . reverse
 
 findString :: (Eq a) => [a] -> [a] -> Int
 findString search str = fromMaybe (-1) $ findIndex (isPrefixOf search) (tails str)
@@ -94,6 +97,6 @@ checkBackTracksSingle (Constant v n b) = Constant v n (checkBackTracksSingle b)
 checkBackTracksSingle x = x
 
 saltyToPhp_ :: Int -> [Salty] -> String
-saltyToPhp_ indentAmt tree = unlines . (indent indentAmt) . addSemicolons . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
+saltyToPhp_ indentAmt tree = rstrip . unlines . (indent indentAmt) . addSemicolons . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
 
 removeBlanks list = filter (\item -> (not (item `elem` ["", "\n", ";"]))) list
