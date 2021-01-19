@@ -123,6 +123,9 @@ transpileTests = [
     "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}",
     "if a != 'foo' then return 2 else return 3" `matches` "if ($a != \"foo\") {\n    return 2;\n} else {\n    return 3;\n}",
 
+    -- arity for else
+    "fib x := if x < 2 then x else fib(x - 1) + fib(x - 2)" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",
+
     -- while statement
     "while foo == 1 {\nfoo = 2\n}" `matches`"while ($foo == 1) {\n    $foo = 2;\n}",
     "while foo == 1 {\nfoo = 2\nbar = 3\n}" `matches`"while ($foo == 1) {\n    $foo = 2;\n    $bar = 3;\n}",
@@ -196,6 +199,8 @@ transpileTests = [
     "foo := bar = 5" `matches` "public function foo() {\n    $bar = 5;\n}",
     "foo := bar []= 5" `matches` "public function foo() {\n    $bar []= 5;\n}",
     "foo := \"hello\"" `matches` "public function foo() {\n    return \"hello\";\n}",
+    "foo x :=  if x then 'hi' else 'hello'" `matches` "public function foo($x) {\n    if ($x) {\n        return \"hi\";\n    } else {\n        return \"hello\";\n    }\n}",
+    "fib x := if x < 2 then x" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    }\n}",
 
     -- higher order functions
     "arr.any(\\x -> x == 1)" `matches`"$result = false;\nforeach ($arr as $x) {\n    if($x == 1) {\n        $result = true;\n        break;\n    }\n}",
