@@ -102,6 +102,7 @@ transpileTests = [
     "(foo).bar" `matches` "($foo)->bar;",
     "(foo).bar()" `matches` "($foo)->bar();",
     "(new Foo()).bar()" `matches` "(new Foo())->bar();",
+    "var = (new Foo(:hash.key)).someFunc()" `matches` "(new Foo())->bar();",
 
     -- braces tests
     "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",
