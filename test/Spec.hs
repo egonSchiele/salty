@@ -99,8 +99,8 @@ transpileTests = [
     "(((foo())))" `matches` "(((foo())));",
     "(((a.foo())))" `matches` "((($a->foo())));",
     "((a + 1) * (b - 4))" `matches` "(($a + 1) * ($b - 4));",
-    "(foo).bar" `matches` "($foo)->bar",
-    "(foo).bar()" `matches` "($foo)->bar()",
+    "(foo).bar" `matches` "($foo)->bar;",
+    "(foo).bar()" `matches` "$foo->bar();",
 
     -- braces tests
     "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",

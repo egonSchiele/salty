@@ -100,6 +100,12 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just (Variable (StaticVar obj))) (Right funcName) args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
   toPhp (FunctionCall (Just (Variable (ClassVar obj))) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
+  -- same as above but with parens
+  toPhp (FunctionCall (Just (Parens [Variable (SimpleVar obj)])) (Right funcName) args) = print3 "$%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Parens [Variable (InstanceVar obj)])) (Right funcName) args) = print3 "$this->%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Parens [Variable (StaticVar obj)])) (Right funcName) args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Parens [Variable (ClassVar obj)])) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+
   toPhp (LambdaFunction [] body) =  toPhp body
   toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)
 
@@ -152,10 +158,10 @@ instance ConvertToPhp Salty where
     where kvtoPhp (name, val) = print2 "% => %" name (toPhp val)
           hashBody = intercalate ",\n" $ map kvtoPhp nameValuePairs
 
-  toPhp (AttrAccess (Variable (SimpleVar obj)) attrName) = print2 "$%->%" obj attrName
-  toPhp (AttrAccess (Variable (InstanceVar obj)) attrName) = print2 "$this->%->%" obj attrName
-  toPhp (AttrAccess (Variable (StaticVar obj)) attrName) = print2 "static::$%->%" obj attrName
   toPhp (AttrAccess (Variable (ClassVar obj)) attrName) = print2 "%::%" obj attrName
+  toPhp (AttrAccess obj attrName) = print2 "%->%" (toPhp obj) attrName
+  -- toPhp (AttrAccess (Variable (InstanceVar obj)) attrName) = print2 "$this->%->%" obj attrName
+  -- toPhp (AttrAccess (Variable (StaticVar obj)) attrName) = print2 "static::$%->%" obj attrName
   toPhp (Array salties) = "[" ++ (intercalate ", " . map toPhp $ salties) ++ "]"
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"

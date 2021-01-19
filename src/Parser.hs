@@ -83,6 +83,8 @@ saltyParserSingleWithoutNewline = do
   <||> attrAccess
   <||> hashLookup
   <||> partialHashLookup
+  <||> partialFunctionCall
+  <||> partialAttrAccess
   <||> negateSalty
   <||> saltyComment
   <||> phpComment
@@ -109,6 +111,8 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> functionCall
   <||> hashLookup
   <||> partialHashLookup
+  <||> partialFunctionCall
+  <||> partialAttrAccess
   <||> negateSalty
   <||> flagName
   <||> objectCreation
@@ -318,6 +322,21 @@ partialOperation = debug "partialOperation" >> do
   right <- saltyParserSingle
   return $ BackTrack (Operation leftHandSide op right)
 
+partialAttrAccess = debug "partialAttrAccess" >> do
+  leftHandSide <- getState
+  char '.'
+  attrName <- many1 varNameChars
+  return $ BackTrack (AttrAccess leftHandSide attrName)
+
+partialFunctionCall = debug "partialFunctionCall" >> do
+  leftHandSide <- getState
+  char '.'
+  funcName <- many1 varNameChars
+  char '('
+  funcArgs <- findArgs
+  char ')'
+  return $ BackTrack $ FunctionCall (Just leftHandSide) (Right (SimpleVar funcName)) funcArgs
+
 negateSalty = debug "negateSalty" >> do
   char '!'
   s <- saltyParserSingle
@@ -334,8 +353,9 @@ saltyString = debug "saltyString" >> do
   return $ SaltyString str
 
 saltyNumber = debug "saltyNumber" >> do
-  number <- many1 (oneOf "1234567890.-")
-  return $ SaltyNumber number
+  head <- oneOf "1234567890-"
+  number <- many (oneOf "1234567890.")
+  return $ SaltyNumber (head:number)
 
 
 -- @foo
