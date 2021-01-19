@@ -95,6 +95,7 @@ saltyParserSingleWithoutNewline = do
   <||> objectCreation
   <||> saltyBool
   <||> saltyNull
+  <||> saltyKeyword
   <||> variable
 
 validFuncArgTypes :: SaltyParser
@@ -545,3 +546,20 @@ saltyFalse = debug "saltyFalse" >> do
 saltyNull = debug "saltyNull" >> do
   s <- string "null"
   return SaltyNull
+
+saltyKeyword = debug "saltyKeyword" >> do
+  phpKeyword <-      saltyKeywordUse
+                <||> saltyKeywordThrow
+  return $ Keyword phpKeyword
+
+saltyKeywordUse = debug "saltyKeywordUse" >> do
+  string "use"
+  space
+  var <- variableName
+  return $ KwUse var
+
+saltyKeywordThrow = debug "saltyKeywordThrow" >> do
+  string "throw"
+  space
+  salty <- saltyParserSingle
+  return $ KwThrow salty

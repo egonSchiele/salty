@@ -11,6 +11,8 @@ data VariableName =
   | SimpleVar String -- e.g. foo
   deriving (Show)
 
+data PhpKeyword = KwUse VariableName | KwThrow Salty deriving (Show)
+
 -- function args
 data Argument = Argument {
                   argType :: Maybe ArgumentType,
@@ -129,6 +131,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | FlagName String
              | SaltyBool Boolean
              | SaltyNull
+             | Keyword PhpKeyword
              deriving (Show)
 
 isSaltyComment :: Salty -> Bool

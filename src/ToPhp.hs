@@ -159,6 +159,9 @@ instance ConvertToPhp Salty where
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
   toPhp SaltyNull = "null"
+  toPhp (Keyword (KwUse var)) = "use " ++ (toPhp var)
+  toPhp (Keyword (KwThrow salty)) = "throw " ++ (toPhp salty)
+  toPhp (Keyword x) = "keyword not implemented yet: " ++ (show x)
   toPhp x = "not implemented yet: " ++ (show x)
 
 

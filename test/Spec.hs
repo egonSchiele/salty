@@ -220,7 +220,13 @@ transpileTests = [
     "bar := foo.map(\\x -> x + 1)" `matches`"public function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n    return $result;\n}",
     "bar := foo.any(\\x -> x.isEven())" `matches`"public function bar() {\n    $result = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result = true;\n            break;\n        }\n    }\n    return $result;\n}",
     "bar := foo.all(\\x -> x.isEven())" `matches`"public function bar() {\n    $result = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $result = false;\n            break;\n        }\n    }\n    return $result;\n}",
-    "bar := foo.select(\\x -> x.isEven())" `matches` "public function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= x;\n        }\n    }\n    return $result;\n}"
+    "bar := foo.select(\\x -> x.isEven())" `matches` "public function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= x;\n        }\n    }\n    return $result;\n}",
+
+    -- keywords
+    "use Foo" `matches` "use Foo;",
+    "throw new Exception()" `matches` "throw new Exception();",
+    "throw new Exception('foo')" `matches` "throw new Exception(\"foo\");",
+    "throw e" `matches` "throw $e;"
 
 
 
