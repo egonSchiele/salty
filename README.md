@@ -319,3 +319,7 @@ public function bar() {
     return $result;
 }
 ```
+
+## String Concatenation
+
+`foo ++ bar` becomes `$foo . $bar`

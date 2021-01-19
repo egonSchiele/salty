@@ -45,7 +45,8 @@ data Operator = Add |
   LessThan |
   LessThanOrEqualTo |
   GreaterThan |
-  GreaterThanOrEqualTo deriving (Show)
+  GreaterThanOrEqualTo |
+  ArrayPush deriving (Show)
 
 data BuiltInFunction = VarDumpShort deriving (Show)
 

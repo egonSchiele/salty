@@ -270,6 +270,7 @@ operator = debug "operator" >> do
   <||> (string "-=" >> return MinusEquals)
   <||> (string "/=" >> return DivideEquals)
   <||> (string "*=" >> return MultiplyEquals)
+  <||> (string "[]=" >> return ArrayPush)
   <||> (string "||=" >> return OrEquals)
   <||> (string "||" >> return OrOr)
   <||> (string "&&" >> return AndAnd)

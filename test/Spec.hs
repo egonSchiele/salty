@@ -75,6 +75,8 @@ transpileTests = [
     "(a + 1) * (b - 10)" `matches` "($a + 1) * ($b - 10);",
     "(a + (b * (c / 30)))" `matches` "($a + ($b * ($c / 30)));",
     "foo() + a.bar()" `matches` "foo() + $a->bar();",
+    "foo []= bar" `matches` "$foo []= $bar;",
+    "foo ++ bar" `matches` "$foo . $bar;",
 
     -- function definitions
     "build a b := return 2" `matches` "public function build($a, $b) {\n    return 2;\n}",
@@ -113,6 +115,7 @@ transpileTests = [
     ":argv.1.2" `matches` "$argv[1][2]",
     ":@foo.bar" `matches` "$this->foo[\"bar\"]",
     ":@@foo.bar" `matches` "static::$foo[\"bar\"]",
+    ":bar.baz ?? 1" `matches` "$bar[\"baz\"] ?? 1;",
 
     -- if statement
     "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}",
@@ -189,6 +192,7 @@ transpileTests = [
     -- implicit returns
     "foo := 5" `matches` "public function foo() {\n    return 5;\n}",
     "foo := bar = 5" `matches` "public function foo() {\n    $bar = 5;\n}",
+    "foo := bar []= 5" `matches` "public function foo() {\n    $bar []= 5;\n}",
     "foo := \"hello\"" `matches` "public function foo() {\n    return \"hello\";\n}",
 
     -- higher order functions

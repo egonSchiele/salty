@@ -56,6 +56,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left MultiplyEquals right) = print3 "% = % * %" (toPhp left) (toPhp left) (toPhp right)
   toPhp (Operation left DivideEquals right) = print3 "% = % / %" (toPhp left) (toPhp left) (toPhp right)
   toPhp (Operation left OrEquals right) = print3 "% = % ?? %" (toPhp left) (toPhp left) (toPhp right)
+  toPhp (Operation left ArrayPush right) = print2 "% []= %" (toPhp left) (toPhp right)
   toPhp (Operation left Add right) = print2 "% + %" (toPhp left) (toPhp right)
   toPhp (Operation left Subtract right) = print2 "% - %" (toPhp left) (toPhp right)
   toPhp (Operation left Divide right) = print2 "% / %" (toPhp left) (toPhp right)
@@ -166,6 +167,7 @@ addReturn x@(ReturnStatement _) = toPhp x
 addReturn x@(Operation var@(Variable _) Equals h@(HigherOrderFunctionCall obj callName func accVar)) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
 addReturn x@(Operation var@(Variable _) Equals (WithNewLine(h@(HigherOrderFunctionCall obj callName func accVar)))) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
 addReturn x@(Operation _ Equals _) = toPhp x
+addReturn x@(Operation _ ArrayPush _) = toPhp x
 addReturn x@(Operation _ _ _) = "return " ++ (toPhp x)
 addReturn (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (addReturn thenFork) (addReturn elseFork)
 addReturn (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn thenFork)
