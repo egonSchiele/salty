@@ -178,6 +178,7 @@ addReturn x@(Operation var@(Variable _) Equals h@(HigherOrderFunctionCall obj ca
 addReturn x@(Operation var@(Variable _) Equals (WithNewLine(h@(HigherOrderFunctionCall obj callName func accVar)))) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
 addReturn x@(Operation _ Equals _) = toPhp x
 addReturn x@(Operation _ ArrayPush _) = toPhp x
+addReturn x@(Operation left OrEquals _) = (toPhp x) ++ "\nreturn " ++ (toPhp left)
 addReturn x@(Operation _ _ _) = "return " ++ (toPhp x)
 addReturn (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (addReturn thenFork) (addReturn elseFork)
 addReturn (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn thenFork)
