@@ -104,6 +104,8 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              }
              | Class {
                cName :: VariableName,
+               cExtendsName :: Maybe VariableName,
+               cImplementsName :: Maybe VariableName,
                wBody :: Salty
              }
              | HashLookup {

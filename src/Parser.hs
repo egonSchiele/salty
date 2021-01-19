@@ -537,13 +537,30 @@ whileStatement = debug "whileStatement" >> do
   body <- braces
   return $ While condition body
 
+
 classDefinition = debug "classDefinition" >> do
   string "class"
   space
   name <- classVar
   space
   body <- braces
-  return $ Class name body
+  extendsName <- classDefExtends <||> nothing
+  implementsName <- classDefImplements <||> nothing
+  return $ Class name extendsName implementsName body
+
+classDefExtends = debug "classDefExtends" >> do
+  string "extends"
+  space
+  extendsName <- classVar
+  return $ Just extendsName
+
+classDefImplements = debug "classDefImplements" >> do
+  string "implements"
+  space
+  implementsName <- classVar
+  return $ Just implementsName
+
+nothing = return Nothing
 
 objectCreation = debug "objectCreation" >> do
   string "new"

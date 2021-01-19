@@ -141,7 +141,10 @@ instance ConvertToPhp Salty where
   toPhp (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (toPhp thenFork) (toPhp elseFork)
   toPhp (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (toPhp thenFork)
   toPhp (While cond body) = print2 "while (%) {\n%\n}" (toPhp cond) (toPhp body)
-  toPhp (Class name body) = print2 "class % {\n%\n}" (toPhp name) (toPhp body)
+  toPhp (Class name Nothing Nothing body) = print2 "class % {\n%\n}" (toPhp name) (toPhp body)
+  toPhp (Class name (Just extendsName) Nothing body) = print3 "class % extends % {\n%\n}" (toPhp name) (toPhp extendsName) (toPhp body)
+  toPhp (Class name Nothing (Just implementsName) body) = print3 "class % implements % {\n%\n}" (toPhp name) (toPhp implementsName) (toPhp body)
+  toPhp (Class name (Just extendsName) (Just implementsName) body) = print4 "class % extends % implements % {\n%\n}" (toPhp name) (toPhp extendsName) (toPhp implementsName) (toPhp body)
   toPhp (New name args) = print2 "new %(%)" (toPhp name) (intercalate "," . map toPhp $ args)
 
   toPhp (Variable x) = toPhp x
