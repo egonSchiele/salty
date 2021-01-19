@@ -26,12 +26,19 @@ readFromStdin = do
     contents <- getContents
     putStrLn $ saltyToPhp contents
 
+debugFromStdin = do
+    contents <- getContents
+    putStrLn . saltyToDebugTree $ contents
+
 main = do
   args <- getArgs
   case args of
        ["-h"] -> printHelp
        ["help"] -> printHelp
        ["debug", inputFile] -> debugFile inputFile
+       ["-d", inputFile] -> debugFile inputFile
+       ["debug"] -> debugFromStdin
+       ["-d"] -> debugFromStdin
        [inputFile] -> convert inputFile
        [] -> readFromStdin
        _ -> printHelp
