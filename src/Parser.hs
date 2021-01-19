@@ -452,11 +452,18 @@ hashLookup = debug "hashLookup" >> do
 shortHashLookup = debug "shortHashLookup" >> do
   char ':'
   hash <- variable
-  keys <- many1 $ do
-    char '.'
-    key <- many1 varNameChars
-    return key
-  return $ foldl (\acc key -> HashLookup acc (SaltyString key)) (HashLookup hash (SaltyString (head keys))) (tail keys)
+  keys <- many1 $ hashKeyNumber <||> hashKeyString
+  return $ foldl (\acc key -> HashLookup acc key) (HashLookup hash (head keys)) (tail keys)
+
+hashKeyNumber = debug "hashKeyString" >> do
+  char '.'
+  key <- many1 digit
+  return $ SaltyNumber key
+
+hashKeyString = debug "hashKeyString" >> do
+  char '.'
+  key <- many1 varNameChars
+  return $ SaltyString key
 
 standardHashLookup = debug "standardHashLookup" >> do
   hash <- variable
