@@ -173,6 +173,9 @@ transpileTests = [
 
     -- class definition
     "class Blocklist {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}",
+    "class Blocklist extends Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist extends Bar {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}",
+    "class Blocklist implements Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist implements Bar {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}",
+    "class Blocklist extends Foo implements Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist extends Foo implements Bar {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}",
 
     -- object creation
     "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}\n$b = new Blocklist();\n$b->foo();",
