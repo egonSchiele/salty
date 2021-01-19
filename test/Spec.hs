@@ -109,6 +109,7 @@ transpileTests = [
 
     -- hash dot notation tests
     ":foo.bar.baz" `matches` "$foo[\"bar\"][\"baz\"]",
+    ":foo.bar.baz.1" `matches` "$foo[\"bar\"][\"baz\"][1]",
 
     -- if statement
     "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}",
