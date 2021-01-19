@@ -287,6 +287,7 @@ operator = debug "operator" >> do
   <||> (string "/" >> return Divide)
   <||> (string "*" >> return Multiply)
   <||> (string "=" >> return Equals)
+  <||> (string "%" >> return Modulo)
 
 atom = debug "atom" >> do
        variable

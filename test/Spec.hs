@@ -67,6 +67,8 @@ transpileTests = [
     "a -= 1" `matches` "$a = $a - 1;",
     "a == 1" `matches` "$a == 1;",
     "5 * 5" `matches` "5 * 5;",
+    "x % 2" `matches` "$x % 2;",
+    "x % 2 == 0" `matches` "$x % 2 == 0;",
     "foo + bar" `matches` "$foo + $bar;",
     "'foo' + 'bar'" `matches` "\"foo\" + \"bar\";",
     "a + b + c" `matches` "$a + $b + $c;",
@@ -122,6 +124,7 @@ transpileTests = [
     -- if statement
     "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}",
     "if a != 'foo' then return 2 else return 3" `matches` "if ($a != \"foo\") {\n    return 2;\n} else {\n    return 3;\n}",
+    "foo := if x % 2 == 0 then 'even' else 'odd'" `matches` "public function foo() {\n    if ($x % 2 == 0) {\n        return \"even\";\n    } else {\n        return \"odd\";\n    }\n}",
 
     -- arity for else
     "fib x := if x < 2 then x else fib(x - 1) + fib(x - 2)" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",

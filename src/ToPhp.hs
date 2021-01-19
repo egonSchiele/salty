@@ -60,6 +60,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left Add right) = print2 "% + %" (toPhp left) (toPhp right)
   toPhp (Operation left Subtract right) = print2 "% - %" (toPhp left) (toPhp right)
   toPhp (Operation left Divide right) = print2 "% / %" (toPhp left) (toPhp right)
+  toPhp (Operation left Modulo right) = (toPhp left) ++ " % " ++ (toPhp right)
   toPhp (Operation left Multiply right) = print2 "% * %" (toPhp left) (toPhp right)
   toPhp (Operation left OrOr right) = print2 "% || %" (toPhp left) (toPhp right)
   toPhp (Operation left AndAnd right) = print2 "% && %" (toPhp left) (toPhp right)

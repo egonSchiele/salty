@@ -32,6 +32,7 @@ data Operator = Add |
   Subtract |
   Divide |
   Multiply |
+  Modulo |
   Equals |
   NotEquals |
   PlusEquals |
