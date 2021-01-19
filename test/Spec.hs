@@ -11,7 +11,7 @@ import ToPhp
 -- assertEqual_ expected actual = assertBool (expected == actual) failureMsg
 --   where failureMsg = "expected:\n" ++ expected ++"\nbut got actual:\n" ++ actual ++ "\n"
 
-matches str1 str2 = TestCase $ assertEqual "" (str2 ++ "\n") (saltyToPhp str1)
+matches str1 str2 = TestCase $ assertEqual "" (str2 ++ "\n") (saltyToPhp 0 str1)
 
 makeToPhpTest :: (Salty, String) -> Test
 makeToPhpTest (salty,expectedStr) = (toPhp salty) `matches` expectedStr

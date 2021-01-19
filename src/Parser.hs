@@ -23,10 +23,10 @@ debug :: String -> SaltyParser
 debug str = return (SaltyString str)
 -- debug str = parserTrace str >> return (SaltyString str)
 
-saltyToPhp :: String -> String
-saltyToPhp str = case (build str) of
+saltyToPhp :: Int -> String -> String
+saltyToPhp indentAmt str = case (build str) of
                    Left err -> show err
-                   Right xs -> saltyToPhp_ xs
+                   Right xs -> saltyToPhp_ indentAmt xs
 
 saltyToDebugTree :: String -> String
 saltyToDebugTree str = case (build str) of

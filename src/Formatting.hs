@@ -20,8 +20,8 @@ addSemicolons phpLines = for phpLines $ \line ->
                                  then line
                                  else (line ++ ";")
 
-indent :: [String] -> [String]
-indent lines_ = indent_ lines_ 0
+indent :: Int -> [String] -> [String]
+indent startAmt lines_ = indent_ lines_ startAmt
 
 indent_ :: [String] -> Int -> [String]
 indent_ [] _ = []
@@ -93,7 +93,7 @@ checkBackTracksSingle (HashLookup h k) = HashLookup (checkBackTracksSingle h) (c
 checkBackTracksSingle (Constant v n b) = Constant v n (checkBackTracksSingle b)
 checkBackTracksSingle x = x
 
-saltyToPhp_ :: [Salty] -> String
-saltyToPhp_ tree = unlines . indent . addSemicolons . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
+saltyToPhp_ :: Int -> [Salty] -> String
+saltyToPhp_ indentAmt tree = unlines . (indent indentAmt) . addSemicolons . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
 
 removeBlanks list = filter (\item -> (not (item `elem` ["", "\n", ";"]))) list

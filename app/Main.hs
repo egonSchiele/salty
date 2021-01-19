@@ -6,10 +6,17 @@ import System.Directory
 import Parser
 import Utils
 
+getIndentAmt :: String -> Int
+getIndentAmt contents = floor $ (countLeadingSpaces contents) / 4
+
+countLeadingSpaces [] = 0
+countLeadingSpaces (' ':xs) = 1 + (countLeadingSpaces xs)
+countLeadingSpaces _ = 0
+
 convert :: String -> IO ()
 convert infile = do
     contents <- readFile infile
-    let out = saltyToPhp contents
+    let out = saltyToPhp (getIndentAmt contents) contents
     putStrLn ("<?php\n" ++ out)
 
 printHelp = do
@@ -24,7 +31,7 @@ debugFile infile = do
 
 readFromStdin = do
     contents <- getContents
-    putStrLn $ saltyToPhp contents
+    putStrLn $ saltyToPhp (getIndentAmt contents) contents
 
 debugFromStdin = do
     contents <- getContents
