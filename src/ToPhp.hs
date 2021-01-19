@@ -101,10 +101,7 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just (Variable (ClassVar obj))) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   -- same as above but with parens
-  toPhp (FunctionCall (Just (Parens [Variable (SimpleVar obj)])) (Right funcName) args) = print3 "$%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Parens [Variable (InstanceVar obj)])) (Right funcName) args) = print3 "$this->%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Parens [Variable (StaticVar obj)])) (Right funcName) args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Parens [Variable (ClassVar obj)])) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Parens [obj])) (Right funcName) args) = print3 "(%)->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   toPhp (LambdaFunction [] body) =  toPhp body
   toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)
