@@ -543,21 +543,24 @@ classDefinition = debug "classDefinition" >> do
   space
   name <- classVar
   space
-  body <- braces
   extendsName <- classDefExtends <||> nothing
   implementsName <- classDefImplements <||> nothing
+  optional space
+  body <- braces
   return $ Class name extendsName implementsName body
 
 classDefExtends = debug "classDefExtends" >> do
   string "extends"
   space
   extendsName <- classVar
+  space
   return $ Just extendsName
 
 classDefImplements = debug "classDefImplements" >> do
   string "implements"
   space
   implementsName <- classVar
+  space
   return $ Just implementsName
 
 nothing = return Nothing
