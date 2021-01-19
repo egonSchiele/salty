@@ -20,7 +20,8 @@ data Argument = Argument {
 
 data ArgumentType = ArgumentType {
                       aOptional :: Bool,
-                      aType :: String
+                      aType :: String,
+                      aReturnArg :: Bool
                     } deriving (Show)
 
 data HigherOrderFunction = Each | Map | Select | Any | All deriving (Show)

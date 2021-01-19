@@ -165,12 +165,10 @@ transpileTests = [
     "~foo.bar" `matches` "Feature::isEnabled('foo.bar');",
 
     -- function type signature
-    "foo :: string\nfoo a := a" `matches` "/**\n * @param string\n */\npublic function foo(string $a) {\n    return $a;\n}",
-    -- "foo :: string -> string\nfoo a := a" `matches` "two",
-    -- "foo :: int, int -> int\nfoo a b := a + b" `matches` "three",
-    -- "foo :: int -> int -> int\nfoo a b := a + b" `matches` "four",
-    "foo :: ?string\nfoo a := a" `matches` "/**\n * @param string|null\n */\npublic function foo(?string $a = null) {\n    return $a;\n}",
-    "foo :: ?string -> int\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n */\npublic function foo(?string $a = null, int $b) {\n    return $a;\n}",
+    "foo :: string\nfoo := 'hello'" `matches` "/**\n * @return string\n */\npublic function foo() {\n    return \"hello\";\n}",
+    "foo :: string -> string\nfoo a := a" `matches` "/**\n * @param string\n * @return string\n */\npublic function foo(string $a) {\n    return $a;\n}",
+    "foo :: ?string -> ?string\nfoo a := a" `matches` "/**\n * @param string|null\n * @return string|null\n */\npublic function foo(?string $a = null) {\n    return $a;\n}",
+    "foo :: ?string -> int -> ?string\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n * @return string|null\n */\npublic function foo(?string $a = null, int $b) {\n    return $a;\n}",
     -- null, true, false
     "a = true" `matches` "$a = true;",
     "b = false" `matches` "$b = false;",

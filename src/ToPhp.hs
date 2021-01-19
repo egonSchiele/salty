@@ -23,18 +23,20 @@ instance ConvertToPhp VariableName where
   toPhp (SimpleVar s) = '$':s
 
 instance ConvertToPhp ArgumentType where
-  toPhp (ArgumentType True typ) = "@param " ++ typ ++ "|null"
-  toPhp (ArgumentType False typ) = "@param " ++ typ
+  toPhp (ArgumentType True typ False) = "@param " ++ typ ++ "|null"
+  toPhp (ArgumentType False typ False) = "@param " ++ typ
+  toPhp (ArgumentType True typ True) = "@return " ++ typ ++ "|null"
+  toPhp (ArgumentType False typ True) = "@return " ++ typ
 
 instance ConvertToPhp Visibility where
   toPhp Public = "public"
   toPhp Private = "private"
 
 instance ConvertToPhp Argument where
-  toPhp (Argument (Just (ArgumentType False typ)) name (Just default_)) = print3 "?% $% = %" typ name default_
-  toPhp (Argument (Just (ArgumentType True typ)) name (Just default_)) = print3 "?% $% = %" typ name default_
-  toPhp (Argument (Just (ArgumentType False typ)) name Nothing) = typ ++ " $" ++ name
-  toPhp (Argument (Just (ArgumentType True typ)) name Nothing) = print2 "?% $% = null" typ name
+  toPhp (Argument (Just (ArgumentType False typ _)) name (Just default_)) = print3 "?% $% = %" typ name default_
+  toPhp (Argument (Just (ArgumentType True typ _)) name (Just default_)) = print3 "?% $% = %" typ name default_
+  toPhp (Argument (Just (ArgumentType False typ _)) name Nothing) = typ ++ " $" ++ name
+  toPhp (Argument (Just (ArgumentType True typ _)) name Nothing) = print2 "?% $% = null" typ name
   toPhp (Argument Nothing name (Just default_)) = print2 "$% = %" name default_
   toPhp (Argument Nothing name Nothing) = "$" ++ name
 

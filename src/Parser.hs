@@ -250,9 +250,11 @@ findArgTypes = debug "findArgTypes" >> do
             typ <- many1 typeChars
             optional $ string " -> "
             if (head typ == '?')
-               then return (ArgumentType True (tail typ))
-               else return (ArgumentType False typ)
-  return args
+               then return (ArgumentType True (tail typ) False)
+               else return (ArgumentType False typ False)
+  return $ (init args) ++ [setToReturnArgType (last args)]
+
+setToReturnArgType (ArgumentType o a _) = ArgumentType o a True
 
 functionTypeSignature = debug "functionTypeSignature" >> do
   name <- variableName
