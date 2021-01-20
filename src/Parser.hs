@@ -101,6 +101,7 @@ saltyParserSingleWithoutNewline = do
   <||> saltyBool
   <||> saltyNull
   <||> saltyKeyword
+  <||> saltyMagicConstant
   <||> variable
 
 validFuncArgTypes :: SaltyParser
@@ -122,6 +123,7 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> objectCreation
   <||> saltyBool
   <||> saltyNull
+  <||> saltyMagicConstant
   <||> variable
 
 variable = debug "variable" >> do
@@ -150,6 +152,7 @@ validHashValue = debug "validHashValue" >> do
   <||> flagName
   <||> saltyBool
   <||> saltyNull
+  <||> saltyMagicConstant
   <||> variable
 
 keyValuePair = debug "keyValuePair" >> do
@@ -659,3 +662,18 @@ multiAssign = debug "multiAssign" >> do
   space
   right <- saltyParserSingle
   return $ MultiAssign (firstVar:restVars) right
+
+magicConstant strToMatch toReturn = debug "saltyMagicConstant" >> do
+  string strToMatch
+  return toReturn
+
+saltyMagicConstant = debug "saltyMagicConstant" >> do
+  constant <-      magicConstant "__LINE__" MCLINE
+              <||> magicConstant "__FILE__" MCFILE
+              <||> magicConstant "__DIR__" MCDIR
+              <||> magicConstant "__FUNCTION__" MCFUNCTION
+              <||> magicConstant "__CLASS__" MCCLASS
+              <||> magicConstant "__TRAIT__" MCTRAIT
+              <||> magicConstant "__METHOD__" MCMETHOD
+              <||> magicConstant "__NAMESPACE__" MCNAMESPACE
+  return $ SaltyMagicConstant constant

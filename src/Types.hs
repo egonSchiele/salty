@@ -17,6 +17,16 @@ data PhpKeyword =   KwUse VariableName
                   | KwRequireOnce Salty
                   | KwNamespace Salty deriving (Show)
 
+data MagicConstant =   MCLINE
+                     | MCFILE
+                     | MCDIR
+                     | MCFUNCTION
+                     | MCCLASS
+                     | MCTRAIT
+                     | MCMETHOD
+                     | MCNAMESPACE
+                     deriving (Show)
+
 -- function args
 data Argument = Argument {
                   argType :: Maybe ArgumentType,
@@ -149,6 +159,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | FlagName String
              | SaltyBool Boolean
              | SaltyNull
+             | SaltyMagicConstant MagicConstant
              | Keyword PhpKeyword
              | MultiAssign {
                muVars :: [Salty],

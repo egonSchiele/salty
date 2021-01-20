@@ -32,6 +32,16 @@ instance ConvertToPhp Visibility where
   toPhp Public = "public"
   toPhp Private = "private"
 
+instance ConvertToPhp MagicConstant where
+  toPhp MCLINE = "__LINE__"
+  toPhp MCFILE = "__FILE__"
+  toPhp MCDIR = "__DIR__"
+  toPhp MCFUNCTION = "__FUNCTION__"
+  toPhp MCCLASS = "__CLASS__"
+  toPhp MCTRAIT = "__TRAIT__"
+  toPhp MCMETHOD = "__METHOD__"
+  toPhp MCNAMESPACE = "__NAMESPACE__"
+
 instance ConvertToPhp Argument where
   toPhp (Argument (Just (ArgumentType False typ _)) name (Just default_)) = print3 "?% $% = %" typ name default_
   toPhp (Argument (Just (ArgumentType True typ _)) name (Just default_)) = print3 "?% $% = %" typ name default_
@@ -178,6 +188,7 @@ instance ConvertToPhp Salty where
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
   toPhp SaltyNull = "null"
+  toPhp (SaltyMagicConstant c) = toPhp c
   toPhp (Keyword (KwUse var)) = "use " ++ (toPhp var)
   toPhp (Keyword (KwThrow salty)) = "throw " ++ (toPhp salty)
   toPhp (Keyword (KwRequire salty)) = "require " ++ (toPhp salty)

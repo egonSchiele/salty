@@ -275,11 +275,17 @@ transpileTests = [
 
     -- string interpolation
     "oranges = \"I have ${number} oranges to eat.\"" `matches` "$oranges = \"I have ${number} oranges to eat.\";",
-    "foo = \"hello $there\"" `matches` "$foo = \"hello $there\";"
+    "foo = \"hello $there\"" `matches` "$foo = \"hello $there\";",
 
-
-
-
+    -- magic constants
+    "foo = __FILE__" `matches` "$foo = __FILE__;",
+    "foo = __LINE__" `matches` "$foo = __LINE__;",
+    "foo = __DIR__" `matches` "$foo = __DIR__;",
+    "foo = __FUNCTION__" `matches` "$foo = __FUNCTION__;",
+    "foo = __CLASS__" `matches` "$foo = __CLASS__;",
+    "foo = __TRAIT__" `matches` "$foo = __TRAIT__;",
+    "foo = __METHOD__" `matches` "$foo = __METHOD__;",
+    "foo = __NAMESPACE__" `matches` "$foo = __NAMESPACE__;"
 
     -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
     -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
