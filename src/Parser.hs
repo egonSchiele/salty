@@ -10,6 +10,7 @@ import Debug.Trace (trace)
 import ToPhp
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
+classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
@@ -387,7 +388,7 @@ simpleVar = debug "simpleVar" >> do
 -- Foo
 classVar = debug "classVar" >> do
   start <- upper
-  variable <- many1 varNameChars
+  variable <- many1 classNameChars
   return $ ClassVar (start:variable)
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
