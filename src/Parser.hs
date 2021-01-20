@@ -281,6 +281,8 @@ operator = debug "operator" >> do
   <||> (string "&&" >> return AndAnd)
   <||> (string "??" >> return NullCoalesce)
   <||> (string "++" >> return PlusPlus)
+  <||> (string "<>" >> return ArrayMerge)
+  <||> (string "in" >> return In)
   <||> (string "==" >> return EqualsEquals)
   <||> (string "<=" >> return LessThanOrEqualTo)
   <||> (string ">=" >> return GreaterThanOrEqualTo)

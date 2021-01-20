@@ -79,6 +79,9 @@ transpileTests = [
     "foo() + a.bar()" `matches` "foo() + $a->bar();",
     "foo []= bar" `matches` "$foo []= $bar;",
     "foo ++ bar" `matches` "$foo . $bar;",
+    "foo <> bar" `matches` "array_merge($foo, $bar);",
+    "foo in bar" `matches` "in_array($foo, $bar);",
+    "'foo' in bar" `matches` "in_array(\"foo\", $bar);",
 
     -- function definitions
     "build a b := return 2" `matches` "public function build($a, $b) {\n    return 2;\n}",

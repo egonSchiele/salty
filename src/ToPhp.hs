@@ -45,10 +45,11 @@ instance (ConvertToPhp a1, ConvertToPhp a2) => ConvertToPhp (Either a1 a2) where
   toPhp (Right a) = toPhp a
 
 instance ConvertToPhp Salty where
+  toPhp (Operation x op (WithNewLine y)) = (toPhp $ Operation x op y) ++ "\n"
   toPhp (Operation x@(Variable _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
 
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
-  toPhp (Operation x@(Variable _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
+  -- toPhp (Operation x@(Variable _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
   toPhp (Operation left Equals right) = (toPhp left) ++ " = " ++ (toPhp right)
   toPhp (Operation left NotEquals right) = (toPhp left) ++ " != " ++ (toPhp right)
   toPhp (Operation left PlusEquals right) = print3 "% = % + %" (toPhp left) (toPhp left) (toPhp right)
@@ -66,6 +67,8 @@ instance ConvertToPhp Salty where
   toPhp (Operation left AndAnd right) = print2 "% && %" (toPhp left) (toPhp right)
   toPhp (Operation left NullCoalesce right) = print2 "% ?? %" (toPhp left) (toPhp right)
   toPhp (Operation left PlusPlus right) = print2 "% . %" (toPhp left) (toPhp right)
+  toPhp (Operation left ArrayMerge right) = print2 "array_merge(%, %)" (toPhp left) (toPhp right)
+  toPhp (Operation left In right) = print2 "in_array(%, %)" (toPhp left) (toPhp right)
   toPhp (Operation left EqualsEquals right) = print2 "% == %" (toPhp left) (toPhp right)
   toPhp (Operation left LessThan right) = print2 "% < %" (toPhp left) (toPhp right)
   toPhp (Operation left LessThanOrEqualTo right) = print2 "% <= %" (toPhp left) (toPhp right)

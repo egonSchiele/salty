@@ -44,6 +44,8 @@ data Operator = Add |
   AndAnd |
   NullCoalesce |
   PlusPlus |
+  ArrayMerge |
+  In |
   EqualsEquals |
   LessThan |
   LessThanOrEqualTo |
