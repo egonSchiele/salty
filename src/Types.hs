@@ -48,6 +48,7 @@ data Operator = Add |
   ArrayDiff |
   In |
   KeyIn |
+  InstanceOf |
   EqualsEquals |
   LessThan |
   LessThanOrEqualTo |

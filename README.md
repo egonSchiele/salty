@@ -332,3 +332,8 @@ public function bar() {
 - `arr1 <-> arr2` becomes `array_diff(arr1, arr2)`
 - `foo[1:4]` becomes `array_slice($foo, 1, 3)`
 - `foo[1:]` becomes `array_slice($foo, 1)`
+
+## InstanceOf
+
+- `foo instanceof Class` becomes `$foo instanceof Class`
+- `foo isa Class` becomes `$foo instanceof Class`

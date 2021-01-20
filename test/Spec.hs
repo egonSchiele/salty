@@ -255,7 +255,11 @@ transpileTests = [
     "foo[1:]" `matches` "array_slice($foo, 1);",
     "foo[1:5]" `matches` "array_slice($foo, 1, 4);",
     "foo[start:]" `matches` "array_slice($foo, $start);",
-    "foo[2:count(foo)]" `matches` "array_slice($foo, 2, count($foo) - 2);"
+    "foo[2:count(foo)]" `matches` "array_slice($foo, 2, count($foo) - 2);",
+
+    -- instanceof
+    "foo instanceof Class" `matches` "$foo instanceof Class;",
+    "foo isa Class" `matches` "$foo instanceof Class;"
 
 
 

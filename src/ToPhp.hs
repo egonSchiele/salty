@@ -71,6 +71,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left ArrayDiff right) = print2 "array_diff(%, %)" (toPhp left) (toPhp right)
   toPhp (Operation left In right) = print2 "in_array(%, %)" (toPhp left) (toPhp right)
   toPhp (Operation left KeyIn right) = print2 "array_key_exists(%, %)" (toPhp left) (toPhp right)
+  toPhp (Operation left InstanceOf right) = print2 "% instanceof %" (toPhp left) (toPhp right)
   toPhp (Operation left EqualsEquals right) = print2 "% == %" (toPhp left) (toPhp right)
   toPhp (Operation left LessThan right) = print2 "% < %" (toPhp left) (toPhp right)
   toPhp (Operation left LessThanOrEqualTo right) = print2 "% <= %" (toPhp left) (toPhp right)
