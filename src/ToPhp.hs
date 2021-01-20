@@ -162,6 +162,10 @@ instance ConvertToPhp Salty where
     where kvtoPhp (name, val) = print2 "% => %" name (toPhp val)
           hashBody = intercalate ",\n" $ map kvtoPhp nameValuePairs
 
+  toPhp (ArraySlice obj start Nothing) = print2 "array_slice(%, %)" (toPhp obj) (toPhp start)
+  toPhp (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "array_slice(%, %, %)" (toPhp obj) start newEnd
+    where newEnd = show $ (read end :: Integer) - (read start :: Integer)
+  toPhp (ArraySlice obj start (Just end)) = print4 "array_slice(%, %, % - %)" (toPhp obj) (toPhp start) (toPhp end) (toPhp start)
   toPhp (AttrAccess (Variable (ClassVar obj)) attrName) = print2 "%::%" obj attrName
   toPhp (AttrAccess obj attrName) = print2 "%->%" (toPhp obj) attrName
   -- toPhp (AttrAccess (Variable (InstanceVar obj)) attrName) = print2 "$this->%->%" obj attrName

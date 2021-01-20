@@ -121,6 +121,11 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                  constantValue :: Salty
              }
              | HashTable [(String, Salty)]
+             | ArraySlice {
+                arObj :: Salty,
+                arStart :: Salty,
+                arEnd :: Maybe Salty
+             }
              | Array [Salty]
              | ReturnStatement Salty
              | Negate Salty

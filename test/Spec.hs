@@ -246,7 +246,13 @@ transpileTests = [
     "use Foo" `matches` "use Foo;",
     "throw new Exception()" `matches` "throw new Exception();",
     "throw new Exception('foo')" `matches` "throw new Exception(\"foo\");",
-    "throw e" `matches` "throw $e;"
+    "throw e" `matches` "throw $e;",
+
+    -- array slices
+    "foo[1:]" `matches` "array_slice($foo, 1);",
+    "foo[1:5]" `matches` "array_slice($foo, 1, 4);",
+    "foo[start:]" `matches` "array_slice($foo, $start);",
+    "foo[2:count(foo)]" `matches` "array_slice($foo, 2, count($foo) - 2);"
 
 
 

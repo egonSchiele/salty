@@ -81,6 +81,7 @@ saltyParserSingleWithoutNewline = do
   <||> returnStatement
   <||> functionCall
   <||> attrAccess
+  <||> arraySlice
   <||> hashLookup
   <||> partialHashLookup
   <||> partialFunctionCall
@@ -109,6 +110,7 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> saltyString
   <||> saltyNumber
   <||> functionCall
+  <||> arraySlice
   <||> hashLookup
   <||> partialHashLookup
   <||> partialFunctionCall
@@ -470,6 +472,15 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   funcArgs <- findArgs
   char ')'
   return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs
+
+arraySlice = debug "arraySlice" >> do
+  array <- variable
+  char '['
+  start <- saltyParserSingle
+  char ':'
+  end <- (Just <$> saltyParserSingle) <||> nothing
+  char ']'
+  return $ ArraySlice array start end
 
 hashLookup = debug "hashLookup" >> do
        shortHashLookup
