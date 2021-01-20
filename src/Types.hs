@@ -14,7 +14,8 @@ data VariableName =
 data PhpKeyword =   KwUse VariableName
                   | KwThrow Salty
                   | KwRequire Salty
-                  | KwRequireOnce Salty deriving (Show)
+                  | KwRequireOnce Salty
+                  | KwNamespace Salty deriving (Show)
 
 -- function args
 data Argument = Argument {

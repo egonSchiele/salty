@@ -614,6 +614,7 @@ saltyKeyword = debug "saltyKeyword" >> do
                 <||> saltyKeywordThrow
                 <||> saltyKeywordRequire
                 <||> saltyKeywordRequireOnce
+                <||> saltyKeywordNamespace
   return $ Keyword phpKeyword
 
 saltyKeywordUse = debug "saltyKeywordUse" >> do
@@ -639,3 +640,9 @@ saltyKeywordRequireOnce = debug "saltyKeywordRequireOnce" >> do
   space
   salty <- saltyParserSingle
   return $ KwRequireOnce salty
+
+saltyKeywordNamespace = debug "saltyKeywordNamespace" >> do
+  string "namespace"
+  space
+  salty <- saltyParserSingle
+  return $ KwNamespace salty

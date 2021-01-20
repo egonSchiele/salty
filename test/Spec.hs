@@ -252,6 +252,8 @@ transpileTests = [
     "throw e" `matches` "throw $e;",
     "require 'foo.php'" `matches` "require \"foo.php\";",
     "require_once 'foo.php'" `matches` "require_once \"foo.php\";",
+    "namespace Foo" `matches` "namespace Foo;",
+    "namespace Foo\\Bar" `matches` "namespace Foo\\Bar;",
 
     -- arrays
     "foo = [1, 2, 3,]" `matches` "$foo = [1, 2, 3];",

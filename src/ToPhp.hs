@@ -181,6 +181,7 @@ instance ConvertToPhp Salty where
   toPhp (Keyword (KwThrow salty)) = "throw " ++ (toPhp salty)
   toPhp (Keyword (KwRequire salty)) = "require " ++ (toPhp salty)
   toPhp (Keyword (KwRequireOnce salty)) = "require_once " ++ (toPhp salty)
+  toPhp (Keyword (KwNamespace salty)) = "namespace " ++ (toPhp salty)
   toPhp (Keyword x) = "keyword not implemented yet: " ++ (show x)
   toPhp x = "not implemented yet: " ++ (show x)
 
