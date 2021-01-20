@@ -54,6 +54,7 @@ data Operator = Add |
   LessThanOrEqualTo |
   GreaterThan |
   GreaterThanOrEqualTo |
+  Spaceship |
   ArrayPush deriving (Show)
 
 data BuiltInFunction = VarDumpShort deriving (Show)

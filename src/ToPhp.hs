@@ -77,6 +77,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left LessThanOrEqualTo right) = print2 "% <= %" (toPhp left) (toPhp right)
   toPhp (Operation left GreaterThan right) = print2 "% > %" (toPhp left) (toPhp right)
   toPhp (Operation left GreaterThanOrEqualTo right) = print2 "% >= %" (toPhp left) (toPhp right)
+  toPhp (Operation left Spaceship right) = print2 "% <=> %" (toPhp left) (toPhp right)
 
   toPhp (Function name args body visibility) = print4 "% %(%) {\n%\n}\n" (toPhp visibility) funcName funcArgs funcBody
     where funcName = case name of

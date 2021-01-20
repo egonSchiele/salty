@@ -289,6 +289,7 @@ operator = debug "operator" >> do
   <||> (string "in" >> return In)
   <||> (string "keyin" >> return KeyIn)
   <||> (string "==" >> return EqualsEquals)
+  <||> (string "<=>" >> return Spaceship)
   <||> (string "<=" >> return LessThanOrEqualTo)
   <||> (string ">=" >> return GreaterThanOrEqualTo)
   <||> (string "<" >> return LessThan)

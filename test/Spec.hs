@@ -84,6 +84,7 @@ transpileTests = [
     "foo in bar" `matches` "in_array($foo, $bar);",
     "'foo' in bar" `matches` "in_array(\"foo\", $bar);",
     "foo keyin bar" `matches` "array_key_exists($foo, $bar);",
+    "foo <=> bar" `matches` "$foo <=> $bar;",
     "foo = hello_there(hi(2) <> 1)" `matches` "$foo = hello_there(array_merge(hi(2), 1));",
     "foo, bar, baz = []" `matches` "foo = [];\nbar = [];\nbaz = [];",
 
@@ -263,7 +264,11 @@ transpileTests = [
 
     -- instanceof
     "foo instanceof Class" `matches` "$foo instanceof Class;",
-    "foo isa Class" `matches` "$foo instanceof Class;"
+    "foo isa Class" `matches` "$foo instanceof Class;",
+
+    -- string interpolation
+    "oranges = \"I have ${number} oranges to eat.\"" `matches` "$oranges = \"I have ${number} oranges to eat.\";",
+    "foo = \"hello $there\"" `matches` "$foo = \"hello $there\";"
 
 
 
