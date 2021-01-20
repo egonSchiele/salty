@@ -337,3 +337,17 @@ public function bar() {
 
 - `foo instanceof Class` becomes `$foo instanceof Class`
 - `foo isa Class` becomes `$foo instanceof Class`
+
+## Multi-assign
+
+```
+foo, bar, @baz = []
+```
+
+becomes
+
+```
+$foo = [];
+$bar = [];
+$this->baz = [];
+```
