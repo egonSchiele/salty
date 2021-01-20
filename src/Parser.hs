@@ -169,14 +169,14 @@ hashTable = debug "hashTable" >> do
 
 arrayValue = debug "arrayValue" >> do
   value <- validHashValue
-  char ','
+  char ',' <||> char ']'
   optional space
   return value
 
 array = debug "array" >> do
   char '['
   salties <- many arrayValue
-  char ']'
+  optional $ char ']'
   return $ Array salties
 
 braces = debug "braces" >> do

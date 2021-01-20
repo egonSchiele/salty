@@ -117,17 +117,17 @@ transpileTests = [
     "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "public function fib($x) {\n    $a + $b;\n    return $b + $c;\n}\npublic function foo($a, $b) {\n    return $a + $b;\n}",
 
     -- hash tests
-    "argv[1]" `matches` "$argv[1]",
-    "argv[1][2]" `matches` "$argv[1][2]",
+    "argv[1]" `matches` "$argv[1];",
+    "argv[1][2]" `matches` "$argv[1][2];",
     "fib(argv[1])" `matches` "fib($argv[1]);",
     "var_dump(fib(argv[1]))" `matches` "var_dump(fib($argv[1]));",
 
     -- hash dot notation tests
-    ":foo.bar.baz" `matches` "$foo[\"bar\"][\"baz\"]",
-    ":foo.bar.baz.1" `matches` "$foo[\"bar\"][\"baz\"][1]",
-    ":argv.1.2" `matches` "$argv[1][2]",
-    ":@foo.bar" `matches` "$this->foo[\"bar\"]",
-    ":@@foo.bar" `matches` "static::$foo[\"bar\"]",
+    ":foo.bar.baz" `matches` "$foo[\"bar\"][\"baz\"];",
+    ":foo.bar.baz.1" `matches` "$foo[\"bar\"][\"baz\"][1];",
+    ":argv.1.2" `matches` "$argv[1][2];",
+    ":@foo.bar" `matches` "$this->foo[\"bar\"];",
+    ":@@foo.bar" `matches` "static::$foo[\"bar\"];",
     ":bar.baz ?? 1" `matches` "$bar[\"baz\"] ?? 1;",
 
     -- if statement
@@ -202,8 +202,6 @@ transpileTests = [
     "c = null" `matches` "$c = null;",
     "_SAMPLE_RATE = 0.001" `matches` "private const SAMPLE_RATE = 0.001;",
     "MYCONST = 'foo'" `matches` "public const MYCONST = \"foo\";",
-    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches` "$a = [\n    \"foo\" => 1,\n    \"bar\" => 2,\n    \"cat\" => \"hello\"\n]",
-    "b = [1, 2, 3,]" `matches`"$b = [1, 2, 3]",
 
     -- return statements
     "return foo" `matches` "return $foo;",
@@ -250,6 +248,11 @@ transpileTests = [
     "throw new Exception()" `matches` "throw new Exception();",
     "throw new Exception('foo')" `matches` "throw new Exception(\"foo\");",
     "throw e" `matches` "throw $e;",
+
+    -- arrays
+    "foo = [1, 2, 3,]" `matches` "$foo = [1, 2, 3];",
+    "foo = [1, 2, 3]" `matches` "$foo = [1, 2, 3];",
+    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches` "$a = [\n    \"foo\" => 1,\n    \"bar\" => 2,\n    \"cat\" => \"hello\"\n];",
 
     -- array slices
     "foo[1:]" `matches` "array_slice($foo, 1);",
