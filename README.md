@@ -169,7 +169,7 @@ baz => "hi"
 ]
 ```
 
-the trailing comma is currently **required**.
+Trailing comma is optional.
 
 ## Dot notation
 
