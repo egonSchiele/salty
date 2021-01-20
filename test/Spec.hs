@@ -253,6 +253,7 @@ transpileTests = [
     "foo = [1, 2, 3,]" `matches` "$foo = [1, 2, 3];",
     "foo = [1, 2, 3]" `matches` "$foo = [1, 2, 3];",
     "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches` "$a = [\n    \"foo\" => 1,\n    \"bar\" => 2,\n    \"cat\" => \"hello\"\n];",
+    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello'\n }" `matches` "$a = [\n    \"foo\" => 1,\n    \"bar\" => 2,\n    \"cat\" => \"hello\"\n];",
 
     -- array slices
     "foo[1:]" `matches` "array_slice($foo, 1);",

@@ -155,7 +155,7 @@ keyValuePair = debug "keyValuePair" >> do
   char ':'
   space
   value <- validHashValue
-  char ','
+  char ',' <||> char '}' <||> char '\n'
   optional (oneOf " \n")
   return (key, value)
 
@@ -163,8 +163,7 @@ hashTable = debug "hashTable" >> do
   char '{'
   optional (oneOf " \n")
   kvPairs <- many1 keyValuePair
-  optional (oneOf " \n")
-  char '}'
+  optional $ char '}'
   return $ HashTable kvPairs
 
 arrayValue = debug "arrayValue" >> do
