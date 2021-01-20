@@ -285,24 +285,22 @@ transpileTests = [
     "foo = __CLASS__" `matches` "$foo = __CLASS__;",
     "foo = __TRAIT__" `matches` "$foo = __TRAIT__;",
     "foo = __METHOD__" `matches` "$foo = __METHOD__;",
-    "foo = __NAMESPACE__" `matches` "$foo = __NAMESPACE__;"
+    "foo = __NAMESPACE__" `matches` "$foo = __NAMESPACE__;",
 
     -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
-    -- "@@foo a b := @@bar(b)" `matches` "static function foo($a, $b) {\n\treturn static::bar($b);\n}",
-    -- matches [r|
-    -- foo :: []?, EP_Locale? -> String
-    -- foo a b := @@bar(a, b)
-  -- |] [r|
-    -- /**
-    --  * @param array|null $a
-    --  * @param EP_Locale|null $b
-    --  * @return string
-    --  */
-    --  function foo(?array $a = null, ?EP_Locale $b = null) {
-    --     return static::bar($a, $b);
-    --  }
-    -- |],
-    -- "@loc.getLanguage + @loc.getRegion" `matches` "$loc->getLanguage() . $loc->getRegion()",
+    matches [r|
+    foo :: []?, EP_Locale? -> String
+    foo a b := @@bar(a, b)
+  |] [r|
+    /**
+     * @param array|null $a
+     * @param EP_Locale|null $b
+     * @return string
+     */
+     function foo(?array $a = null, ?EP_Locale $b = null) {
+        return static::bar($a, $b);
+     }
+    |]
     -- "a += 1" `matches` "$a = $a + 1",
     -- "p 'hello' if hash ? str" `matches` [r|
     --   if (isset($hash['str'])) {
