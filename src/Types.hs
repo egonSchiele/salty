@@ -11,7 +11,10 @@ data VariableName =
   | SimpleVar String -- e.g. foo
   deriving (Show)
 
-data PhpKeyword = KwUse VariableName | KwThrow Salty deriving (Show)
+data PhpKeyword =   KwUse VariableName
+                  | KwThrow Salty
+                  | KwRequire Salty
+                  | KwRequireOnce Salty deriving (Show)
 
 -- function args
 data Argument = Argument {

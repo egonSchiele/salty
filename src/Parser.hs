@@ -611,6 +611,8 @@ saltyNull = debug "saltyNull" >> do
 saltyKeyword = debug "saltyKeyword" >> do
   phpKeyword <-      saltyKeywordUse
                 <||> saltyKeywordThrow
+                <||> saltyKeywordRequire
+                <||> saltyKeywordRequireOnce
   return $ Keyword phpKeyword
 
 saltyKeywordUse = debug "saltyKeywordUse" >> do
@@ -624,3 +626,15 @@ saltyKeywordThrow = debug "saltyKeywordThrow" >> do
   space
   salty <- saltyParserSingle
   return $ KwThrow salty
+
+saltyKeywordRequire = debug "saltyKeywordRequire" >> do
+  string "require"
+  space
+  salty <- saltyParserSingle
+  return $ KwRequire salty
+
+saltyKeywordRequireOnce = debug "saltyKeywordRequireOnce" >> do
+  string "require_once"
+  space
+  salty <- saltyParserSingle
+  return $ KwRequireOnce salty

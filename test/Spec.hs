@@ -249,6 +249,8 @@ transpileTests = [
     "throw new Exception()" `matches` "throw new Exception();",
     "throw new Exception('foo')" `matches` "throw new Exception(\"foo\");",
     "throw e" `matches` "throw $e;",
+    "require 'foo.php'" `matches` "require \"foo.php\";",
+    "require_once 'foo.php'" `matches` "require_once \"foo.php\";",
 
     -- arrays
     "foo = [1, 2, 3,]" `matches` "$foo = [1, 2, 3];",
