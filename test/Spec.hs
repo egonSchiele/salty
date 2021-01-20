@@ -199,7 +199,7 @@ transpileTests = [
     "c = null" `matches` "$c = null;",
     "_SAMPLE_RATE = 0.001" `matches` "private const SAMPLE_RATE = 0.001;",
     "MYCONST = 'foo'" `matches` "public const MYCONST = \"foo\";",
-    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches`"$a = [\nfoo => 1,\nbar => 2,\ncat => \"hello\"\n]",
+    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches` "$a = [\n    \"foo\" => 1,\n    \"bar\" => 2,\n    \"cat\" => \"hello\"\n]",
     "b = [1, 2, 3,]" `matches`"$b = [1, 2, 3]",
 
     -- return statements

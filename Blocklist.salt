@@ -65,7 +65,7 @@ class Compliance_Blocklist {
         # normalized = (new RichString(:blocklistTerm.term))
         foo = (new Bar()).baz
         foo = (new Bar()).baz()
-        words = array_unique(array_merge(explode(@@WORD_SEPARATOR, :blocklistTerm.term), normalized))
+        words = array_unique(explode(@@WORD_SEPARATOR, :blocklistTerm.term) <> normalized)
         word_counts[:blocklistTerm.blocklist_term_id] = count(normalized)
       } else {
         unstemmed []= :blocklistTerm.term

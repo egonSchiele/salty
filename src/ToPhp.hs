@@ -159,7 +159,7 @@ instance ConvertToPhp Salty where
 
   toPhp (Constant vis name val) = print3 "% const % = %" (toPhp vis) name (toPhp val)
   toPhp (HashTable nameValuePairs) = "[\n" ++ hashBody ++ "\n]"
-    where kvtoPhp (name, val) = print2 "% => %" name (toPhp val)
+    where kvtoPhp (name, val) = print2 "    \"%\" => %" name (toPhp val)
           hashBody = intercalate ",\n" $ map kvtoPhp nameValuePairs
 
   toPhp (ArraySlice obj start Nothing) = print2 "array_slice(%, %)" (toPhp obj) (toPhp start)
