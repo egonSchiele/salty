@@ -150,6 +150,10 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | SaltyBool Boolean
              | SaltyNull
              | Keyword PhpKeyword
+             | MultiAssign {
+               muVars :: [Salty],
+               muValue :: Salty
+             }
              deriving (Show)
 
 isSaltyComment :: Salty -> Bool

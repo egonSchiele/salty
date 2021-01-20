@@ -75,6 +75,7 @@ saltyParserSingleWithoutNewline = do
   <||> higherOrderFunctionCall
   <||> lambda
   <||> constant
+  <||> multiAssign
   <||> operation
   <||> partialOperation
   <||> saltyString
@@ -646,3 +647,15 @@ saltyKeywordNamespace = debug "saltyKeywordNamespace" >> do
   space
   salty <- saltyParserSingle
   return $ KwNamespace salty
+
+multiAssignVar = debug "multiAssignVar" >> do
+  var <- variable
+  string ", " <||> string " ="
+  return var
+
+multiAssign = debug "multiAssign" >> do
+  firstVar <- multiAssignVar
+  restVars <- many1 multiAssignVar
+  space
+  right <- saltyParserSingle
+  return $ MultiAssign (firstVar:restVars) right
