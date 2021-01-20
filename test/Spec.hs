@@ -195,8 +195,8 @@ transpileTests = [
     -- function type signature
     "foo :: string\nfoo := 'hello'" `matches` "/**\n * @return string\n */\npublic function foo() {\n    return \"hello\";\n}",
     "foo :: string -> string\nfoo a := a" `matches` "/**\n * @param string\n * @return string\n */\npublic function foo(string $a) {\n    return $a;\n}",
-    "foo :: ?string -> ?string\nfoo a := a" `matches` "/**\n * @param string|null\n * @return string|null\n */\npublic function foo(?string $a = null) {\n    return $a;\n}",
-    "foo :: ?string -> int -> ?string\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n * @return string|null\n */\npublic function foo(?string $a = null, int $b) {\n    return $a;\n}",
+    "foo :: string? -> string?\nfoo a := a" `matches` "/**\n * @param string|null\n * @return string|null\n */\npublic function foo(?string $a = null) {\n    return $a;\n}",
+    "foo :: string? -> int -> string?\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n * @return string|null\n */\npublic function foo(?string $a = null, int $b) {\n    return $a;\n}",
     -- null, true, false
     "a = true" `matches` "$a = true;",
     "b = false" `matches` "$b = false;",
@@ -285,23 +285,8 @@ transpileTests = [
     "foo = __CLASS__" `matches` "$foo = __CLASS__;",
     "foo = __TRAIT__" `matches` "$foo = __TRAIT__;",
     "foo = __METHOD__" `matches` "$foo = __METHOD__;",
-    "foo = __NAMESPACE__" `matches` "$foo = __NAMESPACE__;",
+    "foo = __NAMESPACE__" `matches` "$foo = __NAMESPACE__;"
 
-    -- "fib x := return x if x < 2" `matches` "function fib($x) {\nif ($x < 2) {\nreturn $x;\n}"
-    matches [r|
-    foo :: []?, EP_Locale? -> String
-    foo a b := @@bar(a, b)
-  |] [r|
-    /**
-     * @param array|null $a
-     * @param EP_Locale|null $b
-     * @return string
-     */
-     function foo(?array $a = null, ?EP_Locale $b = null) {
-        return static::bar($a, $b);
-     }
-    |]
-    -- "a += 1" `matches` "$a = $a + 1",
     -- "p 'hello' if hash ? str" `matches` [r|
     --   if (isset($hash['str'])) {
     --     var_dump 'hello';

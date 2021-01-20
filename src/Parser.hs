@@ -14,7 +14,7 @@ classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?"
+typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
 flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
 
 type SaltyState = Salty
@@ -260,8 +260,8 @@ findArgTypes = debug "findArgTypes" >> do
   args <- many1 $ do
             typ <- many1 typeChars
             optional $ string " -> "
-            if (head typ == '?')
-               then return (ArgumentType True (tail typ) False)
+            if (last typ == '?')
+               then return (ArgumentType True (init typ) False)
                else return (ArgumentType False typ False)
   return $ (init args) ++ [setToReturnArgType (last args)]
 

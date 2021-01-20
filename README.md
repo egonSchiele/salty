@@ -116,7 +116,7 @@ public function foo(string $a) {
 ```
 
 ```
-foo :: ?string
+foo :: string?
 foo a := a
 ```
 
@@ -132,7 +132,7 @@ public function foo(?string $a = null) {
 ```
 
 ```
-foo :: ?string -> int
+foo :: string -> int?
 foo a b := a
 ```
 
