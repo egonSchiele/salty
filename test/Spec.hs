@@ -86,6 +86,7 @@ transpileTests = [
     "foo keyin bar" `matches` "array_key_exists($foo, $bar);",
     "foo <=> bar" `matches` "$foo <=> $bar;",
     "foo = hello_there(hi(2) <> 1)" `matches` "$foo = hello_there(array_merge(hi(2), 1));",
+    "foo = hello_there(hi(2) + 1)" `matches` "$foo = hello_there(hi(2) + 1);",
     "foo, bar, baz = []" `matches` "$foo = [];\n$bar = [];\n$baz = [];",
 
     -- function definitions

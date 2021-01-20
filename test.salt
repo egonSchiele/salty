@@ -1,5 +1,1 @@
-getUsers :: array
-getUsers shops := shops.map(\shop -> shop.user)
-
-
-foo.bar
+foo = test(hi(1) + 1)
