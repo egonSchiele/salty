@@ -69,6 +69,7 @@ instance ConvertToPhp Salty where
   toPhp (Operation left PlusPlus right) = print2 "% . %" (toPhp left) (toPhp right)
   toPhp (Operation left ArrayMerge right) = print2 "array_merge(%, %)" (toPhp left) (toPhp right)
   toPhp (Operation left In right) = print2 "in_array(%, %)" (toPhp left) (toPhp right)
+  toPhp (Operation left KeyIn right) = print2 "array_key_exists(%, %)" (toPhp left) (toPhp right)
   toPhp (Operation left EqualsEquals right) = print2 "% == %" (toPhp left) (toPhp right)
   toPhp (Operation left LessThan right) = print2 "% < %" (toPhp left) (toPhp right)
   toPhp (Operation left LessThanOrEqualTo right) = print2 "% <= %" (toPhp left) (toPhp right)

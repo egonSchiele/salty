@@ -82,6 +82,7 @@ transpileTests = [
     "foo <> bar" `matches` "array_merge($foo, $bar);",
     "foo in bar" `matches` "in_array($foo, $bar);",
     "'foo' in bar" `matches` "in_array(\"foo\", $bar);",
+    "foo keyin bar" `matches` "array_key_exists($foo, $bar);",
 
     -- function definitions
     "build a b := return 2" `matches` "public function build($a, $b) {\n    return 2;\n}",

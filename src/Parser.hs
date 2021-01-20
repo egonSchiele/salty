@@ -283,6 +283,7 @@ operator = debug "operator" >> do
   <||> (string "++" >> return PlusPlus)
   <||> (string "<>" >> return ArrayMerge)
   <||> (string "in" >> return In)
+  <||> (string "keyin" >> return KeyIn)
   <||> (string "==" >> return EqualsEquals)
   <||> (string "<=" >> return LessThanOrEqualTo)
   <||> (string ">=" >> return GreaterThanOrEqualTo)
