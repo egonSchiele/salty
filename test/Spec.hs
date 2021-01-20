@@ -258,6 +258,8 @@ transpileTests = [
 
     -- array slices
     "foo[1:]" `matches` "array_slice($foo, 1);",
+    "foo[:2]" `matches` "array_slice($foo, 0, 2);",
+    "foo[:]" `matches` "array_slice($foo, 0);",
     "foo[1:5]" `matches` "array_slice($foo, 1, 4);",
     "foo[start:]" `matches` "array_slice($foo, $start);",
     "foo[2:count(foo)]" `matches` "array_slice($foo, 2, count($foo) - 2);",

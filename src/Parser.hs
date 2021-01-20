@@ -479,10 +479,13 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
 arraySlice = debug "arraySlice" >> do
   array <- variable
   char '['
-  start <- saltyParserSingle
+  start_ <- (Just <$> saltyParserSingle) <||> nothing
   char ':'
   end <- (Just <$> saltyParserSingle) <||> nothing
   char ']'
+  let start = case start_ of
+                Just salty -> salty
+                Nothing -> SaltyNumber "0"
   return $ ArraySlice array start end
 
 hashLookup = debug "hashLookup" >> do
