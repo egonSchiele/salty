@@ -284,6 +284,7 @@ operator = debug "operator" >> do
   <||> (string "??" >> return NullCoalesce)
   <||> (string "++" >> return PlusPlus)
   <||> (string "<>" >> return ArrayMerge)
+  <||> (string "<->" >> return ArrayDiff)
   <||> (string "in" >> return In)
   <||> (string "keyin" >> return KeyIn)
   <||> (string "==" >> return EqualsEquals)

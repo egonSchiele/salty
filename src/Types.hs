@@ -45,6 +45,7 @@ data Operator = Add |
   NullCoalesce |
   PlusPlus |
   ArrayMerge |
+  ArrayDiff |
   In |
   KeyIn |
   EqualsEquals |

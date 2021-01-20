@@ -329,5 +329,6 @@ public function bar() {
 - `"value" in array` becomes `in_array("value", $array)`
 - `"key" keyin array` becomes `array_key_exists("key", $array)`
 - `arr1 <> arr2` becomes `array_merge(arr1, arr2)`
+- `arr1 <-> arr2` becomes `array_diff(arr1, arr2)`
 - `foo[1:4]` becomes `array_slice($foo, 1, 3)`
 - `foo[1:]` becomes `array_slice($foo, 1)`

@@ -80,6 +80,7 @@ transpileTests = [
     "foo []= bar" `matches` "$foo []= $bar;",
     "foo ++ bar" `matches` "$foo . $bar;",
     "foo <> bar" `matches` "array_merge($foo, $bar);",
+    "foo <-> bar" `matches` "array_diff($foo, $bar);",
     "foo in bar" `matches` "in_array($foo, $bar);",
     "'foo' in bar" `matches` "in_array(\"foo\", $bar);",
     "foo keyin bar" `matches` "array_key_exists($foo, $bar);",
@@ -254,6 +255,7 @@ transpileTests = [
     "foo[1:5]" `matches` "array_slice($foo, 1, 4);",
     "foo[start:]" `matches` "array_slice($foo, $start);",
     "foo[2:count(foo)]" `matches` "array_slice($foo, 2, count($foo) - 2);"
+
 
 
 
