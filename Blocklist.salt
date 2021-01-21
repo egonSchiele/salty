@@ -61,10 +61,7 @@ class Compliance_Blocklist {
       stemmedIdMap[:blocklistTerm.blocklist_term_id] = :blocklistTerm.term
 
       if :blocklistTerm.is_stem then {
-        # normalized = (new RichString(:blocklistTerm.term)).toArrayOfStemmedStrings()
-        # normalized = (new RichString(:blocklistTerm.term))
-        foo = (new Bar()).baz
-        foo = (new Bar()).baz()
+        normalized = (new RichString(:blocklistTerm.term)).toArrayOfStemmedStrings()
         words = array_unique(explode(@@WORD_SEPARATOR, :blocklistTerm.term) <> normalized)
         word_counts[:blocklistTerm.blocklist_term_id] = count(normalized)
       } else {
