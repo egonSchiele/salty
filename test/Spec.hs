@@ -112,18 +112,7 @@ transpileTests = [
     "(foo).bar()" `matches` "($foo)->bar();",
     "(new Foo()).bar()" `matches` "(new Foo())->bar();",
 
-    -- this is currently being parsed as:
-    -- (var = (new Foo(:hash.key))).someFunc()
-    -- i.e. everything is being parsed correctly, except someFunc is being called on the assignment operation!
- -- but got: "not implemented yet: FunctionCall {
- -- fObject = Just (Operation {
- -- oLeft = Variable (SimpleVar \"var\"), oOperationType = Equals, oRight = Parens [
- -- New {fClassName = ClassVar \"Foo\", fConstructorArgs = [HashLookup {hHash = Variable (SimpleVar \"hash\"), hKey = SaltyString \"key\"}]}
- -- ]
- -- }), fCallName = Right (SimpleVar \"someFunc\"), fCallArguments = []
- -- }"
-
-    "var = (new Foo(:hash.key)).someFunc()" `matches` "(new Foo())->bar();",
+    "var = (new Foo(:hash.key)).someFunc()" `matches` "$var = (new Foo($hash[\"key\"]))->someFunc();",
 
     -- braces tests
     "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",

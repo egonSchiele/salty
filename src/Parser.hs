@@ -343,12 +343,16 @@ partialAttrAccess = debug "partialAttrAccess" >> do
 
 partialFunctionCall = debug "partialFunctionCall" >> do
   leftHandSide <- getState
+
   char '.'
   funcName <- many1 varNameChars
   char '('
   funcArgs <- findArgs
   char ')'
-  return $ BackTrack $ FunctionCall (Just leftHandSide) (Right (SimpleVar funcName)) funcArgs
+
+  return $ case leftHandSide of
+             Operation l op r -> BackTrack $ Operation l op (FunctionCall (Just r) (Right (SimpleVar funcName)) funcArgs)
+             _ -> BackTrack $ FunctionCall (Just leftHandSide) (Right (SimpleVar funcName)) funcArgs
 
 negateSalty = debug "negateSalty" >> do
   char '!'
