@@ -307,7 +307,15 @@ operator = debug "operator" >> do
   <||> (string "%" >> return Modulo)
 
 atom = debug "atom" >> do
-       variable
+       functionCall
+  <||> constant
+  <||> attrAccess
+  <||> arraySlice
+  <||> hashLookup
+  <||> saltyBool
+  <||> saltyNull
+  <||> saltyMagicConstant
+  <||> variable
   <||> saltyString
   <||> saltyNumber
 
