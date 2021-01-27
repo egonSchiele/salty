@@ -237,6 +237,8 @@ transpileTests = [
     "arr.select(\\x -> x.isEven())" `matches`"$result = [];\nforeach ($arr as $x) {\n    if($x->isEven()) {\n        $result []= x;\n    }\n}",
     "arr.each(\\x -> print(x))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
     "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
+    -- same but w parens
+    "(@adit).map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
     "users = shops.map(\\s -> s.user)" `matches`"$users = [];\nforeach ($shops as $s) {\n    $users []= $s->user;\n}",
 
     -- assigning accVar manually
@@ -303,7 +305,16 @@ transpileTests = [
 
     -- ranges
     "1..10" `matches` "[1,2,3,4,5,6,7,8,9,10];",
-    "1..foo.bar" `matches` "a range: (1..$foo->bar);"
+    "1..foo.bar" `matches` "a range: (1..$foo->bar);",
+    "start..end" `matches` "a range: ($start..$end);",
+
+    -- classic for loop using each + range
+    "(1..10).each(\\x -> x + 1)" `matches` "for ($x = 1; $x <= 10; $x++) {\n    $x + 1;\n}",
+    "(start..end).each(\\x -> x + 1)" `matches` "for ($x = $start; $x <= $end; $x++) {\n    $x + 1;\n}",
+    "foo in 1..10" `matches` "$foo >= 1 && $foo <= 10;",
+    "foo in (1..10)" `matches` "$foo >= 1 && $foo <= 10;",
+    "foo in (start..end.baz)" `matches` "$foo >= $start && $foo <= $end->baz;",
+    "if foo in (start..end.baz) then { }" `matches` "if ($foo >= $start && $foo <= $end->baz) {\n}"
 
     -- "p 'hello' if hash ? str" `matches` [r|
     --   if (isset($hash['str'])) {

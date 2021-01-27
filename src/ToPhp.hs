@@ -82,6 +82,8 @@ instance ConvertToPhp Salty where
   toPhp (Operation left PlusPlus right) = print2 "% . %" (toPhp left) (toPhp right)
   toPhp (Operation left ArrayMerge right) = print2 "array_merge(%, %)" (toPhp left) (toPhp right)
   toPhp (Operation left ArrayDiff right) = print2 "array_diff(%, %)" (toPhp left) (toPhp right)
+  toPhp (Operation left In (Range start end)) = print4 "% >= % && % <= %" (toPhp left) (toPhp start) (toPhp left) (toPhp end)
+  toPhp (Operation left In (Parens [Range start end])) = print4 "% >= % && % <= %" (toPhp left) (toPhp start) (toPhp left) (toPhp end)
   toPhp (Operation left In right) = print2 "in_array(%, %)" (toPhp left) (toPhp right)
   toPhp (Operation left KeyIn right) = print2 "array_key_exists(%, %)" (toPhp left) (toPhp right)
   toPhp (Operation left InstanceOf right) = print2 "% instanceof %" (toPhp left) (toPhp right)
@@ -127,6 +129,10 @@ instance ConvertToPhp Salty where
   toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)
 
   -- each
+  -- special case, each with a range
+  toPhp (HigherOrderFunctionCall (Range left right) Each (LambdaFunction (loopVar:xs) body) _)  =
+                print6 "for ($% = %; $% <= %; $%++) {\n%\n}" loopVar (toPhp left) loopVar (toPhp right) loopVar (toPhp body)
+
   toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body) _)  =
                 print3 "foreach (% as $%) {\n%;\n}\n" (varName obj) loopVar (toPhp body)
 

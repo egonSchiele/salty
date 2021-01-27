@@ -433,7 +433,9 @@ classVar = debug "classVar" >> do
   return $ ClassVar (start:variable)
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
-  obj <- variable
+  optional $ char '('
+  obj <- range <||> variable
+  optional $ char ')'
   char '.'
   funcName <-      (string "map" >> return Map)
               <||> (string "each" >> return Each)
