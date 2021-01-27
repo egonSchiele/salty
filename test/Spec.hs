@@ -100,6 +100,7 @@ transpileTests = [
     "_foo a := @a = a" `matches` "private function foo($a) {\n    $this->a = $a;\n}",
     "foo2 := 2 + 2" `matches` "public function foo2() {\n    return 2 + 2;\n}",
     "__construct a := @a = a" `matches` "public function __construct($a) {\n    $this->a = $a;\n}",
+    "incr &count := ++count" `matches` "public function incr(&count) {\n    $count = $count + 1;\n}",
 
     -- parens tests
     "(a + b)" `matches` "($a + $b);",
