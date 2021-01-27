@@ -76,6 +76,7 @@ saltyParserSingleWithoutNewline = do
   <||> lambda
   <||> constant
   <||> multiAssign
+  <||> plusplusAll
   <||> operation
   <||> partialOperation
   <||> saltyString
@@ -685,6 +686,32 @@ multiAssign = debug "multiAssign" >> do
   space
   right <- saltyParserSingle
   return $ MultiAssign (firstVar:restVars) right
+
+plusplusAll = debug "plusplusAll" >> do
+       plusplusStart
+  <||> plusplusEnd
+  <||> minusminusStart
+  <||> minusminusEnd
+
+plusplusStart = debug "plusplusStart" >> do
+  string "++"
+  var <- variable
+  return $ Operation var PlusEquals (SaltyNumber "1")
+
+plusplusEnd = debug "plusplusEnd" >> do
+  var <- variable
+  string "++"
+  return $ Operation var PlusEquals (SaltyNumber "1")
+
+minusminusStart = debug "minusminusStart" >> do
+  string "--"
+  var <- variable
+  return $ Operation var MinusEquals (SaltyNumber "1")
+
+minusminusEnd = debug "minusminusEnd" >> do
+  var <- variable
+  string "--"
+  return $ Operation var MinusEquals (SaltyNumber "1")
 
 magicConstant strToMatch toReturn = debug "saltyMagicConstant" >> do
   string strToMatch

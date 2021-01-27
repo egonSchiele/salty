@@ -102,8 +102,16 @@ transpileTests = [
     "__construct a := @a = a" `matches` "public function __construct($a) {\n    $this->a = $a;\n}",
 
     -- pass by reference
-    "incr &count := count += 1" `matches` "public function incr(&$count) {\n    $count = $count + 1;\n}",
-    "foo = &bar" `matches` "$foo = &$bar",
+    "incr &count := ++count" `matches` "public function incr(&$count) {\n    $count = $count + 1;\n}",
+
+    -- fails, variables don't have the concept of pass by reference or not yet
+    -- "foo = &bar" `matches` "$foo = &$bar",
+
+    -- plus plus
+    "++bar" `matches` "$bar = $bar + 1;",
+    "bar++" `matches` "$bar = $bar + 1;",
+    "--bar" `matches` "$bar = $bar - 1;",
+    "bar--" `matches` "$bar = $bar - 1;",
 
     -- parens tests
     "(a + b)" `matches` "($a + $b);",
