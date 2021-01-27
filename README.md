@@ -3,6 +3,16 @@
 ## Usage
 Compile the code yourself or just copy one of the binaries in `bin`.
 
+## Compiling
+
+Install Stack:
+
+https://docs.haskellstack.org/en/stable/install_and_upgrade/
+
+Avoid piping a script to `sh`. Then:
+
+    make install
+
 Then:
 
 ```
