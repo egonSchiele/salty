@@ -148,6 +148,10 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                 arStart :: Salty,
                 arEnd :: Maybe Salty
              }
+             | Range {
+                rangeLeft :: Salty,
+                rangeRight :: Salty
+             }
              | Array [Salty]
              | ReturnStatement Salty
              | Negate Salty

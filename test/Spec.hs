@@ -299,7 +299,11 @@ transpileTests = [
     "foo = __CLASS__" `matches` "$foo = __CLASS__;",
     "foo = __TRAIT__" `matches` "$foo = __TRAIT__;",
     "foo = __METHOD__" `matches` "$foo = __METHOD__;",
-    "foo = __NAMESPACE__" `matches` "$foo = __NAMESPACE__;"
+    "foo = __NAMESPACE__" `matches` "$foo = __NAMESPACE__;",
+
+    -- ranges
+    "1..10" `matches` "[1,2,3,4,5,6,7,8,9,10];",
+    "1..foo.bar" `matches` "a range: (1..$foo->bar);"
 
     -- "p 'hello' if hash ? str" `matches` [r|
     --   if (isset($hash['str'])) {

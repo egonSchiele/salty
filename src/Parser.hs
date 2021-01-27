@@ -80,6 +80,7 @@ saltyParserSingleWithoutNewline = do
   <||> operation
   <||> partialOperation
   <||> saltyString
+  <||> range
   <||> saltyNumber
   <||> returnStatement
   <||> functionCall
@@ -108,12 +109,14 @@ saltyParserSingleWithoutNewline = do
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
        hashTable
+  <||> constant
   <||> array
   <||> operation
   <||> partialOperation
   <||> saltyString
   <||> saltyNumber
   <||> functionCall
+  <||> attrAccess
   <||> arraySlice
   <||> hashLookup
   <||> partialHashLookup
@@ -390,10 +393,20 @@ saltyString = debug "saltyString" >> do
   return $ SaltyString str
 
 saltyNumber = debug "saltyNumber" >> do
+       decimal
+  <||> integer
+
+integer = debug "integer" >> do
   head <- oneOf "1234567890-"
-  number <- many (oneOf "1234567890.")
+  number <- many (oneOf "1234567890")
   return $ SaltyNumber (head:number)
 
+decimal = debug "decimal" >> do
+  head <- oneOf "1234567890-"
+  number <- many (oneOf "1234567890")
+  char '.'
+  decimal <- many1 (oneOf "1234567890")
+  return $ SaltyNumber ((head:number) ++ "." ++ decimal)
 
 -- @foo
 instanceVar = debug "instanceVar" >> do
@@ -727,3 +740,23 @@ saltyMagicConstant = debug "saltyMagicConstant" >> do
               <||> magicConstant "__METHOD__" MCMETHOD
               <||> magicConstant "__NAMESPACE__" MCNAMESPACE
   return $ SaltyMagicConstant constant
+
+validRangeArgTypes :: SaltyParser
+validRangeArgTypes = debug "validRangeArgTypes" >> do
+       constant
+  <||> saltyNumber
+  <||> functionCall
+  <||> attrAccess
+  <||> hashLookup
+  <||> partialHashLookup
+  <||> partialFunctionCall
+  <||> partialAttrAccess
+  <||> negateSalty
+  <||> saltyMagicConstant
+  <||> variable
+
+range = debug "range" >> do
+  left <- validRangeArgTypes
+  string ".."
+  right <- validRangeArgTypes
+  return $ Range left right

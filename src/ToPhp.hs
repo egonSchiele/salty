@@ -197,6 +197,10 @@ instance ConvertToPhp Salty where
   toPhp (Keyword (KwRequire salty)) = "require " ++ (toPhp salty)
   toPhp (Keyword (KwRequireOnce salty)) = "require_once " ++ (toPhp salty)
   toPhp (Keyword (KwNamespace salty)) = "namespace " ++ (toPhp salty)
+  toPhp (Range (SaltyNumber l) (SaltyNumber r)) = show $ [left..right]
+      where left = read l :: Integer
+            right = read r :: Integer
+  toPhp (Range l r) = "a range: (" ++ (toPhp l) ++ ".." ++ (toPhp r) ++ ")"
   toPhp (Keyword x) = "keyword not implemented yet: " ++ (show x)
   toPhp x = "not implemented yet: " ++ (show x)
 
