@@ -30,9 +30,14 @@ data MagicConstant =   MCLINE
 -- function args
 data Argument = Argument {
                   argType :: Maybe ArgumentType,
-                  argName :: String,
+                  argName :: ArgumentName,
                   argDefault :: Maybe String
                 } deriving (Show)
+
+data ArgumentName = ArgumentName {
+                      argNameName :: String,
+                      argNameByReference :: Bool
+                    } deriving (Show)
 
 data ArgumentType = ArgumentType {
                       aOptional :: Bool,

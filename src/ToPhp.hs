@@ -42,13 +42,16 @@ instance ConvertToPhp MagicConstant where
   toPhp MCMETHOD = "__METHOD__"
   toPhp MCNAMESPACE = "__NAMESPACE__"
 
+instance ConvertToPhp ArgumentName where
+  toPhp (ArgumentName name False) = "$" ++ name
+  toPhp (ArgumentName name True) = "&$" ++ name
 instance ConvertToPhp Argument where
-  toPhp (Argument (Just (ArgumentType False typ _)) name (Just default_)) = print3 "?% $% = %" typ name default_
-  toPhp (Argument (Just (ArgumentType True typ _)) name (Just default_)) = print3 "?% $% = %" typ name default_
-  toPhp (Argument (Just (ArgumentType False typ _)) name Nothing) = typ ++ " $" ++ name
-  toPhp (Argument (Just (ArgumentType True typ _)) name Nothing) = print2 "?% $% = null" typ name
-  toPhp (Argument Nothing name (Just default_)) = print2 "$% = %" name default_
-  toPhp (Argument Nothing name Nothing) = "$" ++ name
+  toPhp (Argument (Just (ArgumentType False typ _)) name (Just default_)) = print3 "?% % = %" typ (toPhp name) default_
+  toPhp (Argument (Just (ArgumentType True typ _)) name (Just default_)) = print3 "?% % = %" typ (toPhp name) default_
+  toPhp (Argument (Just (ArgumentType False typ _)) name Nothing) = typ ++ " " ++ (toPhp name)
+  toPhp (Argument (Just (ArgumentType True typ _)) name Nothing) = print2 "?% % = null" typ (toPhp name)
+  toPhp (Argument Nothing name (Just default_)) = print2 "% = %" (toPhp name) default_
+  toPhp (Argument Nothing name Nothing) = toPhp name
 
 instance (ConvertToPhp a1, ConvertToPhp a2) => ConvertToPhp (Either a1 a2) where
   toPhp (Left a) = toPhp a
@@ -204,6 +207,10 @@ addReturn x@(Operation var@(Variable _) Equals h@(HigherOrderFunctionCall obj ca
 addReturn x@(Operation var@(Variable _) Equals (WithNewLine(h@(HigherOrderFunctionCall obj callName func accVar)))) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
 addReturn x@(Operation _ Equals _) = toPhp x
 addReturn x@(Operation _ ArrayPush _) = toPhp x
+addReturn x@(Operation _ PlusEquals _) = toPhp x
+addReturn x@(Operation _ MinusEquals _) = toPhp x
+addReturn x@(Operation _ MultiplyEquals _) = toPhp x
+addReturn x@(Operation _ DivideEquals _) = toPhp x
 addReturn x@(Operation left OrEquals _) = (toPhp x) ++ "\nreturn " ++ (toPhp left) ++ ";"
 addReturn x@(Operation _ _ _) = "return " ++ (toPhp x)
 addReturn (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (addReturn thenFork) (addReturn elseFork)

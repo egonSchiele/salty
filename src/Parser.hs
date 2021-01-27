@@ -11,7 +11,7 @@ import ToPhp
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
-functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
+functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
@@ -200,11 +200,18 @@ functionArgs = debug "functionArgs" >> many (do
   space
   return arg)
 
+makeArgNames :: [String] -> [ArgumentName]
+makeArgNames [] = []
+makeArgNames (arg:rest)
+  | head arg == '&' = (ArgumentName (tail arg) True):(makeArgNames rest)
+  | otherwise       = (ArgumentName arg False):(makeArgNames rest)
+
 onelineFunction = debug "onelineFunction" >> do
   prevSalty <- getState
   (name, visibility) <- getVisibility <$> variableName
   space
-  args <- functionArgs
+  _args <- functionArgs
+  let args = makeArgNames _args
   string ":="
   space
   body_ <- many1 (noneOf "\n")
@@ -222,7 +229,8 @@ multilineFunction = debug "multilineFunction" >> do
   prevSalty <- getState
   (name, visibility) <- getVisibility <$> variableName
   space
-  args <- functionArgs
+  _args <- functionArgs
+  let args = makeArgNames _args
   string ":="
   space
   body <- braces
@@ -230,7 +238,10 @@ multilineFunction = debug "multilineFunction" >> do
      FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility
      _ -> return $ Function name (map argWithDefaults args) [body] visibility
 
+argWithDefaults :: ArgumentName -> Argument
 argWithDefaults name = Argument Nothing name Nothing
+
+argWithTypes :: [ArgumentName] -> [ArgumentType] -> [Argument]
 argWithTypes [] _ = []
 argWithTypes (a:args) [] = (Argument Nothing a Nothing):(argWithTypes args [])
 argWithTypes (a:args) (t:types) = (Argument (Just t) a Nothing):(argWithTypes args types)
