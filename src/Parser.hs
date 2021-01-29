@@ -105,7 +105,6 @@ saltyParserSingleWithoutNewline = do
   <||> saltyKeyword
   <||> saltyMagicConstant
   <||> variable
-  <||> parseError
 
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
