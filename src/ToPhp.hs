@@ -208,6 +208,7 @@ instance ConvertToPhp Salty where
             right = read r :: Integer
   toPhp (Range l r) = "a range: (" ++ (toPhp l) ++ ".." ++ (toPhp r) ++ ")"
   toPhp (Keyword x) = "keyword not implemented yet: " ++ (show x)
+  toPhp (ParseError x) = x ++ "\n"
   toPhp x = "not implemented yet: " ++ (show x)
 
 

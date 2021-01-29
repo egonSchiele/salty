@@ -19,6 +19,11 @@ convert infile = do
     let out = saltyToPhp (getIndentAmt contents) contents
     putStrLn ("<?php\n" ++ out)
 
+convertToFile infile outfile = do
+    contents <- readFile infile
+    let out = saltyToPhp (getIndentAmt contents) contents
+    writeFile outfile ("<?php\n" ++ out)
+
 printHelp = do
     putStrLn "Usage: `salty test.salt` prints to stdout"
     putStrLn "Usage: `salty` reads from stdin and prints to stdout"
@@ -46,6 +51,7 @@ main = do
        ["-d", inputFile] -> debugFile inputFile
        ["debug"] -> debugFromStdin
        ["-d"] -> debugFromStdin
+       ["-f", inputFile] -> convertToFile inputFile (replace ".salt" ".php" inputFile)
        [inputFile] -> convert inputFile
        [] -> readFromStdin
        _ -> printHelp

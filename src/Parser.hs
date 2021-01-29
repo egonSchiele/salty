@@ -105,6 +105,7 @@ saltyParserSingleWithoutNewline = do
   <||> saltyKeyword
   <||> saltyMagicConstant
   <||> variable
+  <||> parseError
 
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
@@ -762,3 +763,8 @@ range = debug "range" >> do
   string ".."
   right <- validRangeArgTypes
   return $ Range left right
+
+parseError = debug "parseError" >> do
+  line <- many1 (noneOf "\n")
+  char '\n'
+  return $ ParseError line

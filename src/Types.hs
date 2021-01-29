@@ -152,6 +152,10 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                 rangeLeft :: Salty,
                 rangeRight :: Salty
              }
+             | MultiAssign {
+               muVars :: [Salty],
+               muValue :: Salty
+             }
              | Array [Salty]
              | ReturnStatement Salty
              | Negate Salty
@@ -170,10 +174,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | SaltyNull
              | SaltyMagicConstant MagicConstant
              | Keyword PhpKeyword
-             | MultiAssign {
-               muVars :: [Salty],
-               muValue :: Salty
-             }
+             | ParseError String
              deriving (Show)
 
 isSaltyComment :: Salty -> Bool
