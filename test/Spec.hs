@@ -27,7 +27,7 @@ saltyBlob = [r|
   |]
 
 phpBlob = [r|
-  public function isSafe($str, $lists) {
+  function isSafe($str, $lists) {
     $result = false;
     foreach ($lists as $l) {
       if ($l->isBlocked($str)) {
@@ -38,7 +38,7 @@ phpBlob = [r|
     return $result;
   }
 
-  public function isBlocked($str) {
+  function isBlocked($str) {
     $result = false;
     foreach ($list as $term) {
       if (strpos(term, str) !== false) {
@@ -49,7 +49,7 @@ phpBlob = [r|
     return $result;
   }
 
-  public function isUnsafe($str) {
+  function isUnsafe($str) {
     return !isSafe($str);
   }
   |]
@@ -90,19 +90,19 @@ transpileTests = [
     "foo, bar, baz = []" `matches` "$foo = [];\n$bar = [];\n$baz = [];",
 
     -- function definitions
-    "build a b := return 2" `matches` "public function build($a, $b) {\n    return 2;\n}",
-    "@@build a b := return 2" `matches` "public static function build($a, $b) {\n    return 2;\n}",
-    "incr a := return a + 1" `matches` "public function incr($a) {\n    return $a + 1;\n}",
-    "foo := a.foo()" `matches` "public function foo() {\n    return $a->foo();\n}",
-    "foo a b := a + 1 + b + 2" `matches` "public function foo($a, $b) {\n    return $a + 1 + $b + 2;\n}",
-    "foo a b := (a + 1) + (b - 2)" `matches` "public function foo($a, $b) {\n    return ($a + 1) + ($b - 2);\n}",
-    "foo a b := { a + b }" `matches` "public function foo($a, $b) {\n    return $a + $b;\n}",
-    "_foo a := @a = a" `matches` "private function foo($a) {\n    $this->a = $a;\n}",
-    "foo2 := 2 + 2" `matches` "public function foo2() {\n    return 2 + 2;\n}",
-    "__construct a := @a = a" `matches` "public function __construct($a) {\n    $this->a = $a;\n}",
+    "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}",
+    "@@build a b := return 2" `matches` "static function build($a, $b) {\n    return 2;\n}",
+    "incr a := return a + 1" `matches` "function incr($a) {\n    return $a + 1;\n}",
+    "foo := a.foo()" `matches` "function foo() {\n    return $a->foo();\n}",
+    "foo a b := a + 1 + b + 2" `matches` "function foo($a, $b) {\n    return $a + 1 + $b + 2;\n}",
+    "foo a b := (a + 1) + (b - 2)" `matches` "function foo($a, $b) {\n    return ($a + 1) + ($b - 2);\n}",
+    "foo a b := { a + b }" `matches` "function foo($a, $b) {\n    return $a + $b;\n}",
+    "_foo a := @a = a" `matches` "function foo($a) {\n    $this->a = $a;\n}",
+    "foo2 := 2 + 2" `matches` "function foo2() {\n    return 2 + 2;\n}",
+    "__construct a := @a = a" `matches` "function __construct($a) {\n    $this->a = $a;\n}",
 
     -- pass by reference
-    "incr &count := ++count" `matches` "public function incr(&$count) {\n    $count = $count + 1;\n}",
+    "incr &count := ++count" `matches` "function incr(&$count) {\n    $count = $count + 1;\n}",
 
     -- fails, variables don't have the concept of pass by reference or not yet
     -- "foo = &bar" `matches` "$foo = &$bar",
@@ -127,9 +127,9 @@ transpileTests = [
     "var = (new Foo(:hash.key)).someFunc()" `matches` "$var = (new Foo($hash[\"key\"]))->someFunc();",
 
     -- braces tests
-    "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",
-    "fib x := {\na + b\n b + c\n }\n \n foo a b := a + b" `matches` "public function fib($x) {\n    $a + $b;\n    return $b + $c;\n}\npublic function foo($a, $b) {\n    return $a + $b;\n}",
-    "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "public function fib($x) {\n    $a + $b;\n    return $b + $c;\n}\npublic function foo($a, $b) {\n    return $a + $b;\n}",
+    "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",
+    "fib x := {\na + b\n b + c\n }\n \n foo a b := a + b" `matches` "function fib($x) {\n    $a + $b;\n    return $b + $c;\n}\nfunction foo($a, $b) {\n    return $a + $b;\n}",
+    "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "function fib($x) {\n    $a + $b;\n    return $b + $c;\n}\nfunction foo($a, $b) {\n    return $a + $b;\n}",
 
     -- hash tests
     "argv[1]" `matches` "$argv[1];",
@@ -148,10 +148,10 @@ transpileTests = [
     -- if statement
     "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if ($a = 1) {\n    $b = 2;\n    $c = 3;\n}",
     "if a != 'foo' then return 2 else return 3" `matches` "if ($a != \"foo\") {\n    return 2;\n} else {\n    return 3;\n}",
-    "foo := if x % 2 == 0 then 'even' else 'odd'" `matches` "public function foo() {\n    if ($x % 2 == 0) {\n        return \"even\";\n    } else {\n        return \"odd\";\n    }\n}",
+    "foo := if x % 2 == 0 then 'even' else 'odd'" `matches` "function foo() {\n    if ($x % 2 == 0) {\n        return \"even\";\n    } else {\n        return \"odd\";\n    }\n}",
 
     -- arity for else
-    "fib x := if x < 2 then x else fib(x - 1) + fib(x - 2)" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",
+    "fib x := if x < 2 then x else fib(x - 1) + fib(x - 2)" `matches` "function fib($x) {\n    if ($x < 2) {\n        return $x;\n    } else {\n        return fib($x - 1) + fib($x - 2);\n    }\n}",
 
     -- while statement
     "while foo == 1 {\nfoo = 2\n}" `matches`"while ($foo == 1) {\n    $foo = 2;\n}",
@@ -207,10 +207,10 @@ transpileTests = [
     "~foo.bar" `matches` "Feature::isEnabled('foo.bar');",
 
     -- function type signature
-    "foo :: string\nfoo := 'hello'" `matches` "/**\n * @return string\n */\npublic function foo() {\n    return \"hello\";\n}",
-    "foo :: string -> string\nfoo a := a" `matches` "/**\n * @param string\n * @return string\n */\npublic function foo(string $a) {\n    return $a;\n}",
-    "foo :: string? -> string?\nfoo a := a" `matches` "/**\n * @param string|null\n * @return string|null\n */\npublic function foo(?string $a = null) {\n    return $a;\n}",
-    "foo :: string? -> int -> string?\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n * @return string|null\n */\npublic function foo(?string $a = null, int $b) {\n    return $a;\n}",
+    "foo :: string\nfoo := 'hello'" `matches` "/**\n * @return string\n */\nfunction foo() {\n    return \"hello\";\n}",
+    "foo :: string -> string\nfoo a := a" `matches` "/**\n * @param string\n * @return string\n */\nfunction foo(string $a) {\n    return $a;\n}",
+    "foo :: string? -> string?\nfoo a := a" `matches` "/**\n * @param string|null\n * @return string|null\n */\nfunction foo(?string $a = null) {\n    return $a;\n}",
+    "foo :: string? -> int -> string?\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n * @return string|null\n */\nfunction foo(?string $a = null, int $b) {\n    return $a;\n}",
     -- null, true, false
     "a = true" `matches` "$a = true;",
     "b = false" `matches` "$b = false;",
@@ -223,13 +223,13 @@ transpileTests = [
     "return (1 + 2)" `matches` "return (1 + 2);",
 
     -- implicit returns
-    "foo := 5" `matches` "public function foo() {\n    return 5;\n}",
-    "foo := bar = 5" `matches` "public function foo() {\n    $bar = 5;\n}",
-    "foo := bar []= 5" `matches` "public function foo() {\n    $bar []= 5;\n}",
-    "foo := \"hello\"" `matches` "public function foo() {\n    return \"hello\";\n}",
-    "foo x :=  if x then 'hi' else 'hello'" `matches` "public function foo($x) {\n    if ($x) {\n        return \"hi\";\n    } else {\n        return \"hello\";\n    }\n}",
-    "fib x := if x < 2 then x" `matches` "public function fib($x) {\n    if ($x < 2) {\n        return $x;\n    }\n}",
-    "foo := bar ||= 1" `matches` "public function foo() {\n    $bar = $bar ?? 1;\n    return $bar;\n}",
+    "foo := 5" `matches` "function foo() {\n    return 5;\n}",
+    "foo := bar = 5" `matches` "function foo() {\n    $bar = 5;\n}",
+    "foo := bar []= 5" `matches` "function foo() {\n    $bar []= 5;\n}",
+    "foo := \"hello\"" `matches` "function foo() {\n    return \"hello\";\n}",
+    "foo x :=  if x then 'hi' else 'hello'" `matches` "function foo($x) {\n    if ($x) {\n        return \"hi\";\n    } else {\n        return \"hello\";\n    }\n}",
+    "fib x := if x < 2 then x" `matches` "function fib($x) {\n    if ($x < 2) {\n        return $x;\n    }\n}",
+    "foo := bar ||= 1" `matches` "function foo() {\n    $bar = $bar ?? 1;\n    return $bar;\n}",
 
     -- higher order functions
     "arr.any(\\x -> x == 1)" `matches`"$result = false;\nforeach ($arr as $x) {\n    if($x == 1) {\n        $result = true;\n        break;\n    }\n}",
@@ -248,17 +248,17 @@ transpileTests = [
     "myAcc = foo.all(\\x -> x.isEven())" `matches` "$myAcc = true;\nforeach ($foo as $x) {\n    if(!$x->isEven()) {\n        $myAcc = false;\n        break;\n    }\n}",
 
     -- assigning accVar manually plus implicit return
-    "bar := myAcc = foo.each(\\x -> print(x))" `matches` "public function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
-    "bar := @myAcc = foo.map(\\x -> x + 1)" `matches` "public function bar() {\n    $this->myAcc = [];\n    foreach ($foo as $x) {\n        $this->myAcc []= $x + 1;\n    }\n    return $this->myAcc;\n}",
-    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "public function bar() {\n    static::$myAcc = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            static::$myAcc = true;\n            break;\n        }\n    }\n    return static::$myAcc;\n}",
-    "bar := myAcc = foo.all(\\x -> x.isEven())" `matches` "public function bar() {\n    $myAcc = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $myAcc = false;\n            break;\n        }\n    }\n    return $myAcc;\n}",
+    "bar := myAcc = foo.each(\\x -> print(x))" `matches` "function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
+    "bar := @myAcc = foo.map(\\x -> x + 1)" `matches` "function bar() {\n    $this->myAcc = [];\n    foreach ($foo as $x) {\n        $this->myAcc []= $x + 1;\n    }\n    return $this->myAcc;\n}",
+    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "function bar() {\n    static::$myAcc = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            static::$myAcc = true;\n            break;\n        }\n    }\n    return static::$myAcc;\n}",
+    "bar := myAcc = foo.all(\\x -> x.isEven())" `matches` "function bar() {\n    $myAcc = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $myAcc = false;\n            break;\n        }\n    }\n    return $myAcc;\n}",
 
     -- implicit returns for higher order functions
-    "bar := foo.each(\\x -> print(x))" `matches` "public function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
-    "bar := foo.map(\\x -> x + 1)" `matches`"public function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n    return $result;\n}",
-    "bar := foo.any(\\x -> x.isEven())" `matches`"public function bar() {\n    $result = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result = true;\n            break;\n        }\n    }\n    return $result;\n}",
-    "bar := foo.all(\\x -> x.isEven())" `matches`"public function bar() {\n    $result = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $result = false;\n            break;\n        }\n    }\n    return $result;\n}",
-    "bar := foo.select(\\x -> x.isEven())" `matches` "public function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= x;\n        }\n    }\n    return $result;\n}",
+    "bar := foo.each(\\x -> print(x))" `matches` "function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
+    "bar := foo.map(\\x -> x + 1)" `matches`"function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n    return $result;\n}",
+    "bar := foo.any(\\x -> x.isEven())" `matches`"function bar() {\n    $result = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result = true;\n            break;\n        }\n    }\n    return $result;\n}",
+    "bar := foo.all(\\x -> x.isEven())" `matches`"function bar() {\n    $result = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $result = false;\n            break;\n        }\n    }\n    return $result;\n}",
+    "bar := foo.select(\\x -> x.isEven())" `matches` "function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= x;\n        }\n    }\n    return $result;\n}",
 
     -- keywords
     "use Foo" `matches` "use Foo;",

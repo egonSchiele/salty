@@ -89,7 +89,8 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                fName :: VariableName,
                fArguments :: [Argument],
                fBody :: [Salty],
-               fVisibility :: Visibility
+               fVisibility :: Visibility,
+               fScope :: Scope
              }
              | FunctionTypeSignature {
                fName :: VariableName,

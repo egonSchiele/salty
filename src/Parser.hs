@@ -242,6 +242,10 @@ makeArgNames (arg:rest)
 
 onelineFunction = debug "onelineFunction" >> do
   prevSalty <- lastSalty <$> getState
+  scope_ <- (safeHead . stateScopes) <$> getState
+  let scope = case scope_ of
+                Just x -> x
+                Nothing -> GlobalScope
   (name, visibility) <- getVisibility <$> variableName
   space
   _args <- functionArgs
@@ -255,12 +259,16 @@ onelineFunction = debug "onelineFunction" >> do
        Right body -> do
           case prevSalty of
                FunctionTypeSignature _ types ->
-                  return $ Function name (argWithTypes args types) body visibility
+                  return $ Function name (argWithTypes args types) body visibility scope
                _ ->
-                  return $ Function name (map argWithDefaults args) body visibility
+                  return $ Function name (map argWithDefaults args) body visibility scope
 
 multilineFunction = debug "multilineFunction" >> do
   prevSalty <- lastSalty <$> getState
+  scope_ <- (safeHead . stateScopes) <$> getState
+  let scope = case scope_ of
+                Just x -> x
+                Nothing -> GlobalScope
   (name, visibility) <- getVisibility <$> variableName
   space
   _args <- functionArgs
@@ -269,8 +277,8 @@ multilineFunction = debug "multilineFunction" >> do
   space
   body <- braces (Just FunctionScope)
   case prevSalty of
-     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility
-     _ -> return $ Function name (map argWithDefaults args) [body] visibility
+     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility scope
+     _ -> return $ Function name (map argWithDefaults args) [body] visibility scope
 
 argWithDefaults :: ArgumentName -> Argument
 argWithDefaults name = Argument Nothing name Nothing

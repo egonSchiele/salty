@@ -1,6 +1,8 @@
 class AditController {
   foo = 1
   _baz = "hi"
+
+  wow foo := p(foo)
 }
 
 bar = 2

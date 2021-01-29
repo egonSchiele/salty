@@ -75,7 +75,7 @@ checkBackTracks (x:xs) = (checkBackTracksSingle x):(checkBackTracks xs)
 
 checkBackTracksSingle :: Salty -> Salty
 checkBackTracksSingle (Operation l o r) = Operation (checkBackTracksSingle l) o (checkBackTracksSingle r)
-checkBackTracksSingle (Function n a b v) = Function n a (checkBackTracks b) v
+checkBackTracksSingle (Function n a b v s) = Function n a (checkBackTracks b) v s
 checkBackTracksSingle (FunctionCall Nothing cn ca) = FunctionCall Nothing cn (checkBackTracks ca)
 checkBackTracksSingle (FunctionCall (Just o) cn ca) = FunctionCall (Just (checkBackTracksSingle o)) cn (checkBackTracks ca)
 checkBackTracksSingle (HigherOrderFunctionCall o cn f a) = HigherOrderFunctionCall (checkBackTracksSingle o) cn (checkBackTracksSingle f) a
