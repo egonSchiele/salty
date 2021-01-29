@@ -314,7 +314,13 @@ transpileTests = [
     "foo in 1..10" `matches` "$foo >= 1 && $foo <= 10;",
     "foo in (1..10)" `matches` "$foo >= 1 && $foo <= 10;",
     "foo in (start..end.baz)" `matches` "$foo >= $start && $foo <= $end->baz;",
-    "if foo in (start..end.baz) then { }" `matches` "if ($foo >= $start && $foo <= $end->baz) {\n}"
+    "if foo in (start..end.baz) then { }" `matches` "if ($foo >= $start && $foo <= $end->baz) {\n}",
+
+    -- scope
+    "class Foo {\nbar = 1\n}" `matches` "class Foo {\n    public $bar = 1;\n}",
+    "class Foo {\n_bar = 1\n}" `matches` "class Foo {\n    private $bar = 1;\n}",
+    "class Foo {\n@@_bar = 1\n}" `matches` "class Foo {\n    private static $bar = 1;\n}",
+    "class Foo {\n@@bar = 1\n}" `matches` "class Foo {\n    public static $bar = 1;\n}"
 
     -- "p 'hello' if hash ? str" `matches` [r|
     --   if (isset($hash['str'])) {
