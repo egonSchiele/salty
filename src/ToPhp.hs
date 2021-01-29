@@ -11,7 +11,7 @@ simpleVarName x = case x of
     SimpleVar s -> s
 
 varName :: Salty -> String
-varName (Variable x) = toPhp x
+varName (Variable name scope) = toPhp name
 
 class ConvertToPhp a where
     toPhp :: a -> String
@@ -59,10 +59,10 @@ instance (ConvertToPhp a1, ConvertToPhp a2) => ConvertToPhp (Either a1 a2) where
 
 instance ConvertToPhp Salty where
   toPhp (Operation x op (WithNewLine y)) = (toPhp $ Operation x op y) ++ "\n"
-  toPhp (Operation x@(Variable _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
+  toPhp (Operation x@(Variable _ _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
 
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
-  -- toPhp (Operation x@(Variable _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
+  -- toPhp (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
   toPhp (Operation left Equals right) = (toPhp left) ++ " = " ++ (toPhp right)
   toPhp (Operation left NotEquals right) = (toPhp left) ++ " != " ++ (toPhp right)
   toPhp (Operation left PlusEquals right) = print3 "% = % + %" (toPhp left) (toPhp left) (toPhp right)
@@ -117,10 +117,10 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall Nothing (Left VarDumpShort) args) = "var_dump(" ++ (intercalate ", " . map toPhp $ args) ++ ")"
 
   -- functions called on an obj
-  toPhp (FunctionCall (Just (Variable (SimpleVar obj))) (Right funcName) args) = print3 "$%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Variable (InstanceVar obj))) (Right funcName) args) = print3 "$this->%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Variable (StaticVar obj))) (Right funcName) args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Variable (ClassVar obj))) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (SimpleVar obj) _)) (Right funcName) args) = print3 "$%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (InstanceVar obj) _)) (Right funcName) args) = print3 "$this->%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (StaticVar obj) _)) (Right funcName) args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   -- same as above but with parens
   toPhp (FunctionCall (Just (Parens [obj])) (Right funcName) args) = print3 "(%)->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
@@ -173,7 +173,10 @@ instance ConvertToPhp Salty where
   toPhp (Class name (Just extendsName) (Just implementsName) body) = print4 "class % extends % implements % {\n%\n}" (toPhp name) (toPhp extendsName) (toPhp implementsName) (toPhp body)
   toPhp (New name args) = print2 "new %(%)" (toPhp name) (intercalate "," . map toPhp $ args)
 
-  toPhp (Variable x) = toPhp x
+  toPhp (Variable (InstanceVar s) ClassScope) = "public $" ++ s
+  toPhp (Variable (StaticVar s) ClassScope) = "public static $" ++ s
+  toPhp (Variable (SimpleVar s) ClassScope) = "public $" ++ s
+  toPhp (Variable x _) = toPhp x
   toPhp (WithNewLine s) = (toPhp s) ++ "\n"
   toPhp (HashLookup h k) = print2 "%[%]" (toPhp h) (toPhp k)
   toPhp (FunctionTypeSignature n types) = "/**\n" ++ (concat $ map showType types) ++ " */\n"
@@ -188,11 +191,11 @@ instance ConvertToPhp Salty where
   toPhp (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "array_slice(%, %, %)" (toPhp obj) start newEnd
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
   toPhp (ArraySlice obj start (Just end)) = print4 "array_slice(%, %, % - %)" (toPhp obj) (toPhp start) (toPhp end) (toPhp start)
-  toPhp (AttrAccess (Variable (ClassVar obj)) attrName) = print2 "%::%" obj attrName
+  toPhp (AttrAccess (Variable (ClassVar obj) _) attrName) = print2 "%::%" obj attrName
   toPhp (AttrAccess obj attrName) = print2 "%->%" (toPhp obj) attrName
   toPhp (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toPhp var) (toPhp value)) $ vars)
-  -- toPhp (AttrAccess (Variable (InstanceVar obj)) attrName) = print2 "$this->%->%" obj attrName
-  -- toPhp (AttrAccess (Variable (StaticVar obj)) attrName) = print2 "static::$%->%" obj attrName
+  -- toPhp (AttrAccess (Variable (InstanceVar obj) _) attrName) = print2 "$this->%->%" obj attrName
+  -- toPhp (AttrAccess (Variable (StaticVar obj) _) attrName) = print2 "static::$%->%" obj attrName
   toPhp (Array salties) = "[" ++ (intercalate ", " . map toPhp $ salties) ++ "]"
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
@@ -214,8 +217,8 @@ instance ConvertToPhp Salty where
 
 addReturn :: Salty -> String
 addReturn x@(ReturnStatement _) = toPhp x
-addReturn x@(Operation var@(Variable _) Equals h@(HigherOrderFunctionCall obj callName func accVar)) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
-addReturn x@(Operation var@(Variable _) Equals (WithNewLine(h@(HigherOrderFunctionCall obj callName func accVar)))) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
+addReturn x@(Operation var@(Variable _ _) Equals h@(HigherOrderFunctionCall obj callName func accVar)) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
+addReturn x@(Operation var@(Variable _ _) Equals (WithNewLine(h@(HigherOrderFunctionCall obj callName func accVar)))) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
 addReturn x@(Operation _ Equals _) = toPhp x
 addReturn x@(Operation _ ArrayPush _) = toPhp x
 addReturn x@(Operation _ PlusEquals _) = toPhp x
@@ -227,7 +230,7 @@ addReturn x@(Operation _ _ _) = "return " ++ (toPhp x)
 addReturn (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (addReturn thenFork) (addReturn elseFork)
 addReturn (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn thenFork)
 addReturn (Braces s) = (concat . map toPhp . init $ s) ++ "\n" ++ (addReturn . last $ s)
-addReturn (Variable s) = "return " ++ (toPhp s)
+addReturn (Variable name scope) = "return " ++ (toPhp name)
 addReturn (WithNewLine x) = (addReturn x) ++ "\n"
 addReturn p@(Parens x) = "return " ++ (toPhp p)
 addReturn f@(FunctionCall o n a) = "return " ++ (toPhp f)

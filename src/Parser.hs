@@ -19,7 +19,7 @@ flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.123
 
 data SaltyState = SaltyState {
                       lastSalty :: Salty,
-                      scope :: [Scope]
+                      stateScopes :: [Scope]
                   }
 
 type SaltyParser = Parsec String SaltyState Salty
@@ -140,9 +140,15 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> saltyMagicConstant
   <||> variable
 
+safeHead [] = Nothing
+safeHead (x:xs) = Just x
+
 variable = debug "variable" >> do
   name <- variableName
-  return $ Variable name
+  scope_ <- (safeHead . stateScopes) <$> getState
+  case scope_ of
+       Just scope -> return $ Variable name scope
+       Nothing -> return $ Variable name GlobalScope
 
 variableName = debug "variableName" >> do
         staticVar

@@ -1,3 +1,5 @@
 class AditController {
-
+  foo = 1
 }
+
+bar = 2
