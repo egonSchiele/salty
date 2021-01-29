@@ -78,6 +78,8 @@ data Operator = Add |
 
 data BuiltInFunction = VarDumpShort deriving (Show)
 
+data Scope = GlobalScope | ClassScope | FunctionScope deriving (Show)
+
 data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                oLeft :: Salty,
                oOperationType :: Operator,

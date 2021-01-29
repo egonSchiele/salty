@@ -17,7 +17,11 @@ constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
 flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
 
-type SaltyState = Salty
+data SaltyState = SaltyState {
+                      lastSalty :: Salty,
+                      scope :: [Scope]
+                  }
+
 type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
@@ -34,8 +38,10 @@ saltyToDebugTree str = case (build str) of
                    Left err -> show err
                    Right xs -> formatDebug xs
 
+startingState = SaltyState EmptyLine []
+
 build :: String -> Either ParseError [Salty]
-build str_ = runParser saltyParser EmptyLine "saltyParser" str
+build str_ = runParser saltyParser startingState "saltyParser" str
   where str = unlines . (map strip) . lines $ str_
 
 saltyParser :: Parsec String SaltyState [Salty]
@@ -57,19 +63,22 @@ saltyParserSingle_ = do
   debug "saltyParserSingle_"
   salty <- saltyParserSingleWithoutNewline
   if worthSaving salty
-     then putState salty
+     then modifyState (saveIt salty)
      else return ()
   return salty
 
 worthSaving EmptyLine = False
 worthSaving _ = True
 
+saveIt :: Salty -> SaltyState -> SaltyState
+saveIt salty (SaltyState _ scopes) = SaltyState salty scopes
+
 saltyParserSingleWithoutNewline :: SaltyParser
 saltyParserSingleWithoutNewline = do
   parens
   <||> hashTable
   <||> array
-  <||> braces
+  <||> (braces Nothing)
   <||> function
   <||> functionTypeSignature
   <||> higherOrderFunctionCall
@@ -188,11 +197,24 @@ array = debug "array" >> do
   optional $ char ']'
   return $ Array salties
 
-braces = debug "braces" >> do
+addScope :: Scope -> SaltyState -> SaltyState
+addScope scope (SaltyState prev scopes) = SaltyState prev (scope:scopes)
+
+popScope :: SaltyState -> SaltyState
+popScope (SaltyState prev (s:scopes)) = SaltyState prev scopes
+
+braces :: Maybe Scope -> SaltyParser
+braces scope_ = debug "braces" >> do
   char '{'
   optional space
+  case scope_ of
+       Just scope -> modifyState (addScope scope)
+       Nothing -> return ()
   body <- saltyParser
   optional space
+  case scope_ of
+       Just scope -> modifyState popScope
+       Nothing -> return ()
   char '}'
   debug $ "braces done with: " ++ (show body)
   return $ Braces body
@@ -211,8 +233,9 @@ makeArgNames (arg:rest)
   | head arg == '&' = (ArgumentName (tail arg) True):(makeArgNames rest)
   | otherwise       = (ArgumentName arg False):(makeArgNames rest)
 
+
 onelineFunction = debug "onelineFunction" >> do
-  prevSalty <- getState
+  prevSalty <- lastSalty <$> getState
   (name, visibility) <- getVisibility <$> variableName
   space
   _args <- functionArgs
@@ -231,14 +254,14 @@ onelineFunction = debug "onelineFunction" >> do
                   return $ Function name (map argWithDefaults args) body visibility
 
 multilineFunction = debug "multilineFunction" >> do
-  prevSalty <- getState
+  prevSalty <- lastSalty <$> getState
   (name, visibility) <- getVisibility <$> variableName
   space
   _args <- functionArgs
   let args = makeArgNames _args
   string ":="
   space
-  body <- braces
+  body <- braces (Just FunctionScope)
   case prevSalty of
      FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility
      _ -> return $ Function name (map argWithDefaults args) [body] visibility
@@ -352,7 +375,7 @@ operation = debug "operation" >> do
   return $ Operation left op right
 
 partialOperation = debug "partialOperation" >> do
-  leftHandSide <- getState
+  leftHandSide <- lastSalty <$> getState
   space
   op <- operator
   space
@@ -360,13 +383,13 @@ partialOperation = debug "partialOperation" >> do
   return $ BackTrack (Operation leftHandSide op right)
 
 partialAttrAccess = debug "partialAttrAccess" >> do
-  leftHandSide <- getState
+  leftHandSide <- lastSalty <$> getState
   char '.'
   attrName <- many1 varNameChars
   return $ BackTrack (AttrAccess leftHandSide attrName)
 
 partialFunctionCall = debug "partialFunctionCall" >> do
-  leftHandSide <- getState
+  leftHandSide <- lastSalty <$> getState
 
   char '.'
   funcName <- many1 varNameChars
@@ -561,7 +584,7 @@ standardHashLookup = debug "standardHashLookup" >> do
   return $ HashLookup hash key
 
 partialHashLookup = debug "partialHashLookup" >> do
-  hash <- getState
+  hash <- lastSalty <$> getState
   char '['
   key <- validFuncArgTypes
   char ']'
@@ -599,7 +622,7 @@ whileStatement = debug "whileStatement" >> do
   space
   condition <- saltyParserSingle
   space
-  body <- braces
+  body <- braces Nothing
   return $ While condition body
 
 
@@ -611,7 +634,7 @@ classDefinition = debug "classDefinition" >> do
   extendsName <- classDefExtends <||> nothing
   implementsName <- classDefImplements <||> nothing
   optional space
-  body <- braces
+  body <- braces (Just ClassScope)
   return $ Class name extendsName implementsName body
 
 classDefExtends = debug "classDefExtends" >> do
