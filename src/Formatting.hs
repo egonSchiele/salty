@@ -93,7 +93,6 @@ checkBackTracksSingle (Braces s) = Braces (checkBackTracks s)
 checkBackTracksSingle (Array s) = Array (checkBackTracks s)
 checkBackTracksSingle (BackTrack s) = BackTrack (checkBackTracksSingle s)
 checkBackTracksSingle (HashLookup h k) = HashLookup (checkBackTracksSingle h) (checkBackTracksSingle k)
-checkBackTracksSingle (Constant v n b) = Constant v n (checkBackTracksSingle b)
 checkBackTracksSingle x = x
 
 saltyToPhp_ :: Int -> [Salty] -> String

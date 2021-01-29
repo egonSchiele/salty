@@ -12,6 +12,7 @@ simpleVarName x = case x of
 
 varName :: Salty -> String
 varName (Variable name scope) = toPhp name
+varName x = "this shouldnt be in varName: " ++ (show x)
 
 class ConvertToPhp a where
     toPhp :: a -> String
@@ -195,7 +196,19 @@ instance ConvertToPhp Salty where
   toPhp (FunctionTypeSignature n types) = "/**\n" ++ (concat $ map showType types) ++ " */\n"
     where showType t = " * " ++ (toPhp t) ++ "\n"
 
-  toPhp (Constant vis name val) = print3 "% const % = %" (toPhp vis) name (toPhp val)
+  toPhp (Constant (Variable (InstanceVar ('_':s)) ClassScope)) = "private const " ++ s
+  toPhp (Constant (Variable (StaticVar ('_':s)) ClassScope)) = "private static const " ++ s
+  toPhp (Constant (Variable (SimpleVar ('_':s)) ClassScope)) = "private const " ++ s
+  toPhp (Constant (Variable (ClassVar ('_':s)) ClassScope)) = "private const " ++ s
+  toPhp (Constant (Variable (InstanceVar s) ClassScope)) = "public const " ++ s
+  toPhp (Constant (Variable (StaticVar s) ClassScope)) = "public static const " ++ s
+  toPhp (Constant (Variable (SimpleVar s) ClassScope)) = "public const " ++ s
+  toPhp (Constant (Variable (ClassVar s) ClassScope)) = "public const " ++ s
+  toPhp (Constant (Variable (InstanceVar s) _)) = s
+  toPhp (Constant (Variable (StaticVar s) _)) = "static::" ++ s
+  toPhp (Constant (Variable (ClassVar s) _)) = s
+  toPhp (Constant (Variable (SimpleVar s) _)) = s
+
   toPhp (HashTable nameValuePairs) = "[\n" ++ hashBody ++ "\n]"
     where kvtoPhp (name, val) = print2 "    \"%\" => %" name (toPhp val)
           hashBody = intercalate ",\n" $ map kvtoPhp nameValuePairs

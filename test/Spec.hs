@@ -215,8 +215,9 @@ transpileTests = [
     "a = true" `matches` "$a = true;",
     "b = false" `matches` "$b = false;",
     "c = null" `matches` "$c = null;",
-    "_SAMPLE_RATE = 0.001" `matches` "private const SAMPLE_RATE = 0.001;",
-    "MYCONST = 'foo'" `matches` "public const MYCONST = \"foo\";",
+    "_SAMPLE_RATE = 0.001" `matches` "_SAMPLE_RATE = 0.001;",
+    "foo = ONE + TWO" `matches` "$foo = ONE + TWO;",
+    "class Foo {\n_SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n    private const SAMPLE_RATE = 0.001;\n}",
 
     -- return statements
     "return foo" `matches` "return $foo;",

@@ -8,12 +8,12 @@ import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 import Debug.Trace (trace)
 import ToPhp
+import Data.Char (isAlphaNum, isUpper)
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
-constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
 flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
 
@@ -83,7 +83,6 @@ saltyParserSingleWithoutNewline = do
   <||> functionTypeSignature
   <||> higherOrderFunctionCall
   <||> lambda
-  <||> constant
   <||> multiAssign
   <||> plusplusAll
   <||> operation
@@ -119,7 +118,6 @@ saltyParserSingleWithoutNewline = do
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
        hashTable
-  <||> constant
   <||> array
   <||> operation
   <||> partialOperation
@@ -143,12 +141,19 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
 safeHead [] = Nothing
 safeHead (x:xs) = Just x
 
+isConstant :: String -> Bool
+isConstant str = all isUpper chars
+  where chars = filter isAlphaNum str
+
 variable = debug "variable" >> do
   name <- variableName
   scope_ <- (safeHead . stateScopes) <$> getState
-  case scope_ of
-       Just scope -> return $ Variable name scope
-       Nothing -> return $ Variable name GlobalScope
+  let scope = case scope_ of
+       Just scope -> scope
+       Nothing -> GlobalScope
+  case isConstant (getVarName name) of
+       True -> return $ Constant $ Variable name scope
+       False -> return $ Variable name scope
 
 variableName = debug "variableName" >> do
         staticVar
@@ -361,7 +366,6 @@ operator = debug "operator" >> do
 
 atom = debug "atom" >> do
        functionCall
-  <||> constant
   <||> attrAccess
   <||> arraySlice
   <||> hashLookup
@@ -371,14 +375,6 @@ atom = debug "atom" >> do
   <||> variable
   <||> saltyString
   <||> saltyNumber
-
-constant = debug "constant" >> do
-  (visibility, name) <- _getVisibility <$> (many1 constChars)
-  space
-  char '='
-  space
-  value <- (saltyString <||> saltyNumber <||> saltyBool <||> saltyNull)
-  return $ Constant visibility name value
 
 operation = debug "operation" >> do
   left <- atom
@@ -783,8 +779,7 @@ saltyMagicConstant = debug "saltyMagicConstant" >> do
 
 validRangeArgTypes :: SaltyParser
 validRangeArgTypes = debug "validRangeArgTypes" >> do
-       constant
-  <||> saltyNumber
+       saltyNumber
   <||> functionCall
   <||> attrAccess
   <||> hashLookup

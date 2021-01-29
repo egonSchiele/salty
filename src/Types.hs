@@ -140,11 +140,6 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                  hHash :: Salty,
                  hKey :: Salty
              }
-             | Constant {
-                 constantVisibility :: Visibility,
-                 constantName :: String,
-                 constantValue :: Salty
-             }
              | HashTable [(String, Salty)]
              | ArraySlice {
                 arObj :: Salty,
@@ -171,6 +166,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | SaltyComment String
              | Salt
              | BackTrack Salty
+             | Constant Salty
              | Variable VariableName Scope
              | FlagName String
              | SaltyBool Boolean
