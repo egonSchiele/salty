@@ -1,5 +1,6 @@
 class AditController {
   foo = 1
+  _baz = "hi"
 }
 
 bar = 2

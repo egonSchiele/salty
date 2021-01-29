@@ -173,6 +173,9 @@ instance ConvertToPhp Salty where
   toPhp (Class name (Just extendsName) (Just implementsName) body) = print4 "class % extends % implements % {\n%\n}" (toPhp name) (toPhp extendsName) (toPhp implementsName) (toPhp body)
   toPhp (New name args) = print2 "new %(%)" (toPhp name) (intercalate "," . map toPhp $ args)
 
+  toPhp (Variable (InstanceVar ('_':s)) ClassScope) = "private $" ++ s
+  toPhp (Variable (StaticVar ('_':s)) ClassScope) = "private static $" ++ s
+  toPhp (Variable (SimpleVar ('_':s)) ClassScope) = "private $" ++ s
   toPhp (Variable (InstanceVar s) ClassScope) = "public $" ++ s
   toPhp (Variable (StaticVar s) ClassScope) = "public static $" ++ s
   toPhp (Variable (SimpleVar s) ClassScope) = "public $" ++ s
