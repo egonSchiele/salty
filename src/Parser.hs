@@ -497,13 +497,15 @@ returnStatement = debug "returnStatement" >> do
   return $ ReturnStatement (Braces salty)
 
 saltyComment = do
+  optional space
   char '#'
   line <- many1 $ noneOf "\n"
   string "\n"
   return $ SaltyComment line
 
 phpComment = do
-  string "// "
+  optional space
+  string "//"
   line <- many1 $ noneOf "\n"
   string "\n"
   return $ PhpComment line
