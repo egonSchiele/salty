@@ -4,3 +4,21 @@ The goal isn't to have every PHP feature in here, but there are definitely some 
 - pass by reference (`foo = &bar`)
 - arrays where the keys are *not* strings. Right now I just support js-style { foo:1, bar:2 }
 - function arg defaults (foo a=1 := a + 1)
+
+    key and value in for loops:
+    foreach ($shops as $k => $v) {
+        $v;
+    }
+
+var args like
+func ...list := list
+
+function variable($word, ...$list) {
+    foreach ($list as $item) {
+        echo $item . ' | ';
+    }
+}
+
+
+Stuff I don't care about:
+- switch statements (though guards for functions like haskell would be cool)

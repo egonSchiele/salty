@@ -217,7 +217,7 @@ instance ConvertToPhp Salty where
   toPhp (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "array_slice(%, %, %)" (toPhp obj) start newEnd
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
   toPhp (ArraySlice obj start (Just end)) = print4 "array_slice(%, %, % - %)" (toPhp obj) (toPhp start) (toPhp end) (toPhp start)
-  toPhp (AttrAccess (Variable (ClassVar obj) _) attrName) = print2 "%::%" obj attrName
+  toPhp (AttrAccess (Variable (ClassVar obj) _) attrName) = print2 "%::$%" obj attrName
   toPhp (AttrAccess obj attrName) = print2 "%->%" (toPhp obj) attrName
   toPhp (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toPhp var) (toPhp value)) $ vars)
   -- toPhp (AttrAccess (Variable (InstanceVar obj) _) attrName) = print2 "$this->%->%" obj attrName

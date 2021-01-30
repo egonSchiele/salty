@@ -186,7 +186,7 @@ transpileTests = [
     "foo.bar" `matches` "$foo->bar;",
     "@foo.bar" `matches` "$this->foo->bar;",
     "@@foo.bar" `matches` "static::$foo->bar;",
-    "Blocklist.foo" `matches` "Blocklist::foo;",
+    "Blocklist.foo" `matches` "Blocklist::$foo;",
     "foo.bar = 1" `matches` "$foo->bar = 1;",
     "foo.bar = 'hello'" `matches` "$foo->bar = \"hello\";",
     "foo.bar = 2 + 2" `matches` "$foo->bar = 2 + 2;",
@@ -340,7 +340,7 @@ transpileTests = [
     -- backticks for php
     "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';"
 
-    -- comments
+    -- comments at the end of the line
     -- "a + b # hi\nhello = 1" `matches` "$a + $b;\n$hello = 1;",
     -- "a + b // hi\nhello = 1" `matches` "$a + $b; // hi\n$hello = 1;"
 

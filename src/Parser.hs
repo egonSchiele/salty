@@ -153,6 +153,7 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> saltyNull
   <||> saltyMagicConstant
   <||> phpVar
+  <||> purePhp
   <||> variable
 
 safeHead [] = Nothing
@@ -195,6 +196,7 @@ validHashValue = debug "validHashValue" >> do
   <||> saltyBool
   <||> saltyNull
   <||> saltyMagicConstant
+  <||> purePhp
   <||> variable
 
 keyValuePair = debug "keyValuePair" >> do
