@@ -287,6 +287,8 @@ Blocklist::foo()
 Any code between three backticks is passed verbatim. This code can be across multiple lines.
 ```
 
+Comments currently only work on their own line.
+
 ## Higher-order functions
 
 ```
