@@ -15,6 +15,7 @@ data PhpKeyword =   KwUse VariableName
                   | KwThrow Salty
                   | KwRequire Salty
                   | KwRequireOnce Salty
+                  | KwConst Salty
                   | KwNamespace Salty deriving (Show)
 
 data MagicConstant =   MCLINE
@@ -161,7 +162,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | WithNewLine Salty
              | Parens [Salty]
              | Braces [Salty]
-             | PhpLine String
+             | PurePhp String
              | PhpComment String
              | SaltyComment String
              | Salt

@@ -167,7 +167,7 @@ instance ConvertToPhp Salty where
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
   toPhp (Parens s) = "(" ++ (concat $ map toPhp s) ++ ")"
   toPhp (Braces s) = concat $ map toPhp s
-  toPhp (PhpLine line) = line
+  toPhp (PurePhp line) = line
   toPhp (FlagName name) = "Feature::isEnabled('" ++ name ++ "')"
   toPhp (PhpComment str) = "// " ++ str ++ "\n"
   toPhp (SaltyComment str) = ""
@@ -231,6 +231,7 @@ instance ConvertToPhp Salty where
   toPhp (Keyword (KwThrow salty)) = "throw " ++ (toPhp salty)
   toPhp (Keyword (KwRequire salty)) = "require " ++ (toPhp salty)
   toPhp (Keyword (KwRequireOnce salty)) = "require_once " ++ (toPhp salty)
+  toPhp (Keyword (KwConst salty)) = "const " ++ (toPhp salty)
   toPhp (Keyword (KwNamespace salty)) = "namespace " ++ (toPhp salty)
   toPhp (Range (SaltyNumber l) (SaltyNumber r)) = show $ [left..right]
       where left = read l :: Integer

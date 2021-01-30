@@ -16,6 +16,7 @@ functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
 flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
+constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 
 data SaltyState = SaltyState {
                       lastSalty :: Salty,
@@ -101,7 +102,7 @@ saltyParserSingleWithoutNewline = do
   <||> negateSalty
   <||> saltyComment
   <||> phpComment
-  <||> phpLine
+  <||> purePhp
   <||> flagName
   <||> emptyLine
   <||> ifStatement
@@ -505,11 +506,11 @@ phpComment = do
   string "\n"
   return $ PhpComment line
 
-phpLine = do
+purePhp = do
   string "```"
   line <- many1 $ noneOf "`"
   string "```"
-  return $ PhpLine line
+  return $ PurePhp line
 
 flagName = do
   char '~'
@@ -691,6 +692,7 @@ saltyKeyword = debug "saltyKeyword" >> do
                 <||> saltyKeywordThrow
                 <||> saltyKeywordRequire
                 <||> saltyKeywordRequireOnce
+                <||> saltyKeywordConst
                 <||> saltyKeywordNamespace
   return $ Keyword phpKeyword
 
@@ -717,6 +719,12 @@ saltyKeywordRequireOnce = debug "saltyKeywordRequireOnce" >> do
   space
   salty <- saltyParserSingle
   return $ KwRequireOnce salty
+
+saltyKeywordConst = debug "saltyKeywordConst" >> do
+  string "const"
+  space
+  name <- many1 constChars
+  return $ KwConst (PurePhp name)
 
 saltyKeywordNamespace = debug "saltyKeywordNamespace" >> do
   string "namespace"
