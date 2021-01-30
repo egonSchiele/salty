@@ -113,6 +113,7 @@ saltyParserSingleWithoutNewline = do
   <||> saltyNull
   <||> saltyKeyword
   <||> saltyMagicConstant
+  <||> phpVar
   <||> variable
   -- <||> parseError
 
@@ -137,6 +138,7 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> saltyBool
   <||> saltyNull
   <||> saltyMagicConstant
+  <||> phpVar
   <||> variable
 
 safeHead [] = Nothing
@@ -836,3 +838,8 @@ parseError = debug "parseError" >> do
   line <- many1 (noneOf "\n")
   char '\n'
   return $ ParseError line
+
+phpVar = debug "phpVar" >> do
+  char '$'
+  name <- many1 varNameChars
+  return $ PurePhp ('$':name)

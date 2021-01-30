@@ -332,7 +332,10 @@ transpileTests = [
     "class Foo {\n@@bar = 1\n}" `matches` "class Foo {\n    public static $bar = 1;\n}",
 
     -- strip semicolons
-    "foo = 1;\nbar = 2" `matches` "$foo = 1;\n$bar = 2;"
+    "foo = 1;\nbar = 2" `matches` "$foo = 1;\n$bar = 2;",
+
+    -- don't fail on dollar signs
+    "$foo = 1;\n$bar = 2;" `matches` "$foo = 1;\n$bar = 2;"
 
     -- "p 'hello' if hash ? str" `matches` [r|
     --   if (isset($hash['str'])) {
