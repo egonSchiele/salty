@@ -1,3 +1,4 @@
-{ a: 1,
-  b: 2
-}
+class Foo implements Bar where
+
+attr1 = 'hi'
+__construct name := @attr1 = name

@@ -200,6 +200,9 @@ transpileTests = [
     "class Blocklist implements Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist implements Bar {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}",
     "class Blocklist extends Foo implements Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist extends Foo implements Bar {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}",
 
+    -- class creation with where
+    "class Foo implements Bar where\n\nattr1 = 'hi'\n__construct name := @attr1 = name" `matches` "class Foo implements Bar {\n    public $attr1 = \"hi\";\n    public function __construct($name) {\n        $this->attr1 = $name;\n    }\n}",
+
     -- object creation
     "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}\n$b = new Blocklist();\n$b->foo();",
 
@@ -341,6 +344,7 @@ transpileTests = [
 
     -- backticks for php
     "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';"
+
 
     -- empty hash
     -- disabling this feature since the syntax becomes ambiguous

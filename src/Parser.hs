@@ -668,6 +668,15 @@ whileStatement = debug "whileStatement" >> do
   body <- braces Nothing
   return $ While condition body
 
+whereStatement = debug "whereStatement" >> do
+  string "where"
+  optional space
+  modifyState (addScope ClassScope)
+  body <- saltyParser
+  optional space
+  modifyState popScope
+  debug $ "whereStatement done with: " ++ (show body)
+  return $ Braces body
 
 classDefinition = debug "classDefinition" >> do
   string "class"
@@ -677,7 +686,7 @@ classDefinition = debug "classDefinition" >> do
   extendsName <- classDefExtends <||> nothing
   implementsName <- classDefImplements <||> nothing
   optional space
-  body <- braces (Just ClassScope)
+  body <- (braces (Just ClassScope) <||> whereStatement)
   return $ Class name extendsName implementsName body
 
 classDefExtends = debug "classDefExtends" >> do
