@@ -203,13 +203,15 @@ becomes
 
 ```
 $a = [
-foo => 1,
-bar => 2,
-baz => "hi"
+    "foo" => 1,
+    "bar" => 2,
+    "baz" => "hi"
 ]
 ```
 
 Trailing comma is optional.
+
+Note empty hash `{}` is not allowed, you need to make it like this: `[]`. See EDGE_CASES.md for an explanation of why.
 
 ## Dot notation
 

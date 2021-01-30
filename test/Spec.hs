@@ -340,15 +340,16 @@ transpileTests = [
     "$foo = 1;\n$bar = 2;" `matches` "$foo = 1;\n$bar = 2;",
 
     -- backticks for php
-    "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';",
+    "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';"
 
     -- empty hash
-    "{}" `matches` "[];",
-    "foo = {}" `matches` "$foo = [];",
-    "a, b, foo = {}" `matches` "$a = [];\n$b = [];\n$foo = [];",
-    "foo := {}" `matches` "function foo() {\n}",
-    "foo := return {}" `matches` "function foo() {\n    return [];\n}",
-    "foo := { {} }" `matches` "function foo() {\n    return [];\n}"
+    -- disabling this feature since the syntax becomes ambiguous
+    -- "{}" `matches` "[];",
+    -- "foo = {}" `matches` "$foo = [];",
+    -- "a, b, foo = {}" `matches` "$a = [];\n$b = [];\n$foo = [];",
+    -- "foo := {}" `matches` "function foo() {\n}",
+    -- "foo := return {}" `matches` "function foo() {\n    return [];\n}",
+    -- "foo := { {} }" `matches` "function foo() {\n    return [];\n}"
 
     -- unsure what to do with this
     -- "if 1 == 1 then {}" `matches` ""

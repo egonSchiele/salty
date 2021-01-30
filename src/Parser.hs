@@ -95,7 +95,7 @@ saltyParserSingleWithoutNewline = do
   parens
   <||> hashTable
   <||> array
-  <||> emptyHash
+  -- <||> emptyHash
   <||> (braces Nothing)
   <||> function
   <||> functionTypeSignature
@@ -138,7 +138,7 @@ validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
        hashTable
   <||> array
-  <||> emptyHash
+  -- <||> emptyHash
   <||> operation
   <||> partialOperation
   <||> saltyString
@@ -196,7 +196,7 @@ validHashValue = debug "validHashValue" >> do
   <||> hashLookup
   <||> hashTable
   <||> array
-  <||> emptyHash
+  -- <||> emptyHash
   <||> flagName
   <||> saltyBool
   <||> saltyNull
