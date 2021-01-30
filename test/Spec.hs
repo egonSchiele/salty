@@ -279,6 +279,8 @@ transpileTests = [
     "require_once 'foo.php'" `matches` "require_once \"foo.php\";",
     "namespace Foo" `matches` "namespace Foo;",
     "namespace Foo\\Bar" `matches` "namespace Foo\\Bar;",
+    "echo 'hi'" `matches` "echo \"hi\";",
+    "greet := echo 'hi'" `matches` "function greet() {\n    echo \"hi\";\n}",
 
     -- arrays
     "foo = [1, 2, 3,]" `matches` "$foo = [1, 2, 3];",
