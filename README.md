@@ -30,6 +30,8 @@ printHelp = do
 
 ## Consts
 
+Inside a class,
+
 ```
 FOO = 1
 _FOO = 1
@@ -41,7 +43,35 @@ becomes
 ```
 public const FOO = 1;
 private const FOO = 1;
-static::$FOO = 1;
+static::FOO = 1;
+```
+
+outside a class, you need `const`:
+
+```
+const FOO = 1
+```
+
+becomes
+
+```
+const FOO = 1;
+```
+
+You can use const in classes too. In fact you could write:
+
+```
+class Foo {
+    public static const FOO = 1
+}
+```
+
+Which would become
+
+```
+class Foo {
+    public static const FOO = 1;
+}
 ```
 
 ## Functions
