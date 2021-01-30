@@ -335,7 +335,10 @@ transpileTests = [
     "foo = 1;\nbar = 2" `matches` "$foo = 1;\n$bar = 2;",
 
     -- don't fail on dollar signs
-    "$foo = 1;\n$bar = 2;" `matches` "$foo = 1;\n$bar = 2;"
+    "$foo = 1;\n$bar = 2;" `matches` "$foo = 1;\n$bar = 2;",
+
+    -- backticks for php
+    "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';"
 
     -- comments
     -- "a + b # hi\nhello = 1" `matches` "$a + $b;\n$hello = 1;",

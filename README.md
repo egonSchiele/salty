@@ -283,11 +283,19 @@ Blocklist::foo()
 ```
 # Comments like this are just for salty and don't get translated to php.
 // Comments like this are passed as php comments
-
-Any code between three backticks is passed verbatim. This code can be across multiple lines.
 ```
 
 Comments currently only work on their own line.
+
+## Backticks
+
+Any code between backticks is passed verbatim. This code can be across multiple lines.
+
+    'foo' ++ `'bar' . 'baz'`
+
+becomes:
+
+    "foo" . 'bar' . 'baz';
 
 ## Higher-order functions
 

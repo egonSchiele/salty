@@ -511,9 +511,9 @@ phpComment = do
   return $ PhpComment line
 
 purePhp = do
-  string "```"
+  string "`"
   line <- many1 $ noneOf "`"
-  string "```"
+  string "`"
   return $ PurePhp line
 
 flagName = do
