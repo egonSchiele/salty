@@ -93,6 +93,7 @@ saltyParserSingleWithoutNewline = do
   parens
   <||> hashTable
   <||> array
+  <||> emptyHash
   <||> (braces Nothing)
   <||> function
   <||> functionTypeSignature
@@ -135,6 +136,7 @@ validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
        hashTable
   <||> array
+  <||> emptyHash
   <||> operation
   <||> partialOperation
   <||> saltyString
@@ -192,6 +194,7 @@ validHashValue = debug "validHashValue" >> do
   <||> hashLookup
   <||> hashTable
   <||> array
+  <||> emptyHash
   <||> flagName
   <||> saltyBool
   <||> saltyNull
@@ -227,6 +230,12 @@ array = debug "array" >> do
   optional $ char ']'
   return $ Array salties
 
+emptyHash = debug "emptyHash" >> do
+  char '{'
+  many $ char ' '
+  char '}'
+  return $ Array []
+
 addScope :: Scope -> SaltyState -> SaltyState
 addScope scope (SaltyState prev scopes) = SaltyState prev (scope:scopes)
 
@@ -260,6 +269,7 @@ functionArgs = debug "functionArgs" >> many (do
 makeArgNames :: [String] -> [ArgumentName]
 makeArgNames [] = []
 makeArgNames (arg:rest)
+  | arg == "" = [ArgumentName "missing arg" False]
   | head arg == '&' = (ArgumentName (tail arg) True):(makeArgNames rest)
   | otherwise       = (ArgumentName arg False):(makeArgNames rest)
 

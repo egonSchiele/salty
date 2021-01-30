@@ -19,6 +19,7 @@ function variable($word, ...$list) {
     }
 }
 
+obj?.func()
 
 Stuff I don't care about:
 - switch statements (though guards for functions like haskell would be cool)

@@ -102,6 +102,7 @@ instance ConvertToPhp Salty where
             SimpleVar str -> "function " ++ str
           funcArgs = intercalate ", " $ map toPhp args
           funcBody = case body of
+                          [Braces []] -> ""
                           [Braces salties] -> print2 "%\n%" (concat . map toPhp . init $ salties) (addReturn . last $ salties)
                           x -> print2 "%\n%" (concat . map toPhp . init $ x) (addReturn . last $ x)
 
@@ -112,6 +113,7 @@ instance ConvertToPhp Salty where
             SimpleVar str -> "function " ++ str
           funcArgs = intercalate ", " $ map toPhp args
           funcBody = case body of
+                          [Braces []] -> ""
                           [Braces salties] -> print2 "%\n%" (concat . map toPhp . init $ salties) (addReturn . last $ salties)
                           x -> print2 "%\n%" (concat . map toPhp . init $ x) (addReturn . last $ x)
 
@@ -261,6 +263,7 @@ addReturn x@(Operation left OrEquals _) = (toPhp x) ++ "\nreturn " ++ (toPhp lef
 addReturn x@(Operation _ _ _) = "return " ++ (toPhp x)
 addReturn (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (addReturn thenFork) (addReturn elseFork)
 addReturn (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn thenFork)
+addReturn x@(Braces []) = toPhp x
 addReturn (Braces s) = (concat . map toPhp . init $ s) ++ "\n" ++ (addReturn . last $ s)
 addReturn (Variable name scope) = "return " ++ (toPhp name)
 addReturn (WithNewLine x) = (addReturn x) ++ "\n"

@@ -325,7 +325,7 @@ transpileTests = [
     "foo in 1..10" `matches` "$foo >= 1 && $foo <= 10;",
     "foo in (1..10)" `matches` "$foo >= 1 && $foo <= 10;",
     "foo in (start..end.baz)" `matches` "$foo >= $start && $foo <= $end->baz;",
-    "if foo in (start..end.baz) then { }" `matches` "if ($foo >= $start && $foo <= $end->baz) {\n}",
+    "if foo in (start..end.baz) then {\nhi()\n}" `matches` "if ($foo >= $start && $foo <= $end->baz) {\n    hi();\n}",
 
     -- scope
     "class Foo {\nbar = 1\n}" `matches` "class Foo {\n    public $bar = 1;\n}",
@@ -340,7 +340,15 @@ transpileTests = [
     "$foo = 1;\n$bar = 2;" `matches` "$foo = 1;\n$bar = 2;",
 
     -- backticks for php
-    "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';"
+    "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';",
+
+    -- empty hash
+    "{}" `matches` "[];",
+    "foo = {}" `matches` "$foo = [];",
+    "a, b, foo = {}" `matches` "$a = [];\n$b = [];\n$foo = [];",
+    "foo := {}" `matches` "function foo() {\n}",
+    "foo := return {}" `matches` "function foo() {\n    return [];\n}",
+    "foo := { {} }" `matches` "function foo() {\n    return [];\n}"
 
     -- comments at the end of the line
     -- "a + b # hi\nhello = 1" `matches` "$a + $b;\n$hello = 1;",
