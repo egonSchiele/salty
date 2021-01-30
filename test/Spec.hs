@@ -350,6 +350,10 @@ transpileTests = [
     "foo := return {}" `matches` "function foo() {\n    return [];\n}",
     "foo := { {} }" `matches` "function foo() {\n    return [];\n}"
 
+    -- unsure what to do with this
+    -- "if 1 == 1 then {}" `matches` ""
+
+
     -- comments at the end of the line
     -- "a + b # hi\nhello = 1" `matches` "$a + $b;\n$hello = 1;",
     -- "a + b // hi\nhello = 1" `matches` "$a + $b; // hi\n$hello = 1;"
