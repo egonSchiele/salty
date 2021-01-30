@@ -100,6 +100,7 @@ transpileTests = [
     "_foo a := @a = a" `matches` "function foo($a) {\n    $this->a = $a;\n}",
     "foo2 := 2 + 2" `matches` "function foo2() {\n    return 2 + 2;\n}",
     "__construct a := @a = a" `matches` "function __construct($a) {\n    $this->a = $a;\n}",
+    "foo ...a := a" `matches` "function foo(...$a) {\n    return $a;\n}",
 
     -- pass by reference
     "incr &count := ++count" `matches` "function incr(&$count) {\n    $count = $count + 1;\n}",

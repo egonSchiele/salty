@@ -44,7 +44,9 @@ instance ConvertToPhp MagicConstant where
   toPhp MCNAMESPACE = "__NAMESPACE__"
 
 instance ConvertToPhp ArgumentName where
-  toPhp (ArgumentName name False) = "$" ++ name
+  toPhp (ArgumentName name False)
+    | (take 3 name == "...") = "...$" ++ (drop 3 name)
+    | otherwise = "$" ++ name
   toPhp (ArgumentName name True) = "&$" ++ name
 instance ConvertToPhp Argument where
   toPhp (Argument (Just (ArgumentType False typ _)) name (Just default_)) = print3 "?% % = %" typ (toPhp name) default_

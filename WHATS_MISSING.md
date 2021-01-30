@@ -10,15 +10,6 @@ The goal isn't to have every PHP feature in here, but there are definitely some 
         $v;
     }
 
-var args like
-func ...list := list
-
-function variable($word, ...$list) {
-    foreach ($list as $item) {
-        echo $item . ' | ';
-    }
-}
-
 obj?.func()
 
 Stuff I don't care about:

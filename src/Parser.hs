@@ -263,8 +263,13 @@ braces scope_ = debug "braces" >> do
 function = debug "function" >> do
   multilineFunction <||> onelineFunction
 
-functionArgs = debug "functionArgs" >> many (do
+varArg = debug "varArg" >> do
+  string "..."
   arg <- many1 functionArgsChars
+  return $ "..." ++ arg
+
+functionArgs = debug "functionArgs" >> many (do
+  arg <- varArg <||> many1 functionArgsChars
   space
   return arg)
 
