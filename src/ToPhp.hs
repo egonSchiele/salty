@@ -232,6 +232,10 @@ instance ConvertToPhp Salty where
   toPhp (Keyword (KwRequire salty)) = "require " ++ (toPhp salty)
   toPhp (Keyword (KwRequireOnce salty)) = "require_once " ++ (toPhp salty)
   toPhp (Keyword (KwConst salty)) = "const " ++ (toPhp salty)
+  toPhp (Keyword (KwPublic salty)) = "public " ++ (toPhp salty)
+  toPhp (Keyword (KwPrivate salty)) = "private " ++ (toPhp salty)
+  toPhp (Keyword (KwProtected salty)) = "protected " ++ (toPhp salty)
+  toPhp (Keyword (KwStatic salty)) = "static " ++ (toPhp salty)
   toPhp (Keyword (KwNamespace salty)) = "namespace " ++ (toPhp salty)
   toPhp (Range (SaltyNumber l) (SaltyNumber r)) = show $ [left..right]
       where left = read l :: Integer

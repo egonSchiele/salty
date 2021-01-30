@@ -219,7 +219,13 @@ transpileTests = [
     "const _SAMPLE_RATE = 0.001" `matches` "const _SAMPLE_RATE = 0.001;",
     "foo = ONE + TWO" `matches` "$foo = ONE + TWO;",
     "class Foo {\n_SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n    private const SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\nSAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n    public const SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\n@@SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n    public static const SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\n@@_SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n    private static const SAMPLE_RATE = 0.001;\n}",
     "class Foo {\nconst _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n    const _SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\npublic const _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n    public const _SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\nprivate const _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n    private const _SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\npublic static const _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n    public static const _SAMPLE_RATE = 0.001;\n}",
 
     -- return statements
     "return foo" `matches` "return $foo;",

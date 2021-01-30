@@ -693,6 +693,10 @@ saltyKeyword = debug "saltyKeyword" >> do
                 <||> saltyKeywordRequire
                 <||> saltyKeywordRequireOnce
                 <||> saltyKeywordConst
+                <||> saltyKeywordPublic
+                <||> saltyKeywordPrivate
+                <||> saltyKeywordProtected
+                <||> saltyKeywordStatic
                 <||> saltyKeywordNamespace
   return $ Keyword phpKeyword
 
@@ -725,6 +729,30 @@ saltyKeywordConst = debug "saltyKeywordConst" >> do
   space
   name <- many1 constChars
   return $ KwConst (PurePhp name)
+
+saltyKeywordPublic = debug "saltyKeywordPublic" >> do
+  string "public"
+  space
+  salty <- saltyParserSingle
+  return $ KwPublic salty
+
+saltyKeywordPrivate = debug "saltyKeywordPrivate" >> do
+  string "private"
+  space
+  salty <- saltyParserSingle
+  return $ KwPrivate salty
+
+saltyKeywordProtected = debug "saltyKeywordProtected" >> do
+  string "protected"
+  space
+  salty <- saltyParserSingle
+  return $ KwProtected salty
+
+saltyKeywordStatic = debug "saltyKeywordStatic" >> do
+  string "static"
+  space
+  salty <- saltyParserSingle
+  return $ KwStatic salty
 
 saltyKeywordNamespace = debug "saltyKeywordNamespace" >> do
   string "namespace"
