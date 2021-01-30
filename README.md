@@ -278,10 +278,6 @@ becomes
 Blocklist::foo()
 ```
 
-## Feature flags
-
-- `~foo.bar` becomes `Feature::isEnabled('foo.bar')`
-
 ## Comments
 
 ```
