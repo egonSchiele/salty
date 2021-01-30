@@ -34,8 +34,10 @@ saltyToPhp indentAmt str = case (build str) of
                    Left err -> show err
                    Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
 
-checkForErrors inputStr outputStr = if (length . lines $ outputStr) < (length . lines $ inputStr)
-                                  then "failed, possibly on:\n" ++ (findErrorLine inputStr)
+numLines str = length . filter (/="") . lines $ str
+
+checkForErrors inputStr outputStr = if (numLines outputStr) < (numLines inputStr)
+                                  then outputStr ++ "\nfailed, possibly on:\n" ++ (findErrorLine inputStr)
                                   else outputStr
 
 findErrorLine :: String -> String
