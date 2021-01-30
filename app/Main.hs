@@ -34,6 +34,16 @@ debugFile infile = do
     contents <- readFile infile
     putStrLn . saltyToDebugTree $ contents
 
+findErrorInFile infile = do
+  contents <- readFile infile
+  putStrLn "error in:"
+  putStrLn . findErrorLine $ contents
+
+findErrorInStdin = do
+  contents <- getContents
+  putStrLn "error in:"
+  putStrLn . findErrorLine $ contents
+
 readFromStdin = do
     contents <- getContents
     putStrLn $ saltyToPhp (getIndentAmt contents) contents
@@ -51,7 +61,9 @@ main = do
        ["-d", inputFile] -> debugFile inputFile
        ["debug"] -> debugFromStdin
        ["-d"] -> debugFromStdin
+       ["-e"] -> findErrorInStdin
        ["-f", inputFile] -> convertToFile inputFile (replace ".salt" ".php" inputFile)
+       ["-e", inputFile] -> findErrorInFile inputFile
        [inputFile] -> convert inputFile
        [] -> readFromStdin
        _ -> printHelp

@@ -32,7 +32,21 @@ debug str = return (SaltyString str)
 saltyToPhp :: Int -> String -> String
 saltyToPhp indentAmt str = case (build str) of
                    Left err -> show err
-                   Right xs -> saltyToPhp_ indentAmt xs
+                   Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
+
+checkForErrors inputStr outputStr = if (length . lines $ outputStr) < (length . lines $ inputStr)
+                                  then "failed, possibly on:\n" ++ (findErrorLine inputStr)
+                                  else outputStr
+
+findErrorLine :: String -> String
+findErrorLine str = findErrorLine_ ((map (removeSemicolons . strip)) . lines $ str)
+
+findErrorLine_ :: [String] -> String
+findErrorLine_ [] = "no errors"
+findErrorLine_ lines = case (build (head lines)) of
+                         Left err -> "error from adit" -- this never gets hit, not sure why.
+                         Right [] -> head lines -- this means the parse failed, so this is the issue line.
+                         Right xs -> findErrorLine_ (tail lines) -- this means the parse succeeded, so try the next line.
 
 saltyToDebugTree :: String -> String
 saltyToDebugTree str = case (build str) of
@@ -115,7 +129,7 @@ saltyParserSingleWithoutNewline = do
   <||> saltyMagicConstant
   <||> phpVar
   <||> variable
-  -- <||> parseError
+  -- <|> parseError
 
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
