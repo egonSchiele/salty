@@ -43,7 +43,7 @@ startingState = SaltyState EmptyLine []
 
 build :: String -> Either ParseError [Salty]
 build str_ = runParser saltyParser startingState "saltyParser" str
-  where str = unlines . (map strip) . lines $ str_
+  where str = unlines . (map (removeSemicolons . strip)) . lines $ str_
 
 saltyParser :: Parsec String SaltyState [Salty]
 saltyParser = debug "start" >> (many saltyParserSingle)

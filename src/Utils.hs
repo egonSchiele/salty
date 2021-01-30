@@ -408,6 +408,10 @@ strip [] = []
 strip (' ':xs) = strip xs
 strip str = str
 
+removeSemicolons :: String -> String
+removeSemicolons [] = []
+removeSemicolons str = if last str == ';' then init str else str
+
 last_ :: Int -> String -> String
 last_ 0 str = ""
 last_ _ "" = ""

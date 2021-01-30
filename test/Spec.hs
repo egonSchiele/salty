@@ -329,7 +329,10 @@ transpileTests = [
     "class Foo {\nbar = 1\n}" `matches` "class Foo {\n    public $bar = 1;\n}",
     "class Foo {\n_bar = 1\n}" `matches` "class Foo {\n    private $bar = 1;\n}",
     "class Foo {\n@@_bar = 1\n}" `matches` "class Foo {\n    private static $bar = 1;\n}",
-    "class Foo {\n@@bar = 1\n}" `matches` "class Foo {\n    public static $bar = 1;\n}"
+    "class Foo {\n@@bar = 1\n}" `matches` "class Foo {\n    public static $bar = 1;\n}",
+
+    -- strip semicolons
+    "foo = 1;\nbar = 2" `matches` "$foo = 1;\n$bar = 2;"
 
     -- "p 'hello' if hash ? str" `matches` [r|
     --   if (isset($hash['str'])) {
