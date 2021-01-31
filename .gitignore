@@ -3,3 +3,5 @@
 .*
 Blocklist.php
 dist/*
+test.salt
+test.php
