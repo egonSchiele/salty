@@ -355,9 +355,9 @@ transpileTests = [
     "foo?.bar()" `matches` "if (!is_null($foo)) {\n    $foo->bar();\n}",
     "@foo?.bar()" `matches` "if (!is_null($this->foo)) {\n    $this->foo->bar();\n}",
     "@@foo?.bar()" `matches` "if (!is_null(static::$foo)) {\n    static::$foo->bar();\n}",
-    "var = foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $foo-bar;\n};",
+    "var = foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $foo->bar;\n}",
     "var = foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $foo->bar();\n}",
-    "var += foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $var + $foo->bar;\n};",
+    "var += foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $var + $foo->bar;\n}",
     "var *= foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $var * $foo->bar();\n}",
     "foo?.map(\\x -> x + 1)" `matches` "",
 

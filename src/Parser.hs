@@ -570,13 +570,13 @@ findArgs = debug "findArgs" >> do
   return args
 
 attrAccess = debug "attrAccess" >> do
-  obj <- variable
+  obj <- saltyOptional <||> variable
   char '.'
   attrName <- many1 varNameChars
   return $ AttrAccess obj attrName
 
 functionCallOnObject = debug "functionCallOnObject" >> do
-  obj <- variable
+  obj <- saltyOptional <||> variable
   char '.'
   funcName <- many1 varNameChars
   char '('
