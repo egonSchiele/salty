@@ -157,6 +157,10 @@ instance ConvertToPhp Salty where
   toPhp (HigherOrderFunctionCall (Range left right) Each (LambdaFunction (loopVar:xs) body) _)  =
                 print6 "for ($% = %; $% <= %; $%++) {\n%\n}" loopVar (toPhp left) loopVar (toPhp right) loopVar (toPhp body)
 
+  -- optionals
+  toPhp (HigherOrderFunctionCall (SaltyOptional salty) func lambda accVar)  = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newHoF)
+    where newHoF = HigherOrderFunctionCall salty func lambda accVar
+
   toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body) _)  =
                 print3 "foreach (% as $%) {\n%;\n}\n" (varName obj) loopVar (toPhp body)
 
@@ -289,4 +293,5 @@ addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toPhp f) ++ "\nreturn " ++
 addReturn a@(AttrAccess _ _) = "return " ++ (toPhp a)
 addReturn x@(SaltyNumber _) = "return " ++ (toPhp x)
 addReturn x@(SaltyString _) = "return " ++ (toPhp x)
+addReturn x@(SaltyOptional salty) = "return " ++ (toPhp x)
 addReturn x = toPhp x

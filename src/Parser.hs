@@ -507,7 +507,7 @@ classVar = debug "classVar" >> do
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   optional $ char '('
-  obj <- range <||> variable
+  obj <- range <||> saltyOptional <||> variable
   optional $ char ')'
   char '.'
   funcName <-      (string "map" >> return Map)
