@@ -519,7 +519,7 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
 lambda = debug "lambda" >> do
   char '\\'
   args <- anyToken `manyTill` (string " -> ")
-  body <- saltyParserSingle
+  body <- (braces Nothing) <||> saltyParserSingle
   return $ LambdaFunction (words args) body
 
 returnStatement = debug "returnStatement" >> do

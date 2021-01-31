@@ -56,7 +56,22 @@ phpBlob = [r|
 
 longerTest = saltyBlob `matches` phpBlob
 
+multiLineEach = [r|foo.each(\x -> {
+    x + 1
+    y + 2
+    hello("hi")
+  })
+|]
+
+multiLineEachResult = [r|foreach ($foo as $x) {
+    $x + 1;
+    $y + 2;
+    hello("hi");
+}|]
+
+multiLineTest = multiLineEach `matches` multiLineEachResult
 transpileTests = [
+    multiLineTest,
     -- operations
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",
