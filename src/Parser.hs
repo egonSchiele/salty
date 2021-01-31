@@ -131,6 +131,7 @@ saltyParserSingleWithoutNewline = do
   <||> saltyKeyword
   <||> saltyMagicConstant
   <||> phpVar
+  <||> saltyOptional
   <||> variable
   -- <|> parseError
 
@@ -159,6 +160,7 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> saltyMagicConstant
   <||> phpVar
   <||> purePhp
+  <||> saltyOptional
   <||> variable
 
 safeHead [] = Nothing
@@ -895,3 +897,8 @@ phpVar = debug "phpVar" >> do
   char '$'
   name <- many1 varNameChars
   return $ PurePhp ('$':name)
+
+saltyOptional = debug "saltyOptional" >> do
+  var <- variable
+  char '?'
+  return $ SaltyOptional var

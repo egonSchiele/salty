@@ -399,3 +399,49 @@ $foo = [];
 $bar = [];
 $this->baz = [];
 ```
+
+## Ranges
+
+    (0..10).each(\x -> x + 1)
+
+becomes
+
+    for ($x = 0; $x <= 10; $x++) {
+        $x + 1;
+    }
+
+and
+
+    foo in 1..10
+
+becomes
+
+    $foo >= 1 && $foo <= 10
+
+## Optionals
+
+    foo?.bar
+    foo?.bar()
+    myVar = foo?
+    myVar = foo?.bar
+    myVar = foo?.bar()
+
+becomes
+
+    if (!is_null($foo)) {
+        $foo->bar;
+    }
+    if (!is_null($foo)) {
+        $foo->bar();
+    }
+    if (!is_null($foo)) {
+        $myVar = $foo;
+    }
+    if (!is_null($foo)) {
+        $myVar = $foo->bar;
+    }
+    if (!is_null($foo)) {
+        $myVar = $foo->bar();
+    }
+
+Chaining doesn't work right now, so you can't do `foo?.bar?.baz`

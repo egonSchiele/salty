@@ -347,6 +347,24 @@ transpileTests = [
     -- don't fail on dollar signs
     "$foo = 1;\n$bar = 2;" `matches` "$foo = 1;\n$bar = 2;",
 
+    -- optional
+    "foo?" `matches` "!is_null($foo);",
+    "foo?.bar" `matches` "if (!is_null($foo)) {\n    $foo->bar;\n}",
+    "@foo?.bar" `matches` "if (!is_null($this->foo)) {\n    $this->foo->bar;\n}",
+    "@@foo?.bar" `matches` "if (!is_null(static::$foo)) {\n    static::$foo->bar;\n}",
+    "foo?.bar()" `matches` "if (!is_null($foo)) {\n    $foo->bar();\n}",
+    "@foo?.bar()" `matches` "if (!is_null($this->foo)) {\n    $this->foo->bar();\n}",
+    "@@foo?.bar()" `matches` "if (!is_null(static::$foo)) {\n    static::$foo->bar();\n}",
+    "var = foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $foo-bar;\n};",
+    "var = foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $foo->bar();\n}",
+    "var += foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $var + $foo->bar;\n};",
+    "var *= foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $var * $foo->bar();\n}",
+
+    -- TODO
+    -- "foo?.bar?.baz" `matches` "",
+    -- "foo?.bar()?.baz" `matches` "",
+    -- "foo?.bar()?.baz?" `matches` "",
+
     -- backticks for php
     "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';"
 

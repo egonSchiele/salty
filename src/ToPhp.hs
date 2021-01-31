@@ -64,6 +64,14 @@ instance ConvertToPhp Salty where
   toPhp (Operation x op (WithNewLine y)) = (toPhp $ Operation x op y) ++ "\n"
   toPhp (Operation x@(Variable _ _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
 
+  toPhp op@(Operation left operator (AttrAccess (SaltyOptional salty) attr)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
+          where newOperation = Operation left operator (AttrAccess salty attr)
+
+  toPhp op@(Operation left operator (FunctionCall (Just (SaltyOptional salty)) callName args)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
+          where newOperation = Operation left operator (FunctionCall (Just salty) callName args)
+
+  toPhp op@(Operation left operator (SaltyOptional salty)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
+          where newOperation = Operation left operator salty
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
   -- toPhp (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
   toPhp (Operation left Equals right) = (toPhp left) ++ " = " ++ (toPhp right)
@@ -132,10 +140,11 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall Nothing (Left VarDumpShort) args) = "var_dump(" ++ (intercalate ", " . map toPhp $ args) ++ ")"
 
   -- functions called on an obj
-  toPhp (FunctionCall (Just (Variable (SimpleVar obj) _)) (Right funcName) args) = print3 "$%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Variable (InstanceVar obj) _)) (Right funcName) args) = print3 "$this->%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just (Variable (StaticVar obj) _)) (Right funcName) args) = print3 "static::%->%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
   toPhp (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just var@(Variable _ _)) (Right funcName) args) = print3 "%->%(%)" (toPhp var) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+
+  -- an optional containing whatever other salty
+  toPhp (FunctionCall (Just (SaltyOptional salty)) (Right funcName) args) = print4 "if (!is_null(%)) {\n%->%(%)\n}" (toPhp salty) (toPhp salty) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   -- same as above but with parens
   toPhp (FunctionCall (Just (Parens [obj])) (Right funcName) args) = print3 "(%)->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
@@ -221,6 +230,7 @@ instance ConvertToPhp Salty where
   toPhp (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "array_slice(%, %, %)" (toPhp obj) start newEnd
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
   toPhp (ArraySlice obj start (Just end)) = print4 "array_slice(%, %, % - %)" (toPhp obj) (toPhp start) (toPhp end) (toPhp start)
+  toPhp (AttrAccess (SaltyOptional salty) attrName) = print3 "if (!is_null(%)) {\n%->%\n}" (toPhp salty) (toPhp salty) attrName
   toPhp (AttrAccess (Variable (ClassVar obj) _) attrName) = print2 "%::$%" obj attrName
   toPhp (AttrAccess obj attrName) = print2 "%->%" (toPhp obj) attrName
   toPhp (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toPhp var) (toPhp value)) $ vars)
@@ -242,6 +252,7 @@ instance ConvertToPhp Salty where
   toPhp (Keyword (KwStatic salty)) = "static " ++ (toPhp salty)
   toPhp (Keyword (KwEcho salty)) = "echo " ++ (toPhp salty)
   toPhp (Keyword (KwNamespace salty)) = "namespace " ++ (toPhp salty)
+  toPhp (SaltyOptional salty) = "!is_null(" ++ (toPhp salty) ++ ")"
   toPhp (Range (SaltyNumber l) (SaltyNumber r)) = show $ [left..right]
       where left = read l :: Integer
             right = read r :: Integer
