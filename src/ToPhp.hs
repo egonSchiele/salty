@@ -78,6 +78,9 @@ instance ConvertToPhp Salty where
 
   toPhp op@(Operation left operator (HashLookup (HashLookup (SaltyOptional salty) k) k2)) = print3 "if (!is_null(%[%])) {\n%\n}" (toPhp salty) (toPhp k) (toPhp newOperation)
           where newOperation = Operation left operator (HashLookup (HashLookup salty k) k2)
+
+  toPhp op@(Operation left operator (HashLookup (HashLookup h (SaltyOptional k)) k2)) = print3 "if (!is_null(%[%])) {\n%\n}" (toPhp h) (toPhp k) (toPhp newOperation)
+          where newOperation = Operation left operator (HashLookup (HashLookup h k) k2)
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
   -- toPhp (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
   toPhp (Operation left Equals right) = (toPhp left) ++ " = " ++ (toPhp right)

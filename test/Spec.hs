@@ -366,7 +366,7 @@ transpileTests = [
     ":foo.bar?" `matches` "!is_null($foo[\"bar\"]);",
     ":foo.bar?.baz" `matches` "if (!is_null($foo[\"bar\"])) {\n    $foo[\"bar\"][\"baz\"];\n}",
     "var = :foo.bar?" `matches` "$var = !is_null($foo[\"bar\"]);",
-    "var = :foo.bar?.baz" `matches` "$var = if (!is_null($foo[\"bar\"])) {\n    $foo[\"bar\"][\"baz\"];\n}",
+    "var = :foo.bar?.baz" `matches` "if (!is_null($foo[\"bar\"])) {\n    $var = $foo[\"bar\"][\"baz\"];\n}",
     "var = :foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $foo[\"bar\"];\n}",
     "var = :foo?.bar.baz" `matches` "if (!is_null($foo[\"bar\"])) {\n    $var = $foo[\"bar\"][\"baz\"];\n}",
     ":foo?.bar.baz" `matches` "if (!is_null($foo[\"bar\"])) {\n    $foo[\"bar\"][\"baz\"];\n}",
