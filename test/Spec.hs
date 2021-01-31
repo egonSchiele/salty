@@ -207,9 +207,6 @@ transpileTests = [
     -- object creation
     "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}\n$b = new Blocklist();\n$b->foo();",
 
-    -- feature flag
-    "~foo.bar" `matches` "Feature::isEnabled('foo.bar');",
-
     -- function type signature
     "foo :: string\nfoo := 'hello'" `matches` "/**\n * @return string\n */\nfunction foo() {\n    return \"hello\";\n}",
     "foo :: string -> string\nfoo a := a" `matches` "/**\n * @param string\n * @return string\n */\nfunction foo(string $a) {\n    return $a;\n}",
