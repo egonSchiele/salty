@@ -368,6 +368,27 @@ public function bar() {
 }
 ```
 
+Multi-line:
+
+```
+myVar = foo.map(\x -> {
+    x + 1
+    y + 2
+    hello("hi")
+})
+```
+
+becomes
+
+```
+$myVar = [];
+foreach ($foo as $x) {
+    $x + 1;
+    $y + 2;
+    $myVar []= hello("hi");
+}
+```
+
 ## String Concatenation
 
 `foo ++ bar` becomes `$foo . $bar`
