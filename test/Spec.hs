@@ -102,10 +102,70 @@ foreach ($foo as $x) {
 }|]
 
 multiLineMapAssignTest = multiLineMapAssign `matches` multiLineMapAssignResult
+
+multiLineSelect = [r|foo.select(\x -> {
+    x + 1
+    y + 2
+    hello("hi")
+  })
+|]
+
+multiLineSelectResult = [r|$result = [];
+foreach ($foo as $x) {
+    $x + 1;
+    $y + 2;
+    if(hello("hi")) {
+        $result []= $x;
+    }
+}|]
+
+multiLineSelectTest = multiLineSelect `matches` multiLineSelectResult
+
+multiLineAny = [r|foo.any(\x -> {
+    x + 1
+    y + 2
+    hello("hi")
+  })
+|]
+
+multiLineAnyResult = [r|$result = false;
+foreach ($foo as $x) {
+    $x + 1;
+    $y + 2;
+    if(hello("hi")) {
+        $result = true;
+        break;
+    }
+}|]
+
+multiLineAnyTest = multiLineAny `matches` multiLineAnyResult
+
+multiLineAll = [r|foo.all(\x -> {
+    x + 1
+    y + 2
+    hello("hi")
+  })
+|]
+
+multiLineAllResult = [r|$result = true;
+foreach ($foo as $x) {
+    $x + 1;
+    $y + 2;
+    if(!hello("hi")) {
+        $result = false;
+        break;
+    }
+}|]
+
+multiLineAllTest = multiLineAll `matches` multiLineAllResult
+
 transpileTests = [
     multiLineEachTest,
     multiLineMapTest,
     multiLineMapAssignTest,
+    multiLineSelectTest,
+    multiLineAnyTest,
+    multiLineAllTest,
     -- operations
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",
@@ -293,7 +353,7 @@ transpileTests = [
     -- higher order functions
     "arr.any(\\x -> x == 1)" `matches`"$result = false;\nforeach ($arr as $x) {\n    if($x == 1) {\n        $result = true;\n        break;\n    }\n}",
     "arr.all(\\x -> x.isEven())" `matches`"$result = true;\nforeach ($arr as $x) {\n    if(!$x->isEven()) {\n        $result = false;\n        break;\n    }\n}",
-    "arr.select(\\x -> x.isEven())" `matches`"$result = [];\nforeach ($arr as $x) {\n    if($x->isEven()) {\n        $result []= x;\n    }\n}",
+    "arr.select(\\x -> x.isEven())" `matches`"$result = [];\nforeach ($arr as $x) {\n    if($x->isEven()) {\n        $result []= $x;\n    }\n}",
     "arr.each(\\x -> print(x))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
     "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
     -- same but w parens
@@ -317,7 +377,7 @@ transpileTests = [
     "bar := foo.map(\\x -> x + 1)" `matches`"function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n    return $result;\n}",
     "bar := foo.any(\\x -> x.isEven())" `matches`"function bar() {\n    $result = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result = true;\n            break;\n        }\n    }\n    return $result;\n}",
     "bar := foo.all(\\x -> x.isEven())" `matches`"function bar() {\n    $result = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $result = false;\n            break;\n        }\n    }\n    return $result;\n}",
-    "bar := foo.select(\\x -> x.isEven())" `matches` "function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= x;\n        }\n    }\n    return $result;\n}",
+    "bar := foo.select(\\x -> x.isEven())" `matches` "function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= $x;\n        }\n    }\n    return $result;\n}",
 
     -- keywords
     "use Foo" `matches` "use Foo;",
