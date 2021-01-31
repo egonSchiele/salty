@@ -359,6 +359,7 @@ transpileTests = [
     "var = foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $foo->bar();\n}",
     "var += foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $var + $foo->bar;\n};",
     "var *= foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $var * $foo->bar();\n}",
+    "foo?.map(\\x -> x + 1)" `matches` "",
 
     -- TODO
     -- "foo?.bar?.baz" `matches` "",
