@@ -10,5 +10,8 @@ The goal isn't to have every PHP feature in here, but there are definitely some 
         $v;
     }
 
+struct syntax
+type annotation for vars
+
 Stuff I don't care about:
 - switch statements (though guards for functions like haskell would be cool)
