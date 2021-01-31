@@ -15,7 +15,6 @@ classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
-flagNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.1234567890"
 constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 
 data SaltyState = SaltyState {
@@ -120,7 +119,6 @@ saltyParserSingleWithoutNewline = do
   <||> saltyComment
   <||> phpComment
   <||> purePhp
-  <||> flagName
   <||> emptyLine
   <||> ifStatement
   <||> whileStatement
@@ -153,7 +151,6 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> partialFunctionCall
   <||> partialAttrAccess
   <||> negateSalty
-  <||> flagName
   <||> objectCreation
   <||> saltyBool
   <||> saltyNull
@@ -200,7 +197,6 @@ validHashValue = debug "validHashValue" >> do
   <||> hashTable
   <||> array
   -- <||> emptyHash
-  <||> flagName
   <||> saltyBool
   <||> saltyNull
   <||> saltyMagicConstant
@@ -551,11 +547,6 @@ purePhp = do
   line <- many1 $ noneOf "`"
   string "`"
   return $ PurePhp line
-
-flagName = do
-  char '~'
-  name <- many1 flagNameChars
-  return $ FlagName name
 
 functionCall = debug "functionCall" >> do
        functionCallOnObject

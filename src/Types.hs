@@ -174,7 +174,6 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | BackTrack Salty
              | Constant Salty
              | Variable VariableName Scope
-             | FlagName String
              | SaltyBool Boolean
              | SaltyNull
              | SaltyMagicConstant MagicConstant

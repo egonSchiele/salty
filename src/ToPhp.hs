@@ -156,7 +156,6 @@ instance ConvertToPhp Salty where
   toPhp (LambdaFunction [] body) =  toPhp body
   toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)
 
-  -- each
   -- special case, each with a range
   toPhp (HigherOrderFunctionCall (Range left right) Each (LambdaFunction (loopVar:xs) body) _)  =
                 print6 "for ($% = %; $% <= %; $%++) {\n%\n}" loopVar (toPhp left) loopVar (toPhp right) loopVar (toPhp body)
@@ -165,6 +164,7 @@ instance ConvertToPhp Salty where
   toPhp (HigherOrderFunctionCall (SaltyOptional salty) func lambda accVar)  = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newHoF)
     where newHoF = HigherOrderFunctionCall salty func lambda accVar
 
+  -- each
   toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body) _)  =
                 print3 "foreach (% as $%) {\n%;\n}\n" (varName obj) loopVar (toPhp body)
 
@@ -189,7 +189,6 @@ instance ConvertToPhp Salty where
   toPhp (Parens s) = "(" ++ (concat $ map toPhp s) ++ ")"
   toPhp (Braces s) = concat $ map toPhp s
   toPhp (PurePhp line) = line
-  toPhp (FlagName name) = "Feature::isEnabled('" ++ name ++ "')"
   toPhp (PhpComment str) = "// " ++ str ++ "\n"
   toPhp (SaltyComment str) = ""
   toPhp (Negate s) = "!" ++ (toPhp s)
