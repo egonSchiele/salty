@@ -323,6 +323,10 @@ transpileTests = [
     "1..foo.bar" `matches` "a range: (1..$foo->bar);",
     "start..end" `matches` "a range: ($start..$end);",
 
+    -- TODO failing spec
+    -- "take(5, (1..10))" `matches` "take(5, [1,2,3,4,5,6,7,8,9,10]);",
+    "take(5, 1..10)" `matches` "take(5, [1,2,3,4,5,6,7,8,9,10]);",
+
     -- classic for loop using each + range
     "(1..10).each(\\x -> x + 1)" `matches` "for ($x = 1; $x <= 10; $x++) {\n    $x + 1;\n}",
     "(start..end).each(\\x -> x + 1)" `matches` "for ($x = $start; $x <= $end; $x++) {\n    $x + 1;\n}",

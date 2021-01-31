@@ -142,6 +142,7 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> operation
   <||> partialOperation
   <||> saltyString
+  <||> range
   <||> saltyNumber
   <||> functionCall
   <||> attrAccess
