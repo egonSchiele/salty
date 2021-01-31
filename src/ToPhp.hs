@@ -115,22 +115,14 @@ instance ConvertToPhp Salty where
   toPhp (Operation left GreaterThanOrEqualTo right) = print2 "% >= %" (toPhp left) (toPhp right)
   toPhp (Operation left Spaceship right) = print2 "% <=> %" (toPhp left) (toPhp right)
 
-  toPhp (Function name args body visibility ClassScope) = print4 "% %(%) {\n%\n}\n" (toPhp visibility) funcName funcArgs funcBody
+  toPhp (Function name args body visibility scope) = print4 "%%(%) {\n%\n}\n" visibilityToDisplay funcName funcArgs funcBody
     where funcName = case name of
             InstanceVar str -> "function " ++ str
             StaticVar str -> "static function " ++ str
             SimpleVar str -> "function " ++ str
-          funcArgs = intercalate ", " $ map toPhp args
-          funcBody = case body of
-                          [Braces []] -> ""
-                          [Braces salties] -> print2 "%\n%" (concat . map toPhp . init $ salties) (addReturn . last $ salties)
-                          x -> print2 "%\n%" (concat . map toPhp . init $ x) (addReturn . last $ x)
-
-  toPhp (Function name args body _ _) = print3 "%(%) {\n%\n}\n" funcName funcArgs funcBody
-    where funcName = case name of
-            InstanceVar str -> "function " ++ str
-            StaticVar str -> "static function " ++ str
-            SimpleVar str -> "function " ++ str
+          visibilityToDisplay = case scope of
+                                     ClassScope -> (toPhp visibility) ++ " "
+                                     _ -> ""
           funcArgs = intercalate ", " $ map toPhp args
           funcBody = case body of
                           [Braces []] -> ""
