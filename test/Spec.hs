@@ -69,9 +69,43 @@ multiLineEachResult = [r|foreach ($foo as $x) {
     hello("hi");
 }|]
 
-multiLineTest = multiLineEach `matches` multiLineEachResult
+multiLineEachTest = multiLineEach `matches` multiLineEachResult
+
+multiLineMap = [r|foo.map(\x -> {
+    x + 1
+    y + 2
+    hello("hi")
+  })
+|]
+
+multiLineMapResult = [r|$result = [];
+foreach ($foo as $x) {
+    $x + 1;
+    $y + 2;
+    $result []= hello("hi");
+}|]
+
+multiLineMapTest = multiLineMap `matches` multiLineMapResult
+
+multiLineMapAssign = [r|myVar = foo.map(\x -> {
+    x + 1
+    y + 2
+    hello("hi")
+  })
+|]
+
+multiLineMapAssignResult = [r|$myVar = [];
+foreach ($foo as $x) {
+    $x + 1;
+    $y + 2;
+    $myVar []= hello("hi");
+}|]
+
+multiLineMapAssignTest = multiLineMapAssign `matches` multiLineMapAssignResult
 transpileTests = [
-    multiLineTest,
+    multiLineEachTest,
+    multiLineMapTest,
+    multiLineMapAssignTest,
     -- operations
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",

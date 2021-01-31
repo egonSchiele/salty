@@ -169,6 +169,9 @@ instance ConvertToPhp Salty where
                 print3 "foreach (% as $%) {\n%;\n}\n" (varName obj) loopVar (toPhp body)
 
   -- map
+  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:[]) (Braces body)) accVar) =
+                print6 "% = [];\nforeach (% as $%) {\n%\n% []= %;\n}\n" accVar (varName obj) loopVar (concat $ map toPhp (init body)) accVar (toPhp (last body))
+
   toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:[]) body) accVar) =
                 print5 "% = [];\nforeach (% as $%) {\n% []= %;\n}\n" accVar (varName obj) loopVar accVar (toPhp body)
 
