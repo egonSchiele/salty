@@ -83,6 +83,7 @@ instance ConvertToPhp Salty where
           where newOperation = Operation left operator (HashLookup (HashLookup h k) k2)
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
   -- toPhp (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
+  toPhp (Operation left Equals (If cond thenPath_ (Just elsePath_))) = print4 "% = % ? % : %" (toPhp left) (toPhp cond) (toPhp thenPath_) (toPhp elsePath_)
   toPhp (Operation left Equals right) = (toPhp left) ++ " = " ++ (toPhp right)
   toPhp (Operation left NotEquals right) = (toPhp left) ++ " != " ++ (toPhp right)
   toPhp (Operation left PlusEquals right) = print3 "% = % + %" (toPhp left) (toPhp left) (toPhp right)

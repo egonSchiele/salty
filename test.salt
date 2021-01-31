@@ -1,4 +1,4 @@
 class Foo implements Bar where
 
-attr1 = 'hi'
-__construct name := @attr1 = name
+__construct :: string? -> void
+__construct name := if name? then greet(name)

@@ -453,3 +453,28 @@ becomes
     }
 
 Chaining doesn't work right now, so you can't do `foo?.bar?.baz`
+
+## Ternary
+I don't like the ternary operator so don't support it.
+
+The closest thing is writing if-then-else on one line, like this:
+
+    func := if var == 0 then 0 else 1
+
+which becomes:
+
+    function func() {
+        if ($var == 0) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+The one way to generate a ternary statement is by assigning an if-then-else (must include the else clause) to a variable:
+
+    var2 = if var == 0 then 0 else 1
+
+generates:
+
+    $var2 = $var == 0 ? 0 : 1;

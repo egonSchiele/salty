@@ -376,6 +376,11 @@ transpileTests = [
     -- "foo?.bar()?.baz" `matches` "",
     -- "foo?.bar()?.baz?" `matches` "",
 
+    -- ternary
+    "func := if var == 0 then 0 else 1" `matches` "function func() {\n    if ($var == 0) {\n        return 0;\n    } else {\n        return 1;\n    }\n}",
+    "var2 = if var == 0 then 0 else 1" `matches` "$var2 = $var == 0 ? 0 : 1;",
+    "func := if var == 0 then (if var2 == 1 then 1 else 2) else 1" `matches` "function func() {\n    if ($var == 0) {\n        return (if ($var2 == 1) {\n            1;\n        } else {\n            2;\n        });\n    } else {\n        return 1;\n    }\n}",
+
     -- backticks for php
     "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';"
 
