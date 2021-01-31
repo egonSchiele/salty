@@ -14,6 +14,11 @@ varName :: Salty -> String
 varName (Variable name scope) = toPhp name
 varName x = "this shouldnt be in varName: " ++ (show x)
 
+varNameToFunc (InstanceVar s) = "$this->" ++ s
+varNameToFunc (StaticVar s) = "static::" ++ s
+varNameToFunc (ClassVar s) = "error classvar as funcname"
+varNameToFunc (SimpleVar s) = s
+
 class ConvertToPhp a where
     toPhp :: a -> String
 
@@ -133,10 +138,7 @@ instance ConvertToPhp Salty where
   toPhp (SaltyString s) = "\"" ++ s ++ "\""
 
   -- functions called without an object (bare)
-  toPhp (FunctionCall Nothing (Right (SimpleVar str)) args) = print2 "%(%)" str (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall Nothing (Right (InstanceVar str)) args) = print2 "$this->%(%)" str (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall Nothing (Right (StaticVar str)) args) = print2 "static::%(%)" str (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall Nothing (Right (ClassVar str)) args) = "err classvar? " ++ str
+  toPhp (FunctionCall Nothing (Right var) args) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toPhp $ args)
 
   -- builtin bare functions
   toPhp (FunctionCall Nothing (Left VarDumpShort) args) = "var_dump(" ++ (intercalate ", " . map toPhp $ args) ++ ")"
