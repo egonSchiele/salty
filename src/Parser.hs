@@ -613,14 +613,20 @@ hashLookup = debug "hashLookup" >> do
 
 shortHashLookup = debug "shortHashLookup" >> do
   char ':'
-  hash <- variable
-  keys <- many1 $ hashKeyNumber <||> hashKeyString
+  hash <- saltyOptional <||> variable
+  keys <- many1 $ hashKeyNumber <||> hashKeyOptional <||> hashKeyString
   return $ foldl (\acc key -> HashLookup acc key) (HashLookup hash (head keys)) (tail keys)
 
 hashKeyNumber = debug "hashKeyString" >> do
   char '.'
   key <- many1 digit
   return $ SaltyNumber key
+
+hashKeyOptional = debug "hashKeyOptional" >> do
+  char '.'
+  key <- many1 varNameChars
+  char '?'
+  return $ SaltyOptional $ SaltyString key
 
 hashKeyString = debug "hashKeyString" >> do
   char '.'
