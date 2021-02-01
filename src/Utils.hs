@@ -7,6 +7,7 @@ import Text.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 import Data.Functor.Identity (Identity)
+import Data.Char (isAlphaNum, isUpper)
 
 isJust (Just _) = True
 isJust Nothing = False
@@ -425,4 +426,8 @@ for = flip map
 -- if you don't use try, and the first parser consumes some input,
 -- parser #2 doesn't use that input
 (<||>) p1 p2 = try(p1) <|> p2
+
+isConstant :: String -> Bool
+isConstant str = all isUpper chars
+  where chars = filter isAlphaNum str
 

@@ -8,7 +8,6 @@ import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 import Debug.Trace (trace)
 import ToPhp
-import Data.Char (isAlphaNum, isUpper)
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 lambdaVarNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_ "
@@ -163,10 +162,6 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
 
 safeHead [] = Nothing
 safeHead (x:xs) = Just x
-
-isConstant :: String -> Bool
-isConstant str = all isUpper chars
-  where chars = filter isAlphaNum str
 
 variable = debug "variable" >> do
   name <- variableName

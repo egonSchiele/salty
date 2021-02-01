@@ -2,6 +2,7 @@ module ToPhp where
 import Types
 import Print
 import Data.List (intercalate)
+import Utils (isConstant)
 
 initToPhp body = concat $ map toPhp (init body)
 stripNewlineToPhp (WithNewLine salty) = toPhp salty
@@ -257,7 +258,10 @@ instance ConvertToPhp Salty where
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
   toPhp (ArraySlice obj start (Just end)) = print4 "array_slice(%, %, % - %)" (toPhp obj) (toPhp start) (toPhp end) (toPhp start)
   toPhp (AttrAccess (SaltyOptional salty) attrName) = print3 "if (!is_null(%)) {\n%->%\n}" (toPhp salty) (toPhp salty) attrName
-  toPhp (AttrAccess (Variable (ClassVar obj) _) attrName) = print2 "%::$%" obj attrName
+  toPhp (AttrAccess (Variable (ClassVar obj) _) attrName)
+      | isConstant attrName = print2 "%::%" obj attrName
+      | otherwise = print2 "%::$%" obj attrName
+
   toPhp (AttrAccess obj attrName) = print2 "%->%" (toPhp obj) attrName
   toPhp (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toPhp var) (toPhp value)) $ vars)
   -- toPhp (AttrAccess (Variable (InstanceVar obj) _) attrName) = print2 "$this->%->%" obj attrName

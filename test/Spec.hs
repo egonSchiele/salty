@@ -297,6 +297,7 @@ transpileTests = [
     "@foo.bar" `matches` "$this->foo->bar;",
     "@@foo.bar" `matches` "static::$foo->bar;",
     "Blocklist.foo" `matches` "Blocklist::$foo;",
+    "Blocklist.FOO" `matches` "Blocklist::FOO;",
     "foo.bar = 1" `matches` "$foo->bar = 1;",
     "foo.bar = 'hello'" `matches` "$foo->bar = \"hello\";",
     "foo.bar = 2 + 2" `matches` "$foo->bar = 2 + 2;",
