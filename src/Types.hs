@@ -147,7 +147,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                  hHash :: Salty,
                  hKey :: Salty
              }
-             | HashTable [(String, Salty)]
+             | HashTable [(Salty, Salty)]
              | ArraySlice {
                 arObj :: Salty,
                 arStart :: Salty,

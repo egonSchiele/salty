@@ -204,8 +204,18 @@ validHashValue = debug "validHashValue" >> do
   <||> purePhp
   <||> variable
 
-keyValuePair = debug "keyValuePair" >> do
+stringKey = debug "stringKey" >> do
   key <- many1 hashKeyChars
+  return $ SaltyString key
+
+saltyKey = debug "saltyKey" >> do
+  char '['
+  value <- hashLookup <||> saltyBool <||> saltyNull <||> purePhp <||> variable
+  char ']'
+  return value
+
+keyValuePair = debug "keyValuePair" >> do
+  key <- saltyKey <||> stringKey
   char ':'
   space
   value <- validHashValue

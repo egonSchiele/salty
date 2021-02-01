@@ -232,7 +232,27 @@ $a = [
 
 Trailing comma is optional.
 
-Note empty hash `{}` is not allowed, you need to make it like this: `[]`. See EDGE_CASES.md for an explanation of why.
+If you need keys that are php code, not strings, use the ES6 syntax:
+
+```
+{
+  a: 1,
+  [b]: 2,
+  [@c]: 3
+}
+```
+
+becomes:
+
+```
+[
+    "a" => 1,
+    $b => 2,
+    $this->c => 3
+];
+```
+
+Note empty hash using braces (`{}`) is not allowed, you'll need to use brackets: (`[]`). See EDGE_CASES.md for an explanation of why.
 
 ## Dot notation
 

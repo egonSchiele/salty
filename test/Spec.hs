@@ -488,7 +488,10 @@ transpileTests = [
     "func := if var == 0 then (if var2 == 1 then 1 else 2) else 1" `matches` "function func() {\n    if ($var == 0) {\n        return (if ($var2 == 1) {\n            1;\n        } else {\n            2;\n        });\n    } else {\n        return 1;\n    }\n}",
 
     -- backticks for php
-    "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';"
+    "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';",
+
+    -- hash table
+    "{a: 1, [b]: 2, [@c]: 3}" `matches` "[\n        \"a\" => 1,\n        $b => 2,\n        $this->c => 3\n    ];"
 
 
     -- empty hash
