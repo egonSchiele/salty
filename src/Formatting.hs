@@ -96,6 +96,9 @@ checkBackTracksSingle (HashLookup h k) = HashLookup (checkBackTracksSingle h) (c
 checkBackTracksSingle x = x
 
 saltyToPhp_ :: Int -> [Salty] -> String
-saltyToPhp_ indentAmt tree = rstrip . unlines . (indent indentAmt) . addSemicolons . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
+saltyToPhp_ indentAmt tree = rstrip . unlines . (indent indentAmt) . addSemicolons . (map addBlanks) . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
 
 removeBlanks list = filter (\item -> (not (item `elem` ["", "\n", ";"]))) list
+addBlanks line
+  | line == "<EMPTYLINE>" = ""
+  | otherwise = line

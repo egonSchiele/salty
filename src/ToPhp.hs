@@ -229,8 +229,8 @@ instance ConvertToPhp Salty where
   toPhp (HashLookup (SaltyOptional h) k) = print3 "if (!is_null(%)) {\n%[%]\n}" (toPhp h) (toPhp h) (toPhp k)
   toPhp (HashLookup h k) = print2 "%[%]" (toPhp h) (toPhp k)
   toPhp (FunctionTypeSignature var types)
-      | simpleVarName var == "var" = "/** @var " ++ (showVar . head $ types) ++ " */"
-      | otherwise = "/**\n" ++ (concat $ map showType types) ++ " */\n"
+      | simpleVarName var == "var" = "<EMPTYLINE>\n/** @var " ++ (showVar . head $ types) ++ " */"
+      | otherwise = "<EMPTYLINE>\n/**\n" ++ (concat $ map showType types) ++ " */\n"
     where showType t = " * " ++ (toPhp t) ++ "\n"
           showVar (ArgumentType False n _) = n
           showVar (ArgumentType True n _) = n ++ "|null"
