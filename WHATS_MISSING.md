@@ -10,5 +10,26 @@ chaining optionals for hash keys like
 
 would be cool.
 
+Use php 7.4 lambda shorthand to allow HoFs to be passed into functions:
+
+$b = array_map(fn($n) => $n * $n * $n, $a);
+print_r($b);
+
+
+self vs static
+
+fails:
+    foo := {
+        [
+            ["", "en", "US", "USD", false, false, false, []],
+        ]
+    }
+
+    Foo_Bar.BAZ
+
+should be
+
+    Foo_Bar::BAZ
+
 Stuff I don't care about:
 - switch statements (though guards for functions like haskell would be cool)
