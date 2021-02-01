@@ -85,11 +85,6 @@ instance ConvertToPhp Salty where
   toPhp op@(Operation left operator (HashLookup (SaltyOptional salty) k)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
           where newOperation = Operation left operator (HashLookup salty k)
 
-  toPhp op@(Operation left operator (HashLookup (HashLookup (SaltyOptional salty) k) k2)) = print3 "if (!is_null(%[%])) {\n%\n}" (toPhp salty) (toPhp k) (toPhp newOperation)
-          where newOperation = Operation left operator (HashLookup (HashLookup salty k) k2)
-
-  toPhp op@(Operation left operator (HashLookup (HashLookup h (SaltyOptional k)) k2)) = print3 "if (!is_null(%[%])) {\n%\n}" (toPhp h) (toPhp k) (toPhp newOperation)
-          where newOperation = Operation left operator (HashLookup (HashLookup h k) k2)
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
   -- toPhp (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
   toPhp (Operation left Equals (If cond thenPath_ (Just elsePath_))) = print4 "% = % ? % : %" (toPhp left) (toPhp cond) (toPhp thenPath_) (toPhp elsePath_)
@@ -228,9 +223,6 @@ instance ConvertToPhp Salty where
   toPhp (Variable (SimpleVar s) ClassScope) = "public $" ++ s
   toPhp (Variable x _) = toPhp x
   toPhp (WithNewLine s) = (toPhp s) ++ "\n"
-  toPhp (HashLookup (HashLookup h (SaltyOptional salty)) k) = print5 "if (!is_null(%[%])) {\n%[%][%]\n}" (toPhp h) (toPhp salty) (toPhp h) (toPhp salty) (toPhp k)
-  toPhp (HashLookup (HashLookup (SaltyOptional h) k) k2) = print5 "if (!is_null(%[%])) {\n%[%][%]\n}" (toPhp h) (toPhp k) (toPhp h) (toPhp k) (toPhp k2)
-  toPhp (HashLookup h (SaltyOptional salty)) = print2 "!is_null(%[%])" (toPhp h) (toPhp salty)
   toPhp (HashLookup (SaltyOptional h) k) = print3 "if (!is_null(%)) {\n%[%]\n}" (toPhp h) (toPhp h) (toPhp k)
   toPhp (HashLookup h k) = print2 "%[%]" (toPhp h) (toPhp k)
   toPhp (FunctionTypeSignature n types) = "/**\n" ++ (concat $ map showType types) ++ " */\n"

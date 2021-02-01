@@ -469,13 +469,7 @@ transpileTests = [
     "var = foo?.map(\\x -> x + 1)" `matches` "if (!is_null($foo)) {\n    $var = [];\n    foreach ($foo as $x) {\n        $var []= $x + 1;\n    }\n}",
     "foo := bar?" `matches` "function foo() {\n    return !is_null($bar);\n}",
     "foo := bar?.map(\\x -> x + 1)" `matches` "function foo() {\n    if (!is_null($bar)) {\n        $result = [];\n        foreach ($bar as $x) {\n            $result []= $x + 1;\n        }\n    }\n    return $result;\n}",
-    ":foo.bar?" `matches` "!is_null($foo[\"bar\"]);",
-    ":foo.bar?.baz" `matches` "if (!is_null($foo[\"bar\"])) {\n    $foo[\"bar\"][\"baz\"];\n}",
-    "var = :foo.bar?" `matches` "$var = !is_null($foo[\"bar\"]);",
-    "var = :foo.bar?.baz" `matches` "if (!is_null($foo[\"bar\"])) {\n    $var = $foo[\"bar\"][\"baz\"];\n}",
     "var = :foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $foo[\"bar\"];\n}",
-    "var = :foo?.bar.baz" `matches` "if (!is_null($foo[\"bar\"])) {\n    $var = $foo[\"bar\"][\"baz\"];\n}",
-    ":foo?.bar.baz" `matches` "if (!is_null($foo[\"bar\"])) {\n    $foo[\"bar\"][\"baz\"];\n}",
 
     -- TODO
     -- "foo?.bar?.baz" `matches` "",

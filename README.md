@@ -447,7 +447,6 @@ becomes
     myVar = foo?.bar
     myVar = foo?.bar()
     myVar = :foo?.bar
-    myVar = :foo.bar?.baz
 
 becomes
 
@@ -469,11 +468,10 @@ becomes
     if (!is_null($foo)) {
         $myVar = $foo["bar"];
     }
-    if (!is_null($foo["bar"])) {
-        $myVar = $foo["bar"]["baz"];
-    }
 
 Chaining doesn't work right now, so you can't do `foo?.bar?.baz`
+
+`foo.bar?` doesn't work either.
 
 ## Ternary
 I don't like the ternary operator so don't support it.
