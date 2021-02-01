@@ -21,22 +21,6 @@ print_r($b);
 
 can work.
 
-multiassign for array values:
-
-[first, second] = arr
-
-should become
-
-first = arr[0]
-second = arr[1]
-
-[f, s] = explode(".", hi)
-
-should become
-
-arr = explode(".", $hi)
-etc
-
 fails:
     foo := {
         [

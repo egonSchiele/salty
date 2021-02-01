@@ -492,7 +492,14 @@ transpileTests = [
     "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';",
 
     -- hash table
-    "{a: 1, [b]: 2, [@c]: 3}" `matches` "[\n        \"a\" => 1,\n        $b => 2,\n        $this->c => 3\n    ];"
+    "{a: 1, [b]: 2, [@c]: 3}" `matches` "[\n        \"a\" => 1,\n        $b => 2,\n        $this->c => 3\n    ];",
+
+    -- multi-assign
+    "foo, bar = baz" `matches` "$foo = $baz[0];\n$bar = $baz[1];",
+    "foo, bar = null" `matches` "$foo = null;\n$bar = null;",
+    "foo, bar = 0" `matches` "$foo = 0;\n$bar = 0;",
+    "foo, bar = explode('.', array)" `matches` "$result = explode(\".\", $array);\n$foo = $result[0];\n$bar = $result[1];",
+    "foo, bar = obj.func()" `matches` "$result = $obj->func();\n$foo = $result[0];\n$bar = $result[1];"
 
 
     -- empty hash

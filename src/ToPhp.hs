@@ -263,6 +263,11 @@ instance ConvertToPhp Salty where
       | otherwise = print2 "%::$%" obj attrName
 
   toPhp (AttrAccess obj attrName) = print2 "%->%" (toPhp obj) attrName
+  toPhp (MultiAssign vars (WithNewLine value)) = toPhp $ WithNewLine (MultiAssign vars value)
+  toPhp (MultiAssign vars value@(Variable _ _)) = (intercalate "\n" . map (\(i,var) -> print3 "% = %[%]" (toPhp var) (toPhp value) (show i)) $ zip [0..] vars)
+  toPhp (MultiAssign vars value@(FunctionCall _ _ _)) = initResult ++ "\n" ++ multiAssign
+      where initResult = "$result = " ++ (toPhp value)
+            multiAssign = (intercalate "\n" . map (\(i,var) -> print2 "% = $result[%]" (toPhp var) (show i)) $ zip [0..] vars)
   toPhp (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toPhp var) (toPhp value)) $ vars)
   -- toPhp (AttrAccess (Variable (InstanceVar obj) _) attrName) = print2 "$this->%->%" obj attrName
   -- toPhp (AttrAccess (Variable (StaticVar obj) _) attrName) = print2 "static::$%->%" obj attrName

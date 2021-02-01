@@ -473,6 +473,40 @@ $bar = [];
 $this->baz = [];
 ```
 
+and
+
+```
+foo, bar = baz
+```
+
+becomes
+
+```
+$foo = $baz[0];
+$bar = $baz[1];
+```
+
+(baz is assumed to be an array b/c its a var)
+
+and for function calls:
+
+```
+foo, bar = explode('.', array)
+foo, bar = obj.func()
+```
+
+you get:
+
+```
+$result = explode(".", $array);
+$foo = $result[0];
+$bar = $result[1];
+
+$result = $obj->func();
+$foo = $result[0];
+$bar = $result[1];
+```
+
 ## Ranges
 
     (0..10).each(\x -> x + 1)
