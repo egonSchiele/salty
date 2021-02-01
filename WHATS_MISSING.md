@@ -5,8 +5,6 @@ The goal isn't to have every PHP feature in here, but there are definitely some 
 - arrays where the keys are *not* strings. Right now I just support js-style { foo:1, bar:2 }. ES6 lets you put stuff in brackets (https://stackoverflow.com/questions/11508463/javascript-set-object-key-by-variable) so {[foo]:1}
 - function arg defaults (foo a=1 := a + 1)
 
-break
-
 chaining optionals for hash keys like
 
     :foo.bar?.baz?

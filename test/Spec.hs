@@ -396,6 +396,7 @@ transpileTests = [
     "namespace Foo\\Bar" `matches` "namespace Foo\\Bar;",
     "echo 'hi'" `matches` "echo \"hi\";",
     "greet := echo 'hi'" `matches` "function greet() {\n    echo \"hi\";\n}",
+    "break" `matches` "break;",
 
     -- arrays
     "foo = [1, 2, 3,]" `matches` "$foo = [1, 2, 3];",

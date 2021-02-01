@@ -747,6 +747,7 @@ saltyKeyword = debug "saltyKeyword" >> do
                 <||> saltyKeywordStatic
                 <||> saltyKeywordNamespace
                 <||> saltyKeywordEcho
+                <||> saltyKeywordBreak
   return $ Keyword phpKeyword
 
 saltyKeywordUse = debug "saltyKeywordUse" >> do
@@ -814,6 +815,10 @@ saltyKeywordEcho = debug "saltyKeywordEcho" >> do
   space
   salty <- saltyParserSingle
   return $ KwEcho salty
+
+saltyKeywordBreak = debug "saltyKeywordBreak" >> do
+  string "break"
+  return KwBreak
 
 multiAssignVar = debug "multiAssignVar" >> do
   var <- variable

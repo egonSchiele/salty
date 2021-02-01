@@ -21,6 +21,7 @@ data PhpKeyword =   KwUse VariableName
                   | KwProtected Salty
                   | KwStatic Salty
                   | KwEcho Salty
+                  | KwBreak
                   | KwNamespace Salty deriving (Show)
 
 data MagicConstant =   MCLINE

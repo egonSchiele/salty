@@ -277,6 +277,7 @@ instance ConvertToPhp Salty where
   toPhp (Keyword (KwProtected salty)) = "protected " ++ (toPhp salty)
   toPhp (Keyword (KwStatic salty)) = "static " ++ (toPhp salty)
   toPhp (Keyword (KwEcho salty)) = "echo " ++ (toPhp salty)
+  toPhp (Keyword KwBreak) = "break"
   toPhp (Keyword (KwNamespace salty)) = "namespace " ++ (toPhp salty)
   toPhp (SaltyOptional salty) = "!is_null(" ++ (toPhp salty) ++ ")"
   toPhp (Range (SaltyNumber l) (SaltyNumber r)) = show $ [left..right]
