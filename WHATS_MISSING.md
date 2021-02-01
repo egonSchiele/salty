@@ -15,8 +15,27 @@ Use php 7.4 lambda shorthand to allow HoFs to be passed into functions:
 $b = array_map(fn($n) => $n * $n * $n, $a);
 print_r($b);
 
+@ should parse to $this so
 
-self vs static
+    return @
+
+can work.
+
+multiassign for array values:
+
+[first, second] = arr
+
+should become
+
+first = arr[0]
+second = arr[1]
+
+[f, s] = explode(".", hi)
+
+should become
+
+arr = explode(".", $hi)
+etc
 
 fails:
     foo := {
@@ -25,11 +44,15 @@ fails:
         ]
     }
 
-    Foo_Bar.BAZ
+Phan needs a variable name for type annotations...
 
-should be
+     * @param bool $value
 
-    Foo_Bar::BAZ
+instead of
+
+     * @param bool
+
+name not needed for returns, or for annotations on variables
 
 Stuff I don't care about:
 - switch statements (though guards for functions like haskell would be cool)
