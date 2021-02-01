@@ -410,6 +410,17 @@ foreach ($foo as $x) {
 }
 ```
 
+For key-value, do:
+
+    users = shops.map(\s x -> s.user)
+
+which becomes:
+
+    $users = [];
+    foreach ($shops as $s => $x) {
+        $users []= $s->user;
+    }
+
 ## String Concatenation
 
 `foo ++ bar` becomes `$foo . $bar`
