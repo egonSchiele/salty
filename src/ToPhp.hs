@@ -225,8 +225,12 @@ instance ConvertToPhp Salty where
   toPhp (WithNewLine s) = (toPhp s) ++ "\n"
   toPhp (HashLookup (SaltyOptional h) k) = print3 "if (!is_null(%)) {\n%[%]\n}" (toPhp h) (toPhp h) (toPhp k)
   toPhp (HashLookup h k) = print2 "%[%]" (toPhp h) (toPhp k)
-  toPhp (FunctionTypeSignature n types) = "/**\n" ++ (concat $ map showType types) ++ " */\n"
+  toPhp (FunctionTypeSignature var types)
+      | simpleVarName var == "var" = "/** @var " ++ (showVar . head $ types) ++ " */"
+      | otherwise = "/**\n" ++ (concat $ map showType types) ++ " */\n"
     where showType t = " * " ++ (toPhp t) ++ "\n"
+          showVar (ArgumentType False n _) = n
+          showVar (ArgumentType True n _) = n ++ "|null"
 
   toPhp (Constant (Variable (InstanceVar ('_':s)) ClassScope)) = "private const " ++ s
   toPhp (Constant (Variable (StaticVar ('_':s)) ClassScope)) = "private static const " ++ s

@@ -321,6 +321,9 @@ transpileTests = [
     "foo :: string -> string\nfoo a := a" `matches` "/**\n * @param string\n * @return string\n */\nfunction foo(string $a) {\n    return $a;\n}",
     "foo :: string? -> string?\nfoo a := a" `matches` "/**\n * @param string|null\n * @return string|null\n */\nfunction foo(?string $a = null) {\n    return $a;\n}",
     "foo :: string? -> int -> string?\nfoo a b := a" `matches` "/**\n * @param string|null\n * @param int\n * @return string|null\n */\nfunction foo(?string $a = null, int $b) {\n    return $a;\n}",
+    -- var type signature
+    "var :: string" `matches` "/** @var string */",
+    "var :: string?" `matches` "/** @var string|null */",
     -- null, true, false
     "a = true" `matches` "$a = true;",
     "b = false" `matches` "$b = false;",

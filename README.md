@@ -140,7 +140,7 @@ private function foo($a, $b) {
 ### Type signatures
 
 ```
-foo :: string
+foo :: string -> string
 foo a := a
 ```
 
@@ -149,6 +149,7 @@ becomes
 ```
 /**
  * @param string
+ * @return string
  */
 public function foo(string $a) {
     return $a;
@@ -156,7 +157,7 @@ public function foo(string $a) {
 ```
 
 ```
-foo :: string?
+foo :: string? -> string
 foo a := a
 ```
 
@@ -165,6 +166,7 @@ becomes
 ```
 /**
  * @param string|null
+ * @return string
  */
 public function foo(?string $a = null) {
     return $a;
@@ -172,7 +174,7 @@ public function foo(?string $a = null) {
 ```
 
 ```
-foo :: string -> int?
+foo :: string -> int? -> string
 foo a b := a
 ```
 
@@ -182,13 +184,32 @@ becomes
 /**
  * @param string|null
  * @param int
+ * @return string
  */
 public function foo(?string $a = null, int $b) {
     return $a;
 }
 ```
 
+Variable type signatures:
 
+    var :: string
+    myVar = "hi"
+
+becomes:
+
+    /** @var string */
+    $myVar = "hi";
+
+and
+
+    var :: string?
+    myVar = null
+
+becomes:
+
+    /** @var string|null */
+    $myVar = null;
 ## Hash creation
 
 ```
