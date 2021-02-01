@@ -11,6 +11,7 @@ import ToPhp
 import Data.Char (isAlphaNum, isUpper)
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
+lambdaVarNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_ "
 classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
@@ -518,7 +519,8 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
 
 lambda = debug "lambda" >> do
   char '\\'
-  args <- anyToken `manyTill` (string " -> ")
+  args <-  many1 lambdaVarNameChars
+  string "-> "
   body <- (braces Nothing) <||> saltyParserSingle
   return $ LambdaFunction (words args) body
 

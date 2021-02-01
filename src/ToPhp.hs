@@ -14,6 +14,9 @@ simpleVarName x = case x of
     ClassVar s -> s
     SimpleVar s -> s
 
+formatLoopVars (x:[]) = "$" ++ x
+formatLoopVars (x:y:[]) = print2 "$% => $%" x y
+
 varName :: Salty -> String
 varName (Variable name scope) = toPhp name
 varName x = "this shouldnt be in varName: " ++ (show x)
@@ -156,44 +159,44 @@ instance ConvertToPhp Salty where
   toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)
 
   -- special case, each with a range
-  toPhp (HigherOrderFunctionCall (Range left right) Each (LambdaFunction (loopVar:xs) body) _)  =
-                print6 "for ($% = %; $% <= %; $%++) {\n%\n}" loopVar (toPhp left) loopVar (toPhp right) loopVar (toPhp body)
+  toPhp (HigherOrderFunctionCall (Range left right) Each (LambdaFunction loopVar body) _)  =
+                print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toPhp left) (formatLoopVars loopVar) (toPhp right) (formatLoopVars loopVar) (toPhp body)
 
   -- optionals
   toPhp (HigherOrderFunctionCall (SaltyOptional salty) func lambda accVar)  = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newHoF)
     where newHoF = HigherOrderFunctionCall salty func lambda accVar
 
   -- each
-  toPhp (HigherOrderFunctionCall obj Each (LambdaFunction (loopVar:xs) body) _)  =
-                print3 "foreach (% as $%) {\n%;\n}\n" (varName obj) loopVar (toPhp body)
+  toPhp (HigherOrderFunctionCall obj Each (LambdaFunction loopVar body) _)  =
+                print3 "foreach (% as %) {\n%;\n}\n" (varName obj) (formatLoopVars loopVar) (toPhp body)
 
   -- map
-  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:[]) (Braces body)) accVar) =
-                print6 "% = [];\nforeach (% as $%) {\n%\n% []= %;\n}\n" accVar (varName obj) loopVar (initToPhp body) accVar (stripNewlineToPhp (last body))
+  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction loopVar (Braces body)) accVar) =
+                print6 "% = [];\nforeach (% as %) {\n%\n% []= %;\n}\n" accVar (varName obj) (formatLoopVars loopVar) (initToPhp body) accVar (stripNewlineToPhp (last body))
 
-  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction (loopVar:[]) body) accVar) =
-                print5 "% = [];\nforeach (% as $%) {\n% []= %;\n}\n" accVar (varName obj) loopVar accVar (toPhp body)
+  toPhp (HigherOrderFunctionCall obj Map (LambdaFunction loopVar body) accVar) =
+                print5 "% = [];\nforeach (% as %) {\n% []= %;\n}\n" accVar (varName obj) (formatLoopVars loopVar) accVar (toPhp body)
 
   -- select
-  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:[]) (Braces body)) accVar) =
-                accVar ++ " = [];\n" ++ (print6 "foreach (% as $%) {\n%\nif(%) {\n% []= $%;\n}\n}\n" (varName obj) loopVar (initToPhp body) (stripNewlineToPhp . last $ body) accVar loopVar)
+  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction loopVar (Braces body)) accVar) =
+                accVar ++ " = [];\n" ++ (print6 "foreach (% as %) {\n%\nif(%) {\n% []= %;\n}\n}\n" (varName obj) (formatLoopVars loopVar) (initToPhp body) (stripNewlineToPhp . last $ body) accVar (formatLoopVars loopVar))
 
-  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction (loopVar:[]) body) accVar) =
-                print6 "% = [];\nforeach (% as $%) {\nif(%) {\n% []= $%;\n}\n}\n" accVar (varName obj) loopVar (toPhp body) accVar loopVar
+  toPhp (HigherOrderFunctionCall obj Select (LambdaFunction loopVar body) accVar) =
+                print6 "% = [];\nforeach (% as %) {\nif(%) {\n% []= %;\n}\n}\n" accVar (varName obj) (formatLoopVars loopVar) (toPhp body) accVar (formatLoopVars loopVar)
 
   -- any
-  toPhp (HigherOrderFunctionCall obj Any (LambdaFunction (loopVar:xs) (Braces body)) accVar) =
-                print6 "% = false;\nforeach (% as $%) {\n%\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar (varName obj) loopVar (initToPhp body) (stripNewlineToPhp . last $ body) accVar
+  toPhp (HigherOrderFunctionCall obj Any (LambdaFunction loopVar (Braces body)) accVar) =
+                print6 "% = false;\nforeach (% as %) {\n%\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar (varName obj) (formatLoopVars loopVar) (initToPhp body) (stripNewlineToPhp . last $ body) accVar
 
-  toPhp (HigherOrderFunctionCall obj Any (LambdaFunction (loopVar:xs) body) accVar) =
-                print5 "% = false;\nforeach (% as $%) {\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar (varName obj) loopVar (toPhp body) accVar
+  toPhp (HigherOrderFunctionCall obj Any (LambdaFunction loopVar body) accVar) =
+                print5 "% = false;\nforeach (% as %) {\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar (varName obj) (formatLoopVars loopVar) (toPhp body) accVar
 
   -- all
-  toPhp (HigherOrderFunctionCall obj All (LambdaFunction (loopVar:xs) (Braces body)) accVar) =
-                print6 "% = true;\nforeach (% as $%) {\n%\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (varName obj) loopVar (initToPhp body) (stripNewlineToPhp . last $ body) accVar
+  toPhp (HigherOrderFunctionCall obj All (LambdaFunction loopVar (Braces body)) accVar) =
+                print6 "% = true;\nforeach (% as %) {\n%\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (varName obj) (formatLoopVars loopVar) (initToPhp body) (stripNewlineToPhp . last $ body) accVar
 
-  toPhp (HigherOrderFunctionCall obj All (LambdaFunction (loopVar:xs) body) accVar) =
-                print5 "% = true;\nforeach (% as $%) {\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (varName obj) loopVar (toPhp body) accVar
+  toPhp (HigherOrderFunctionCall obj All (LambdaFunction loopVar body) accVar) =
+                print5 "% = true;\nforeach (% as %) {\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (varName obj) (formatLoopVars loopVar) (toPhp body) accVar
 
   toPhp Salt = "I'm salty"
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"

@@ -362,6 +362,8 @@ transpileTests = [
     -- same but w parens
     "(@adit).map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
     "users = shops.map(\\s -> s.user)" `matches`"$users = [];\nforeach ($shops as $s) {\n    $users []= $s->user;\n}",
+    "users = shops.map(\\s x -> s.user)" `matches` "$users = [];\nforeach ($shops as $s => $x) {\n    $users []= $s->user;\n}",
+    "shops.each(\\s x -> s.user)" `matches` "foreach ($shops as $s => $x) {\n    $s->user;\n}",
 
     -- assigning accVar manually
     "myAcc = foo.each(\\x -> print(x))" `matches` "foreach ($foo as $x) {\n    print($x);\n}",
