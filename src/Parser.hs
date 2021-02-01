@@ -36,14 +36,14 @@ saltyToPhp indentAmt str = case (build str) of
 numLines str = length . filter (/="") . lines $ str
 
 checkForErrors inputStr outputStr = if (numLines outputStr) < (numLines inputStr)
-                                  then outputStr ++ "\nfailed, possibly on:\n" ++ (findErrorLine inputStr)
+                                  then outputStr ++ "\n// failed, possibly on:\n" ++ (findErrorLine inputStr)
                                   else outputStr
 
 findErrorLine :: String -> String
 findErrorLine str = findErrorLine_ ((map (removeSemicolons . strip)) . lines $ str)
 
 findErrorLine_ :: [String] -> String
-findErrorLine_ [] = "no errors"
+findErrorLine_ [] = "// no errors"
 findErrorLine_ lines = case (build (head lines)) of
                          Left err -> "error from adit" -- this never gets hit, not sure why.
                          Right [] -> head lines -- this means the parse failed, so this is the issue line.
