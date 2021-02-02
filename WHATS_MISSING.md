@@ -15,13 +15,6 @@ Use php 7.4 lambda shorthand to allow HoFs to be passed into functions:
 $b = array_map(fn($n) => $n * $n * $n, $a);
 print_r($b);
 
-fails:
-    foo := {
-        [
-            ["", "en", "US", "USD", false, false, false, []],
-        ]
-    }
-
 Phan needs a variable name for type annotations...
 
      * @param bool $value
@@ -31,6 +24,8 @@ instead of
      * @param bool
 
 name not needed for returns, or for annotations on variables
+
+formatting for multi-line arrays could be better.
 
 Stuff I don't care about:
 - switch statements (though guards for functions like haskell would be cool)
