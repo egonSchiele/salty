@@ -173,11 +173,11 @@ foo := {
 multiLineArraysTest = [r|class Foo implements Bar {
     public function foo() {
         return [
-        ["", "en", "US", "USD", false, false, false],
             ["", "en", "US", "USD", false, false, false],
-                ];
-        }
-    }|]
+            ["", "en", "US", "USD", false, false, false],
+        ];
+    }
+}|]
 
 transpileTests = [
     multiLineEachTest,
@@ -513,7 +513,7 @@ transpileTests = [
     "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';",
 
     -- hash table
-    "{a: 1, [b]: 2, [@c]: 3}" `matches` "[\n        \"a\" => 1,\n        $b => 2,\n        $this->c => 3\n    ];",
+    "{a: 1, [b]: 2, [@c]: 3}" `matches` "[\n    \"a\" => 1,\n    $b => 2,\n    $this->c => 3\n];",
 
     -- multi-assign
     "foo, bar = baz" `matches` "$foo = $baz[0];\n$bar = $baz[1];",

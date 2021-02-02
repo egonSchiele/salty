@@ -43,7 +43,7 @@ newAmt_ l indentAmt
   | (head l) == '{' && length l == 1 = indentAmt + 1
   | (last l) == '}' || (last l) == ']' = indentAmt - 1
   | (head l) == '}' || (head l) == ']' = indentAmt - 1
-  | (last_ 2 l) == "};" || (last_ 2 l) == "];" = indentAmt - 1
+  | l == "};" || l == "];" = indentAmt - 1
   | otherwise = indentAmt
 
 
