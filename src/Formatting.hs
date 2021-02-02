@@ -30,7 +30,7 @@ indent_ :: [String] -> Int -> [String]
 indent_ [] _ = []
 indent_ ("":lines_) indentAmt = "":(indent_ lines_ indentAmt)
 indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
-  where newLine = if (last l) == '}' || (last_ 2 l) == "};" || (head l) == '}'
+  where newLine = if (last l) == '}' || (last_ 2 l) == "};" || (head l) == '}'|| (last_ 2 l) == "];"
                      then (replicate ((indentAmt-1)*4) ' ') ++ l
                      else (replicate (indentAmt*4) ' ') ++ l
         newAmt = newAmt_ l indentAmt
@@ -38,12 +38,12 @@ indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
 
 newAmt_ l indentAmt
   | (head l) == '}' && (last l) == '{' = indentAmt
-  | (last l) == '{' = indentAmt + 1
-  | (head l) == '[' = indentAmt + 1
-  | (last l) == '}' = indentAmt - 1
-  | (head l) == '}' = indentAmt - 1
-  | (head l) == ']' = indentAmt - 1
-  | (last_ 2 l) == "};" = indentAmt - 1
+  | (last l) == '{' || (last l) == '[' = indentAmt + 1
+  | (head l) == '[' && length l == 1 = indentAmt + 1
+  | (head l) == '{' && length l == 1 = indentAmt + 1
+  | (last l) == '}' || (last l) == ']' = indentAmt - 1
+  | (head l) == '}' || (head l) == ']' = indentAmt - 1
+  | (last_ 2 l) == "};" || (last_ 2 l) == "];" = indentAmt - 1
   | otherwise = indentAmt
 
 
@@ -97,6 +97,7 @@ checkBackTracksSingle x = x
 
 saltyToPhp_ :: Int -> [Salty] -> String
 saltyToPhp_ indentAmt tree = rstrip . unlines . (indent indentAmt) . addSemicolons . (map addBlanks) . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
+-- saltyToPhp_ indentAmt tree = show . addSemicolons . (map addBlanks) . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
 
 removeBlanks list = filter (\item -> (not (item `elem` ["", "\n", ";"]))) list
 addBlanks line
