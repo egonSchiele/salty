@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f4e369d2dfb94f3cfe38f2a3975e90d5e3a2fa1b2ff97fe2d17fa293c586854f
+-- hash: b05b6ccfc6a1c97b08755533d5ac986f74b45dffdd39db124b0f65a09228bfd9
 
 name:           salty
 version:        0.1.0.0
@@ -29,6 +29,8 @@ library
   exposed-modules:
       Formatting
       Parser
+      ParserPhp
+      PhpToPhp
       Print
       ToPhp
       Types

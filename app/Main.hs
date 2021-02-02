@@ -4,6 +4,7 @@ import System.Environment
 import System.Directory
 
 import Parser
+import ParserPhp (phpToPhp)
 import Utils
 
 getIndentAmt :: String -> Int
@@ -23,6 +24,11 @@ convertToFile infile outfile = do
     contents <- readFile infile
     let out = saltyToPhp (getIndentAmt contents) contents
     writeFile outfile ("<?php\n" ++ out)
+
+convertToPhp infile = do
+    contents <- readFile infile
+    let out = phpToPhp (getIndentAmt contents) contents
+    putStrLn out
 
 printHelp = do
     putStrLn "Usage: `salty test.salt` prints to stdout"
@@ -66,4 +72,5 @@ main = do
        ["-e", inputFile] -> findErrorInFile inputFile
        [inputFile] -> convert inputFile
        [] -> readFromStdin
+       ["-p", inputFile] -> convertToPhp inputFile
        _ -> printHelp
