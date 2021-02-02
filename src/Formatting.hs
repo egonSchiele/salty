@@ -30,7 +30,7 @@ indent_ :: [String] -> Int -> [String]
 indent_ [] _ = []
 indent_ ("":lines_) indentAmt = "":(indent_ lines_ indentAmt)
 indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
-  where newLine = if (last l) == '}' || (last_ 2 l) == "};" || (head l) == '}'|| (last_ 2 l) == "];"
+  where newLine = if (last l) == '}' || l == "};" || (head l) == '}'|| l == "];"
                      then (replicate ((indentAmt-1)*4) ' ') ++ l
                      else (replicate (indentAmt*4) ' ') ++ l
         newAmt = newAmt_ l indentAmt
