@@ -1,4 +1,0 @@
-class Foo implements Bar where
-
-__construct :: string? -> void
-__construct name := if name? then greet(name)

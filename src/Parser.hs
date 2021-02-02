@@ -31,7 +31,8 @@ debug str = return (SaltyString str)
 saltyToPhp :: Int -> String -> String
 saltyToPhp indentAmt str = case (build str) of
                    Left err -> show err
-                   Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
+                   Right xs -> saltyToPhp_ indentAmt xs
+                   -- Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
 
 numLines str = length . filter (/="") . lines $ str
 
@@ -233,7 +234,9 @@ arrayValue = debug "arrayValue" >> do
 
 array = debug "array" >> do
   char '['
+  optional $ char '\n'
   salties <- many arrayValue
+  optional $ char '\n'
   optional $ char ']'
   return $ Array salties
 

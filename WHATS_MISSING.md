@@ -15,12 +15,6 @@ Use php 7.4 lambda shorthand to allow HoFs to be passed into functions:
 $b = array_map(fn($n) => $n * $n * $n, $a);
 print_r($b);
 
-@ should parse to $this so
-
-    return @
-
-can work.
-
 fails:
     foo := {
         [

@@ -159,6 +159,26 @@ foreach ($foo as $x) {
 
 multiLineAllTest = multiLineAll `matches` multiLineAllResult
 
+multiLineArrays = [r|
+class Foo implements Bar where
+
+foo := {
+    [
+        ["", "en", "US", "USD", false, false, false],
+        ["", "en", "US", "USD", false, false, false],
+    ]
+}
+|]
+
+multiLineArraysTest = [r|class Foo implements Bar {
+    public function foo() {
+        return [
+        ["", "en", "US", "USD", false, false, false],
+            ["", "en", "US", "USD", false, false, false],
+                ];
+        }
+    }|]
+
 transpileTests = [
     multiLineEachTest,
     multiLineMapTest,
@@ -166,6 +186,7 @@ transpileTests = [
     multiLineSelectTest,
     multiLineAnyTest,
     multiLineAllTest,
+    multiLineArrays `matches` multiLineArraysTest,
     -- operations
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",

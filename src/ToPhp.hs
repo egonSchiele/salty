@@ -271,6 +271,7 @@ instance ConvertToPhp Salty where
   toPhp (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toPhp var) (toPhp value)) $ vars)
   -- toPhp (AttrAccess (Variable (InstanceVar obj) _) attrName) = print2 "$this->%->%" obj attrName
   -- toPhp (AttrAccess (Variable (StaticVar obj) _) attrName) = print2 "static::$%->%" obj attrName
+  toPhp (Array salties@((Array _):rest)) = "[\n" ++ (intercalate ",\n" . map toPhp $ salties) ++ ",\n]"
   toPhp (Array salties) = "[" ++ (intercalate ", " . map toPhp $ salties) ++ "]"
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
