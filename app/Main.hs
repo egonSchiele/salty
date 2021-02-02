@@ -6,6 +6,7 @@ import System.Directory
 import Parser
 import ParserPhp (phpToPhp)
 import Utils
+import Print (print2)
 
 getIndentAmt :: String -> Int
 getIndentAmt contents = floor $ (countLeadingSpaces contents) / 4
@@ -28,7 +29,7 @@ convertToFile infile outfile = do
 convertToPhp infile = do
     contents <- readFile infile
     let out = phpToPhp (getIndentAmt contents) contents
-    putStrLn out
+    putStrLn $ print2 "% -> %" infile out
 
 printHelp = do
     putStrLn "Usage: `salty test.salt` prints to stdout"

@@ -65,7 +65,8 @@ phpParserSingle = debug "phpParserSingle" >> do
        Nothing -> return salty
        (Just s) -> do
           debug $ "found a newline!" ++ [s]
-          return (WithNewLine salty)
+          return salty
+          -- return (WithNewLine salty)
 
 phpParserSingle_ :: PhpParser
 phpParserSingle_ = do
