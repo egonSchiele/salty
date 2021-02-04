@@ -515,6 +515,12 @@ transpileTests = [
     -- hash table
     "{a: 1, [b]: 2, [@c]: 3}" `matches` "[\n    \"a\" => 1,\n    $b => 2,\n    $this->c => 3\n];",
 
+    -- string
+    "\"foo\"" `matches` "\"foo\";",
+    "'foo'" `matches` "\"foo\";",
+    "\"'foo'\"" `matches` "",
+    "\"'foo' and 'bar'\"" `matches` "",
+
     -- multi-assign
     "foo, bar = baz" `matches` "$foo = $baz[0];\n$bar = $baz[1];",
     "foo, bar = null" `matches` "$foo = null;\n$bar = null;",
