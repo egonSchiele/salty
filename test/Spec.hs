@@ -386,6 +386,11 @@ transpileTests = [
     "users = shops.map(\\s -> s.user)" `matches`"$users = [];\nforeach ($shops as $s) {\n    $users []= $s->user;\n}",
     "users = shops.map(\\s x -> s.user)" `matches` "$users = [];\nforeach ($shops as $s => $x) {\n    $users []= $s->user;\n}",
     "shops.each(\\s x -> s.user)" `matches` "foreach ($shops as $s => $x) {\n    $s->user;\n}",
+    "@shops().each(\\s -> s.user)" `matches` "foreach ($this->shops() as $s) {\n    $s->user;\n}",
+    "@@shops().map(\\s -> s.user)" `matches` "$result = [];\nforeach (static::shops() as $s) {\n    $result []= $s->user;\n}",
+    "Foo.shops().any(\\s -> s.user)" `matches`"$result = false;\nforeach (Foo::shops() as $s) {\n    if($s->user) {\n        $result = true;\n        break;\n    }\n}",
+    "@shops().all(\\s -> s.user)" `matches` "$result = true;\nforeach ($this->shops() as $s) {\n    if(!$s->user) {\n        $result = false;\n        break;\n    }\n}",
+    "@shops().select(\\s -> s.user)" `matches` "$result = [];\nforeach ($this->shops() as $s) {\n    if($s->user) {\n        $result []= $s;\n    }\n}",
 
     -- assigning accVar manually
     "myAcc = foo.each(\\x -> print(x))" `matches` "foreach ($foo as $x) {\n    print($x);\n}",
