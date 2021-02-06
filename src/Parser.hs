@@ -93,13 +93,13 @@ saveIt salty (SaltyState _ scopes) = SaltyState salty scopes
 saltyParserSingleWithoutNewline :: SaltyParser
 saltyParserSingleWithoutNewline = do
   parens
+  <||> higherOrderFunctionCall
   <||> hashTable
   <||> array
   -- <||> emptyHash
   <||> (braces Nothing)
   <||> function
   <||> functionTypeSignature
-  <||> higherOrderFunctionCall
   <||> lambda
   <||> multiAssign
   <||> plusplusAll
@@ -512,7 +512,7 @@ classVar = debug "classVar" >> do
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   optional $ char '('
-  obj <- range <||> functionCall <||> partialFunctionCall <||> saltyOptional <||> variable
+  obj <- range <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> saltyOptional <||> variable
   optional $ char ')'
   char '.'
   funcName <-      (string "map" >> return Map)

@@ -387,6 +387,8 @@ transpileTests = [
     "users = shops.map(\\s x -> s.user)" `matches` "$users = [];\nforeach ($shops as $s => $x) {\n    $users []= $s->user;\n}",
     "shops.each(\\s x -> s.user)" `matches` "foreach ($shops as $s => $x) {\n    $s->user;\n}",
     "@shops().each(\\s -> s.user)" `matches` "foreach ($this->shops() as $s) {\n    $s->user;\n}",
+    "[foo, bar, baz].map(\\shop -> shop.listings)" `matches` "$result = [];\nforeach ([$foo, $bar, $baz] as $shop) {\n    $result []= $shop->listings;\n}",
+    "foo[:5].map(\\shop -> shop.listings)" `matches` "$result = [];\nforeach (array_slice($foo, 0, 5) as $shop) {\n    $result []= $shop->listings;\n}",
     "@shops().find(1).each(\\s -> s.user)" `matches` "foreach ($this->shops()->find(1) as $s) {\n    $s->user;\n}",
     "Foo.shops(arg1).each(\\s -> s.user)" `matches` "foreach (Foo::shops($arg1) as $s) {\n    $s->user;\n}",
     "@@shops().map(\\s -> s.user)" `matches` "$result = [];\nforeach (static::shops() as $s) {\n    $result []= $s->user;\n}",
