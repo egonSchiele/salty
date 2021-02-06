@@ -465,9 +465,9 @@ emptyLine = debug "emptyLine" >> do
   return EmptyLine
 
 saltyString = debug "saltyString" >> do
-  oneOf "'\""
-  str <- many $ noneOf "\"'"
-  oneOf "'\""
+  quoteType <- oneOf "'\""
+  str <- many $ noneOf [quoteType]
+  char quoteType
   return $ SaltyString str
 
 saltyNumber = debug "saltyNumber" >> do
