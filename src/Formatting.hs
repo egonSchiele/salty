@@ -71,6 +71,7 @@ checkBackTracks :: [Salty] -> [Salty]
 checkBackTracks [] = []
 checkBackTracks (a:(BackTrack s):xs) = s:(checkBackTracks xs)
 checkBackTracks (a:(WithNewLine (BackTrack s)):xs) = (WithNewLine s):(checkBackTracks xs)
+checkBackTracks (a:(WithNewLine hof@(HigherOrderFunctionCall (BackTrack _) _ _ _)):xs) = (WithNewLine hof):(checkBackTracks xs)
 checkBackTracks (x:xs) = (checkBackTracksSingle x):(checkBackTracks xs)
 
 checkBackTracksSingle :: Salty -> Salty

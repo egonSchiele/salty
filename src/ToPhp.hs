@@ -153,6 +153,8 @@ instance ConvertToPhp Salty where
   -- an optional containing whatever other salty
   toPhp (FunctionCall (Just (SaltyOptional salty)) (Right funcName) args) = print4 "if (!is_null(%)) {\n%->%(%)\n}" (toPhp salty) (toPhp salty) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
+  toPhp (FunctionCall (Just obj) (Right funcName) args) = print3 "%->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+
   -- same as above but with parens
   toPhp (FunctionCall (Just (Parens [obj])) (Right funcName) args) = print3 "(%)->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
