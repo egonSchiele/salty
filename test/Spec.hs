@@ -531,6 +531,12 @@ transpileTests = [
     "\"'foo' and 'bar'\"" `matches` "\"'foo' and 'bar'\";",
     "\"<div class='foo bar'>\"" `matches` "\"<div class='foo bar'>\";",
 
+    -- built in functions
+    "foo.split(',')" `matches` "explode(',', $foo);",
+    "foo.join(',')" `matches` "implode(',', $foo);",
+    "foo.uniq()" `matches` "array_unique($foo);",
+    "foo.split(',').uniq()" `matches` "array_unique(explode(',', $foo));",
+
     -- multi-assign
     "foo, bar = baz" `matches` "$foo = $baz[0];\n$bar = $baz[1];",
     "foo, bar = null" `matches` "$foo = null;\n$bar = null;",
