@@ -150,6 +150,13 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "split")) [SaltyString separator]) = print2 "explode('%', %)" separator (toPhp obj)
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "join")) [SaltyString separator]) = print2 "implode('%', %)" separator (toPhp obj)
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "uniq")) []) = "array_unique(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "pop")) []) = "array_pop(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "keys")) []) = "array_keys(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "values")) []) = "array_values(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "reverse")) []) = "array_reverse(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "count")) []) = "count(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toPhp obj) ++ ")"
   toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args) = toPhp $ New vName args
 
   -- functions called on an obj

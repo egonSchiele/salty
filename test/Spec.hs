@@ -535,6 +535,13 @@ transpileTests = [
     "foo.split(',')" `matches` "explode(',', $foo);",
     "foo.join(',')" `matches` "implode(',', $foo);",
     "foo.uniq()" `matches` "array_unique($foo);",
+    "foo.pop()" `matches` "array_pop($foo);",
+    "foo.keys()" `matches` "array_keys($foo);",
+    "foo.values()" `matches` "array_values($foo);",
+    "foo.reverse()" `matches` "array_reverse($foo);",
+    "foo.count()" `matches` "count($foo);",
+    "foo.size()" `matches` "count($foo);",
+    "foo.shuffle()" `matches` "shuffle($foo);",
     "foo.split(',').uniq()" `matches` "array_unique(explode(',', $foo));",
     "Array.new(3, true)" `matches` "new Array(3,true);",
 
