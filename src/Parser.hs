@@ -558,7 +558,7 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   return $ HigherOrderFunctionCall obj funcName func "$result"
 
 lambda = debug "lambda" >> do
-  char '\\'
+  optional $ char '\\'
   args <-  many1 lambdaVarNameChars
   string "-> "
   body <- (braces Nothing) <||> saltyParserSingle
