@@ -137,6 +137,27 @@ private function foo($a, $b) {
 }
 ```
 
+### Guards
+Like switch statements for functions.
+
+```
+fib x := guard
+  | x < 2 -> x
+  | otherwise -> fib(x - 1) + fib(x - 2)
+```
+
+becomes
+
+```
+function fib($x) {
+    if ($x < 2) {
+        return $x;
+    } else {
+        fib($x - 1) + fib($x - 2);
+    }
+}
+```
+
 ### Type signatures
 
 ```

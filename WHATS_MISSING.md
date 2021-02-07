@@ -26,6 +26,3 @@ instead of
 name not needed for returns, or for annotations on variables
 
 formatting for multi-line arrays could be better.
-
-Stuff I don't care about:
-- switch statements (though guards for functions like haskell would be cool)
