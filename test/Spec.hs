@@ -397,6 +397,12 @@ transpileTests = [
     "@shops().all(\\s -> s.user)" `matches` "$result = true;\nforeach ($this->shops() as $s) {\n    if(!$s->user) {\n        $result = false;\n        break;\n    }\n}",
     "@shops().select(\\s -> s.user)" `matches` "$result = [];\nforeach ($this->shops() as $s) {\n    if($s->user) {\n        $result []= $s;\n    }\n}",
 
+    -- chain a function onto the end of a HoF
+    "count_alive = shops.select(\\s -> s.isAlive()).count()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = count($count_alive);",
+    "count_alive = shops.select(\\s -> s.isAlive()).foo()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = $count_alive->foo();",
+    -- TODO can't chain more than one function yet
+    -- "count_alive = shops.select(\\s -> s.isAlive()).uniq().count()" `matches` "",
+
     -- assigning accVar manually
     "myAcc = foo.each(\\x -> print(x))" `matches` "foreach ($foo as $x) {\n    print($x);\n}",
     "@myAcc = foo.map(\\x -> x + 1)" `matches` "$this->myAcc = [];\nforeach ($foo as $x) {\n    $this->myAcc []= $x + 1;\n}",

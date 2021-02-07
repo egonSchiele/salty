@@ -76,6 +76,7 @@ instance (ConvertToPhp a1, ConvertToPhp a2) => ConvertToPhp (Either a1 a2) where
 instance ConvertToPhp Salty where
   toPhp (Operation x op (WithNewLine y)) = (toPhp $ Operation x op y) ++ "\n"
   toPhp (Operation x@(Variable _ _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
+  toPhp (Operation x@(Variable _ _) Equals (FunctionCall (Just (HigherOrderFunctionCall obj callName func accVar)) fName args)) = toPhp $ FunctionCall (Just $ HigherOrderFunctionCall obj callName func (varName x)) fName args
 
   toPhp op@(Operation left operator (AttrAccess (SaltyOptional salty) attr)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
           where newOperation = Operation left operator (AttrAccess salty attr)
@@ -146,6 +147,8 @@ instance ConvertToPhp Salty where
   -- builtin bare functions
   toPhp (FunctionCall Nothing (Left VarDumpShort) args) = "var_dump(" ++ (intercalate ", " . map toPhp $ args) ++ ")"
 
+  -- functions called on higher order functions
+  toPhp (FunctionCall (Just hof@(HigherOrderFunctionCall _ _ _ accVar)) (Right funcName) args) = print3 "%\n% = %" (toPhp hof) accVar (toPhp (FunctionCall (Just (PurePhp accVar)) (Right funcName) args))
   -- builtin functions on an obj
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "split")) []) = print2 "explode('%', %)" " " (toPhp obj)
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "join")) []) = print2 "implode('%', %)" " " (toPhp obj)
