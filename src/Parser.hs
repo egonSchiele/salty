@@ -593,6 +593,7 @@ purePhp = do
 functionCall = debug "functionCall" >> do
        functionCallOnObject
   <||> functionCallWithoutObject
+  <||> functionCallWithoutParens
 
 findArgs = debug "findArgs" >> do
   args <- many $ do
@@ -627,6 +628,12 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   funcArgs <- findArgs
   char ')'
   return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs
+
+functionCallWithoutParens = debug "functionCallWithoutParens" >> do
+  funcName <- variableName
+  string " . " <||> string " $ "
+  funcArgs <- functionCallWithoutParens <||> variable
+  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) [funcArgs]
 
 arraySlice = debug "arraySlice" >> do
   array <- variable
