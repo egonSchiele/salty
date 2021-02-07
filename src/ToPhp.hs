@@ -147,6 +147,8 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall Nothing (Left VarDumpShort) args) = "var_dump(" ++ (intercalate ", " . map toPhp $ args) ++ ")"
 
   -- builtin functions on an obj
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "split")) []) = print2 "explode('%', %)" " " (toPhp obj)
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "join")) []) = print2 "implode('%', %)" " " (toPhp obj)
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "split")) [SaltyString separator]) = print2 "explode('%', %)" separator (toPhp obj)
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "join")) [SaltyString separator]) = print2 "implode('%', %)" separator (toPhp obj)
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "uniq")) []) = "array_unique(" ++ (toPhp obj) ++ ")"
