@@ -400,6 +400,9 @@ transpileTests = [
     -- chain a function onto the end of a HoF
     "count_alive = shops.select(\\s -> s.isAlive()).count()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = count($count_alive);",
     "count_alive = shops.select(\\s -> s.isAlive()).foo()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = $count_alive->foo();",
+    -- TODO attr access and array slices don't work on this
+    -- "count_alive = shops.select(\\s -> s.isAlive()).foo" `matches` "",
+    -- "count_alive = shops.select(\\s -> s.isAlive())[:2]" `matches` "",
     -- TODO can't chain more than one function yet
     -- "count_alive = shops.select(\\s -> s.isAlive()).uniq().count()" `matches` "",
 
