@@ -344,15 +344,19 @@ guard = debug "guard" >> do
   optional $ char '\n'
   return $ Guard condition outcome
 
+saltyGuard = debug "saltyGuard" >> do
+  string "guard\n"
+  guards <- many1 guard
+  return $ SaltyGuard guards
+
 guardFunction = debug "guardFunction" >> do
   prevSalty <- lastSalty <$> getState
   scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
   (name, visibility) <- getVisibility <$> variableName
   space
   args <- makeArgNames <$> functionArgs
-  string ":= guard\n"
-  guards <- many1 guard
-  let body = SaltyGuard guards
+  string ":= "
+  body <- saltyGuard
   case prevSalty of
      FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility scope
      _ -> return $ Function name (map argWithDefaults args) [body] visibility scope
