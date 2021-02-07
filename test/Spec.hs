@@ -536,6 +536,7 @@ transpileTests = [
     "foo.join(',')" `matches` "implode(',', $foo);",
     "foo.uniq()" `matches` "array_unique($foo);",
     "foo.split(',').uniq()" `matches` "array_unique(explode(',', $foo));",
+    "Array.new(3, true)" `matches` "new Array(3,true);",
 
     -- multi-assign
     "foo, bar = baz" `matches` "$foo = $baz[0];\n$bar = $baz[1];",

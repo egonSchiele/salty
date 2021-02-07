@@ -583,3 +583,27 @@ The one way to generate a ternary statement is by assigning an if-then-else (mus
 generates:
 
     $var2 = $var == 0 ? 0 : 1;
+
+## Built in functions
+
+I created some built in functions because I love Ruby:
+
+```
+foo.split(',')
+foo.join(',')
+foo.uniq()
+foo.split(',').uniq()
+Array.new(3, true)
+p(foo)
+```
+
+becomes
+
+```
+explode(',', $foo);
+implode(',', $foo);
+array_unique($foo);
+array_unique(explode(',', $foo));
+new Array(3,true);
+var_dump($foo);
+```

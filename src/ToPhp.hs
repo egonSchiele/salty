@@ -150,6 +150,7 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "split")) [SaltyString separator]) = print2 "explode('%', %)" separator (toPhp obj)
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "join")) [SaltyString separator]) = print2 "implode('%', %)" separator (toPhp obj)
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "uniq")) []) = "array_unique(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args) = toPhp $ New vName args
 
   -- functions called on an obj
   toPhp (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
