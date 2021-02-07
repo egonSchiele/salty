@@ -73,6 +73,9 @@ instance (ConvertToPhp a1, ConvertToPhp a2) => ConvertToPhp (Either a1 a2) where
   toPhp (Left a) = toPhp a
   toPhp (Right a) = toPhp a
 
+instance ConvertToPhp Guard where
+  toPhp (Guard cond outcome) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn outcome)
+
 instance ConvertToPhp Salty where
   toPhp (Operation x op (WithNewLine y)) = (toPhp $ Operation x op y) ++ "\n"
   toPhp (Operation x@(Variable _ _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
@@ -294,6 +297,11 @@ instance ConvertToPhp Salty where
   -- toPhp (AttrAccess (Variable (StaticVar obj) _) attrName) = print2 "static::$%->%" obj attrName
   toPhp (Array salties@((Array _):rest)) = "[\n" ++ (intercalate ",\n" . map toPhp $ salties) ++ ",\n]"
   toPhp (Array salties) = "[" ++ (intercalate ", " . map toPhp $ salties) ++ "]"
+  toPhp (SaltyGuard guards) = initGuards ++ lastGuard
+    where initGuards = intercalate " else" . map toPhp . init $ guards
+          lastGuard = case (last guards) of
+                           (Guard (SaltyString "otherwise") cond) -> " else {\n" ++ (addReturn cond) ++  "\n}"
+                           _ -> " else" ++ (toPhp (last guards))
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
   toPhp SaltyNull = "null"

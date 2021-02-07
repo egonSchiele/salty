@@ -340,7 +340,7 @@ guard = debug "guard" >> do
   space
   condition <- operation <||> otherwiseGuard <||> variable
   string " -> "
-  outcome <- variable
+  outcome <- saltyParserSingleWithoutNewline
   optional $ char '\n'
   return $ Guard condition outcome
 

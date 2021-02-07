@@ -179,6 +179,39 @@ multiLineArraysTest = [r|class Foo implements Bar {
     }
 }|]
 
+guardTest = [r|foo := guard
+  | x == 1 -> x.foo()
+  | y == 2 -> x.map(\y -> y + 1)
+|]
+
+guardResult = [r|function foo() {
+    if ($x == 1) {
+        return $x->foo();
+    } elseif ($y == 2) {
+        $result = [];
+        foreach ($x as $y) {
+            $result []= $y + 1;
+        }
+        return $result;
+    }
+}|]
+
+guardTestWithArgs = [r|foo a bar := guard
+  | x == 1 -> x.foo()
+  | otherwise -> x.map(\y -> y + 1)
+|]
+
+guardResultWithArgs = [r|function foo($a, $bar) {
+    if ($x == 1) {
+        return $x->foo();
+    } else {
+        $result = [];
+        foreach ($x as $y) {
+            $result []= $y + 1;
+        }
+        return $result;
+    }
+}|]
 transpileTests = [
     multiLineEachTest,
     multiLineMapTest,
@@ -187,6 +220,8 @@ transpileTests = [
     multiLineAnyTest,
     multiLineAllTest,
     multiLineArrays `matches` multiLineArraysTest,
+    guardTest `matches` guardResult,
+    guardTestWithArgs `matches` guardResultWithArgs,
     -- operations
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",
