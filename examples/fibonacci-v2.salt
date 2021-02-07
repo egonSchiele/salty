@@ -1,0 +1,5 @@
+fib x := guard
+  | x < 2 -> x
+  | otherwise -> fib(x - 1) + fib(x - 2)
+
+(1..10).each(i -> p(fib(i)))
