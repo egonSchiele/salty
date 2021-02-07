@@ -275,7 +275,7 @@ braces scope_ = debug "braces" >> do
   return $ Braces body
 
 function = debug "function" >> do
-  multilineFunction <||> onelineFunction
+  multilineFunction <||> guardFunction <||> onelineFunction
 
 varArg = debug "varArg" >> do
   string "..."
@@ -294,13 +294,12 @@ makeArgNames (arg:rest)
   | head arg == '&' = (ArgumentName (tail arg) True):(makeArgNames rest)
   | otherwise       = (ArgumentName arg False):(makeArgNames rest)
 
+getOrDefaultScope (Just x) = x
+getOrDefaultScope Nothing = GlobalScope
 
 onelineFunction = debug "onelineFunction" >> do
   prevSalty <- lastSalty <$> getState
-  scope_ <- (safeHead . stateScopes) <$> getState
-  let scope = case scope_ of
-                Just x -> x
-                Nothing -> GlobalScope
+  scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
   (name, visibility) <- getVisibility <$> variableName
   space
   _args <- functionArgs
@@ -320,10 +319,7 @@ onelineFunction = debug "onelineFunction" >> do
 
 multilineFunction = debug "multilineFunction" >> do
   prevSalty <- lastSalty <$> getState
-  scope_ <- (safeHead . stateScopes) <$> getState
-  let scope = case scope_ of
-                Just x -> x
-                Nothing -> GlobalScope
+  scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
   (name, visibility) <- getVisibility <$> variableName
   space
   _args <- functionArgs
@@ -331,6 +327,32 @@ multilineFunction = debug "multilineFunction" >> do
   string ":="
   space
   body <- braces (Just FunctionScope)
+  case prevSalty of
+     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility scope
+     _ -> return $ Function name (map argWithDefaults args) [body] visibility scope
+
+otherwiseGuard = do
+  string "otherwise"
+  return $ SaltyString "otherwise"
+
+guard = debug "guard" >> do
+  char '|'
+  space
+  condition <- operation <||> otherwiseGuard <||> variable
+  string " -> "
+  outcome <- variable
+  optional $ char '\n'
+  return $ Guard condition outcome
+
+guardFunction = debug "guardFunction" >> do
+  prevSalty <- lastSalty <$> getState
+  scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
+  (name, visibility) <- getVisibility <$> variableName
+  space
+  args <- makeArgNames <$> functionArgs
+  string ":= guard\n"
+  guards <- many1 guard
+  let body = SaltyGuard guards
   case prevSalty of
      FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility scope
      _ -> return $ Function name (map argWithDefaults args) [body] visibility scope

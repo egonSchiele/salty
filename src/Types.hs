@@ -87,6 +87,11 @@ data BuiltInFunction = VarDumpShort deriving (Show)
 
 data Scope = GlobalScope | ClassScope | FunctionScope deriving (Show)
 
+data Guard = Guard {
+                gCondition :: Salty,
+                gOutcome :: Salty
+             } deriving (Show)
+
 data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                oLeft :: Salty,
                oOperationType :: Operator,
@@ -161,6 +166,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                muVars :: [Salty],
                muValue :: Salty
              }
+             | SaltyGuard [Guard]
              | Array [Salty]
              | ReturnStatement Salty
              | Negate Salty

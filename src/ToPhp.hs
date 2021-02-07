@@ -134,6 +134,7 @@ instance ConvertToPhp Salty where
                                      _ -> ""
           funcArgs = intercalate ", " $ map toPhp args
           funcBody = case body of
+                          [] -> ""
                           [Braces []] -> ""
                           [Braces salties] -> print2 "%\n%" (concat . map toPhp . init $ salties) (addReturn . last $ salties)
                           x -> print2 "%\n%" (concat . map toPhp . init $ x) (addReturn . last $ x)
