@@ -41,6 +41,11 @@ debugFile infile = do
     contents <- readFile infile
     putStrLn . saltyToDebugTree $ contents
 
+debugFileCheckBackTracks :: String -> IO ()
+debugFileCheckBackTracks infile = do
+    contents <- readFile infile
+    putStrLn . saltyToDebugTreeCheckBackTracks $ contents
+
 findErrorInFile infile = do
   contents <- readFile infile
   putStrLn "error in:"
@@ -66,6 +71,7 @@ main = do
        ["help"] -> printHelp
        ["debug", inputFile] -> debugFile inputFile
        ["-d", inputFile] -> debugFile inputFile
+       ["-b", inputFile] -> debugFileCheckBackTracks inputFile
        ["debug"] -> debugFromStdin
        ["-d"] -> debugFromStdin
        ["-e"] -> findErrorInStdin

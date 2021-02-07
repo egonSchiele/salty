@@ -15,6 +15,9 @@ findString search str = fromMaybe (-1) $ findIndex (isPrefixOf search) (tails st
 formatDebug :: [Salty] -> String
 formatDebug list = unlines . indentDebug . (map strip) . lines . addNewlines . show $ list
 
+formatDebugStripBackTracks :: [Salty] -> String
+formatDebugStripBackTracks list = unlines . indentDebug . (map strip) . lines . addNewlines . show . checkBackTracks $ list
+
 addNewlines str = replace "[" "[\n" . replace "{" "{\n" . replace "," ",\n" . replace "}" "\n}" . replace "]" "\n]" $ str
 
 addSemicolons :: [String] -> [String]
@@ -69,9 +72,13 @@ getNewAmt l indentAmt
 
 checkBackTracks :: [Salty] -> [Salty]
 checkBackTracks [] = []
-checkBackTracks (a:(BackTrack s):xs) = s:(checkBackTracks xs)
-checkBackTracks (a:(WithNewLine (BackTrack s)):xs) = (WithNewLine s):(checkBackTracks xs)
-checkBackTracks (a:(WithNewLine hof@(HigherOrderFunctionCall (BackTrack _) _ _ _)):xs) = (WithNewLine hof):(checkBackTracks xs)
+checkBackTracks (a:(BackTrack s):xs) = checkBackTracks (s:xs)
+checkBackTracks (a:(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine s):xs)
+
+-- try using
+-- @shops().find(1).each(\\s -> s.user)
+-- without the line below...
+checkBackTracks (a:(WithNewLine hof@(HigherOrderFunctionCall (BackTrack _) _ _ _)):xs) = checkBackTracks ((WithNewLine hof):xs)
 checkBackTracks (x:xs) = (checkBackTracksSingle x):(checkBackTracks xs)
 
 checkBackTracksSingle :: Salty -> Salty
@@ -92,7 +99,7 @@ checkBackTracksSingle (WithNewLine s) = WithNewLine (checkBackTracksSingle s)
 checkBackTracksSingle (Parens s) = Parens (checkBackTracks s)
 checkBackTracksSingle (Braces s) = Braces (checkBackTracks s)
 checkBackTracksSingle (Array s) = Array (checkBackTracks s)
-checkBackTracksSingle (BackTrack s) = BackTrack (checkBackTracksSingle s)
+checkBackTracksSingle (BackTrack s) = (checkBackTracksSingle s)
 checkBackTracksSingle (HashLookup h k) = HashLookup (checkBackTracksSingle h) (checkBackTracksSingle k)
 checkBackTracksSingle x = x
 

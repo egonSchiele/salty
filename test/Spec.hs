@@ -312,6 +312,7 @@ transpileTests = [
     "@a.foo(@bar())" `matches` "$this->a->foo($this->bar());",
     "@foo(@@bar())" `matches` "$this->foo(static::bar());",
     "@@foo(@b.bar())" `matches` "static::foo($this->b->bar());",
+    "a.foo().bar().baz().func().func2()" `matches` "$a->foo()->bar()->baz()->func()->func2();",
 
     -- attr access
     "foo.bar" `matches` "$foo->bar;",

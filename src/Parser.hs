@@ -55,6 +55,12 @@ saltyToDebugTree str = case (build str) of
                    Left err -> show err
                    Right xs -> formatDebug xs
 
+saltyToDebugTreeCheckBackTracks :: String -> String
+saltyToDebugTreeCheckBackTracks str = case (build str) of
+                   Left err -> show err
+                   Right xs -> formatDebugStripBackTracks xs
+
+
 startingState = SaltyState EmptyLine []
 
 build :: String -> Either ParseError [Salty]
