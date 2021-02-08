@@ -253,6 +253,7 @@ transpileTests = [
     "foo = hello_there(hi(2) <> 1)" `matches` "$foo = hello_there(array_merge(hi(2), 1));",
     "foo = hello_there(hi(2) + 1)" `matches` "$foo = hello_there(hi(2) + 1);",
     "foo, bar, baz = []" `matches` "$foo = [];\n$bar = [];\n$baz = [];",
+    "key = @@KEY ++ preg_replace('/[^a-z\\d_]/i', '_', str).join(\"_\") ++ last" `matches` "$key = KEY . implode('_', preg_replace(\"/[^a-z\\d_]/i\", \"_\", $str)) . $last;",
 
     -- function definitions
     "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}",
