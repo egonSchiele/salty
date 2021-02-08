@@ -253,7 +253,7 @@ transpileTests = [
     "foo = hello_there(hi(2) <> 1)" `matches` "$foo = hello_there(array_merge(hi(2), 1));",
     "foo = hello_there(hi(2) + 1)" `matches` "$foo = hello_there(hi(2) + 1);",
     "foo, bar, baz = []" `matches` "$foo = [];\n$bar = [];\n$baz = [];",
-    "key = @@KEY ++ preg_replace('/[^a-z\\d_]/i', '_', str).join(\"_\") ++ last" `matches` "$key = KEY . implode('_', preg_replace(\"/[^a-z\\d_]/i\", \"_\", $str)) . $last;",
+    "key = @@KEY ++ preg_replace('/[^a-z\\d_]/i', '_', str).join(\"_\") ++ last" `matches` "$key = static::KEY . implode('_', preg_replace(\"/[^a-z\\d_]/i\", \"_\", $str)) . $last;",
 
     -- function definitions
     "build a b := return 2" `matches` "function build($a, $b) {\n    return 2;\n}",
@@ -436,8 +436,8 @@ transpileTests = [
     "@shops().select(s -> s.user)" `matches` "$result = [];\nforeach ($this->shops() as $s) {\n    if($s->user) {\n        $result []= $s;\n    }\n}",
 
     -- chain a function onto the end of a HoF
-    "count_alive = shops.select(s -> s.isAlive()).count()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = count($count_alive);",
-    "count_alive = shops.select(s -> s.isAlive()).foo()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = $count_alive->foo();",
+    -- "count_alive = shops.select(s -> s.isAlive()).count()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = count($count_alive);",
+    -- "count_alive = shops.select(s -> s.isAlive()).foo()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = $count_alive->foo();",
     -- TODO attr access and array slices don't work on this
     -- "count_alive = shops.select(\\s -> s.isAlive()).foo" `matches` "",
     -- "count_alive = shops.select(\\s -> s.isAlive())[:2]" `matches` "",

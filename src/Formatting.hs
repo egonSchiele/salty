@@ -72,7 +72,9 @@ getNewAmt l indentAmt
 
 checkBackTracks :: [Salty] -> [Salty]
 checkBackTracks [] = []
+checkBackTracks ((Operation left op right):(BackTrack s):xs) = checkBackTracks ((Operation left op s):xs)
 checkBackTracks (a:(BackTrack s):xs) = checkBackTracks (s:xs)
+checkBackTracks ((Operation left op right):(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine (Operation left op s)):xs)
 checkBackTracks (a:(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine s):xs)
 
 -- try using

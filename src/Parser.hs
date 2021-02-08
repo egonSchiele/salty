@@ -85,13 +85,11 @@ saltyParserSingle_ :: SaltyParser
 saltyParserSingle_ = do
   debug "saltyParserSingle_"
   salty <- saltyParserSingleWithoutNewline
-  if worthSaving salty
-     then modifyState (saveIt salty)
-     else return ()
+  case salty of
+       EmptyLine -> return ()
+       (Operation left op right) -> modifyState (saveIt right)
+       salty -> modifyState (saveIt salty)
   return salty
-
-worthSaving EmptyLine = False
-worthSaving _ = True
 
 saveIt :: Salty -> SaltyState -> SaltyState
 saveIt salty (SaltyState _ scopes) = SaltyState salty scopes
