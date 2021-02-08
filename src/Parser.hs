@@ -338,7 +338,7 @@ otherwiseGuard = do
 guard = debug "guard" >> do
   char '|'
   space
-  condition <- operation <||> otherwiseGuard <||> variable
+  condition <- otherwiseGuard <||> validFuncArgTypes
   string " -> "
   outcome <- saltyParserSingleWithoutNewline
   optional $ char '\n'
@@ -561,7 +561,7 @@ lambda = debug "lambda" >> do
   optional $ char '\\'
   args <-  many1 lambdaVarNameChars
   string "-> "
-  body <- (braces Nothing) <||> saltyParserSingle
+  body <- saltyGuard <||> (braces Nothing) <||> saltyParserSingle
   return $ LambdaFunction (words args) body
 
 returnStatement = debug "returnStatement" >> do
