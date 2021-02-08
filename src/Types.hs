@@ -158,6 +158,15 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                 arStart :: Salty,
                 arEnd :: Maybe Salty
              }
+             | StringIndex {
+                striObj :: Salty,
+                striIndex :: Salty
+             }
+             | StringSlice {
+                strObj :: Salty,
+                strStart :: Salty,
+                strEnd :: Maybe Salty
+             }
              | Range {
                 rangeLeft :: Salty,
                 rangeRight :: Salty

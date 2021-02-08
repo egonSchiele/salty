@@ -166,6 +166,7 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "count")) []) = "count(" ++ (toPhp obj) ++ ")"
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toPhp obj) ++ ")"
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace]) = print3 "str_replace(%, %, %)" (toPhp search) (toPhp replace) (toPhp obj)
   toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args) = toPhp $ New vName args
 
   -- functions called on an obj
@@ -281,6 +282,11 @@ instance ConvertToPhp Salty where
   toPhp (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "array_slice(%, %, %)" (toPhp obj) start newEnd
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
   toPhp (ArraySlice obj start (Just end)) = print4 "array_slice(%, %, % - %)" (toPhp obj) (toPhp start) (toPhp end) (toPhp start)
+  toPhp (StringSlice obj start Nothing) = print2 "substr(%, %)" (toPhp obj) (toPhp start)
+  toPhp (StringSlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "substr(%, %, %)" (toPhp obj) start newEnd
+    where newEnd = show $ (read end :: Integer) - (read start :: Integer)
+  toPhp (StringSlice obj start (Just end)) = print4 "substr(%, %, % - %)" (toPhp obj) (toPhp start) (toPhp end) (toPhp start)
+  toPhp (StringIndex obj index) = print2 "substr(%, %, 1)" (toPhp obj) (toPhp index)
   toPhp (AttrAccess (SaltyOptional salty) attrName) = print3 "if (!is_null(%)) {\n%->%\n}" (toPhp salty) (toPhp salty) attrName
   toPhp (AttrAccess (Variable (ClassVar obj) _) attrName)
       | isConstant attrName = print2 "%::%" obj attrName

@@ -592,6 +592,8 @@ transpileTests = [
     "foo.size()" `matches` "count($foo);",
     "foo.shuffle()" `matches` "shuffle($foo);",
     "foo.split(',').uniq()" `matches` "array_unique(explode(',', $foo));",
+    "foo.sub(\"foo\", 'bar')" `matches` "str_replace(\"foo\", \"bar\", $foo);",
+    "foo.sub(\"foo\", bar)" `matches` "str_replace(\"foo\", $bar, $foo);",
     "Array.new(3, true)" `matches` "new Array(3,true);",
 
     -- multi-assign

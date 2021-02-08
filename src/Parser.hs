@@ -116,6 +116,8 @@ saltyParserSingleWithoutNewline = do
   <||> functionCall
   <||> attrAccess
   <||> arraySlice
+  <||> stringIndex
+  <||> stringSlice
   <||> hashLookup
   <||> partialHashLookup
   <||> partialFunctionCall
@@ -151,6 +153,8 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> functionCall
   <||> attrAccess
   <||> arraySlice
+  <||> stringIndex
+  <||> stringSlice
   <||> hashLookup
   <||> partialHashLookup
   <||> partialFunctionCall
@@ -339,7 +343,7 @@ guard = debug "guard" >> do
   space
   condition <- otherwiseGuard <||> validFuncArgTypes
   string " -> "
-  outcome <- saltyParserSingleWithoutNewline
+  outcome <- saltyGuard <||> saltyParserSingleWithoutNewline
   optional $ char '\n'
   return $ Guard condition outcome
 
@@ -443,6 +447,8 @@ atom = debug "atom" >> do
        functionCall
   <||> attrAccess
   <||> arraySlice
+  <||> stringIndex
+  <||> stringSlice
   <||> hashLookup
   <||> saltyBool
   <||> saltyNull
@@ -543,7 +549,7 @@ classVar = debug "classVar" >> do
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   optional $ char '('
-  obj <- range <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> saltyOptional <||> variable
+  obj <- range <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> stringSlice <||> saltyOptional <||> variable
   optional $ char ')'
   char '.'
   funcName <-      (string "map" >> return Map)
@@ -654,6 +660,25 @@ arraySlice = debug "arraySlice" >> do
                 Just salty -> salty
                 Nothing -> SaltyNumber "0"
   return $ ArraySlice array start end
+
+stringSlice = debug "stringSlice" >> do
+  string <- variable
+  char '<'
+  start_ <- (Just <$> saltyParserSingle) <||> nothing
+  char ':'
+  end <- (Just <$> saltyParserSingle) <||> nothing
+  char '>'
+  let start = case start_ of
+                Just salty -> salty
+                Nothing -> SaltyNumber "0"
+  return $ StringSlice string start end
+
+stringIndex = debug "stringIndex" >> do
+  string <- variable
+  char '<'
+  index <- saltyParserSingle
+  char '>'
+  return $ StringIndex string index
 
 hashLookup = debug "hashLookup" >> do
        shortHashLookup
