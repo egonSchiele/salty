@@ -562,7 +562,7 @@ lambda = debug "lambda" >> do
   optional $ char '\\'
   args <-  many1 lambdaVarNameChars
   string "-> "
-  body <- saltyGuard <||> (braces Nothing) <||> saltyParserSingle
+  body <- (braces Nothing) <||> saltyParserSingle
   return $ LambdaFunction (words args) body
 
 returnStatement = debug "returnStatement" >> do

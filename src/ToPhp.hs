@@ -297,10 +297,11 @@ instance ConvertToPhp Salty where
   -- toPhp (AttrAccess (Variable (StaticVar obj) _) attrName) = print2 "static::$%->%" obj attrName
   toPhp (Array salties@((Array _):rest)) = "[\n" ++ (intercalate ",\n" . map toPhp $ salties) ++ ",\n]"
   toPhp (Array salties) = "[" ++ (intercalate ", " . map toPhp $ salties) ++ "]"
+  toPhp (SaltyGuard ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn outcome)
   toPhp (SaltyGuard guards) = initGuards ++ lastGuard
     where initGuards = intercalate " else" . map toPhp . init $ guards
           lastGuard = case (last guards) of
-                           (Guard (SaltyString "otherwise") cond) -> " else {\n" ++ (addReturn cond) ++  "\n}"
+                           (Guard (SaltyString "otherwise") outcome) -> " else {\n" ++ (addReturn outcome) ++  "\n}"
                            _ -> " else" ++ (toPhp (last guards))
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
