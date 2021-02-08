@@ -29,7 +29,9 @@ convertToFile infile outfile = do
 convertToPhp infile = do
     contents <- readFile infile
     let out = phpToPhp (getIndentAmt contents) contents
-    putStrLn $ print2 "% -> %" infile out
+    if out /= ""
+       then putStrLn $ print2 "\"%\" : \"%\"," out infile
+       else return ()
 
 printHelp = do
     putStrLn "Usage: `salty test.salt` prints to stdout"
