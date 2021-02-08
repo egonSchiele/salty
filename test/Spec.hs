@@ -436,8 +436,8 @@ transpileTests = [
     "@shops().select(s -> s.user)" `matches` "$result = [];\nforeach ($this->shops() as $s) {\n    if($s->user) {\n        $result []= $s;\n    }\n}",
 
     -- chain a function onto the end of a HoF
-    -- "count_alive = shops.select(s -> s.isAlive()).count()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = count($count_alive);",
-    -- "count_alive = shops.select(s -> s.isAlive()).foo()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = $count_alive->foo();",
+    "count_alive = shops.select(s -> s.isAlive()).count()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = count($count_alive);",
+    "count_alive = shops.select(s -> s.isAlive()).foo()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = $count_alive->foo();",
     -- TODO attr access and array slices don't work on this
     -- "count_alive = shops.select(\\s -> s.isAlive()).foo" `matches` "",
     -- "count_alive = shops.select(\\s -> s.isAlive())[:2]" `matches` "",
