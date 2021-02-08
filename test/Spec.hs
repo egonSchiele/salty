@@ -263,8 +263,12 @@ transpileTests = [
     "foo a b := a + 1 + b + 2" `matches` "function foo($a, $b) {\n    return $a + 1 + $b + 2;\n}",
     "foo a b := (a + 1) + (b - 2)" `matches` "function foo($a, $b) {\n    return ($a + 1) + ($b - 2);\n}",
     "foo a b := { a + b }" `matches` "function foo($a, $b) {\n    return $a + $b;\n}",
-    "_foo a := @a = a" `matches` "private function foo($a) {\n    $this->a = $a;\n}",
-    "@@_foo a := @a = a" `matches` "private static function foo($a) {\n    $this->a = $a;\n}",
+    -- no visibility (public/private) for functions in global scope:
+    "_foo a := @a = a" `matches` "function foo($a) {\n    $this->a = $a;\n}",
+    "@@_foo a := @a = a" `matches` "static function foo($a) {\n    $this->a = $a;\n}",
+    -- but do add visibility in class scope:
+    "class Foo {\n_foo a := @a = a\n}" `matches` "class Foo {\n    private function foo($a) {\n        $this->a = $a;\n    }\n}",
+    "class Foo {\n@@_foo a := @a = a\n}" `matches` "class Foo {\n    private static function foo($a) {\n        $this->a = $a;\n    }\n}",
     "foo2 := 2 + 2" `matches` "function foo2() {\n    return 2 + 2;\n}",
     "__construct a := @a = a" `matches` "function __construct($a) {\n    $this->a = $a;\n}",
     "foo ...a := a" `matches` "function foo(...$a) {\n    return $a;\n}",
