@@ -218,10 +218,11 @@ saltyKey = debug "saltyKey" >> do
 
 keyValuePair = debug "keyValuePair" >> do
   key <- saltyKey <||> stringKey
+  optional space
   char ':'
   space
   value <- validHashValue
-  char ',' <||> char '}' <||> char '\n'
+  char ',' <||> char '}' <||> char '\n' <||> char ' '
   optional (oneOf " \n")
   return (key, value)
 

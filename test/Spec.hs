@@ -570,7 +570,7 @@ transpileTests = [
 
     -- hash table
     "{a: 1, [b]: 2, [@c]: 3}" `matches` "[\n    \"a\" => 1,\n    $b => 2,\n    $this->c => 3\n];",
-    "{ stemmed: stemmed, unstemmed: unstemmed }" `matches` "{ \"stemmed\": $stemmed, \"unstemmed\": $unstemmed }",
+    "{ stemmed: stemmed, unstemmed: unstemmed }" `matches` "[\n    \"stemmed\" => $stemmed,\n    \"unstemmed\" => $unstemmed\n];",
 
     -- string
     "\"foo\"" `matches` "\"foo\";",
