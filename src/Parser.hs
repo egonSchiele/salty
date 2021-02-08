@@ -359,7 +359,9 @@ guardFunction = debug "guardFunction" >> do
   space
   args <- makeArgNames <$> functionArgs
   string ":= "
+  modifyState (addScope FunctionScope)
   body <- saltyGuard
+  modifyState popScope
   case prevSalty of
      FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility scope
      _ -> return $ Function name (map argWithDefaults args) [body] visibility scope
