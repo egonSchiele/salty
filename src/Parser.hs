@@ -88,6 +88,7 @@ saltyParserSingle_ = do
   case salty of
        EmptyLine -> return ()
        (Operation left op right) -> modifyState (saveIt right)
+       (MultiAssign vars right) -> modifyState (saveIt right)
        salty -> modifyState (saveIt salty)
   return salty
 
