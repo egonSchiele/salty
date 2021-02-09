@@ -344,14 +344,13 @@ guard = debug "guard" >> do
   space
   condition <- otherwiseGuard <||> validFuncArgTypes
   string " -> "
-  outcome <- saltyGuard <||> saltyParserSingleWithoutNewline
+  outcome <- saltyParserSingleWithoutNewline
   optional $ char '\n'
   return $ Guard condition outcome
 
 saltyGuard = debug "saltyGuard" >> do
-  string "guard {\n"
+  string "guard\n"
   guards <- many1 guard
-  string "}"
   return $ SaltyGuard guards
 
 guardFunction = debug "guardFunction" >> do

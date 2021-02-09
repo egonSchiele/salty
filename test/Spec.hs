@@ -179,10 +179,10 @@ multiLineArraysTest = [r|class Foo implements Bar {
     }
 }|]
 
-guardTest = [r|foo := guard {
+guardTest = [r|foo := guard
   | x == 1 -> x.foo()
   | y == 2 -> x.map(y -> y + 1)
-}|]
+|]
 
 guardResult = [r|function foo() {
     if ($x == 1) {
@@ -196,30 +196,23 @@ guardResult = [r|function foo() {
     }
 }|]
 
-guardTestWithArgs = [r|foo a bar := guard {
+guardTestWithArgs = [r|foo a bar := guard
   | x == 1 -> x.foo()
-  | otherwise -> guard {
-    | y == 2 -> x.map(y -> y + 1)
-    | y == 3 -> Foo.new()
-  }
-}
+  | otherwise -> x.map(y -> y + 1)
 |]
 
 guardResultWithArgs = [r|function foo($a, $bar) {
     if ($x == 1) {
         return $x->foo();
     } else {
-        if ($y == 2) {
-            $result = [];
-            foreach ($x as $y) {
-                $result []= $y + 1;
-            }
-            return $result;
-        } elseif ($y == 3) {
-            return (new Foo());
+        $result = [];
+        foreach ($x as $y) {
+            $result []= $y + 1;
         }
+        return $result;
     }
 }|]
+
 transpileTests = [
     multiLineEachTest,
     multiLineMapTest,
