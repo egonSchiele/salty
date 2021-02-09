@@ -503,6 +503,14 @@ transpileTests = [
     "foo[start:]" `matches` "array_slice($foo, $start);",
     "foo[2:count(foo)]" `matches` "array_slice($foo, 2, count($foo) - 2);",
 
+    -- array splices
+    "foo[1:] = arr" `matches` "array_splice($foo, 1, null, $arr);",
+    "foo[:2] = arr" `matches` "array_splice($foo, 0, 2, $arr);",
+    "foo[:] = arr" `matches` "array_splice($foo, 0, null, $arr);",
+    "foo[1:5] = arr" `matches` "array_splice($foo, 1, 4, $arr);",
+    "foo[start:] = arr" `matches` "array_splice($foo, $start, null, $arr);",
+    "foo[2:count(foo)] = arr" `matches` "array_splice($foo, 2, count($foo) - 2, $arr);",
+
     -- string slices
     "foo<1>" `matches` "substr($foo, 1, 1);",
     "foo<1:>" `matches` "substr($foo, 1);",
