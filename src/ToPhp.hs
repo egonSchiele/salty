@@ -167,7 +167,7 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toPhp obj) ++ ")"
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toPhp obj) ++ ")"
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace]) = print3 "str_replace(%, %, %)" (toPhp search) (toPhp replace) (toPhp obj)
-  toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args) = toPhp $ New vName args
+  toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args) = "(" ++ (toPhp $ New vName args) ++ ")"
 
   -- functions called on an obj
   toPhp (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)

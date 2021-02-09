@@ -179,10 +179,10 @@ multiLineArraysTest = [r|class Foo implements Bar {
     }
 }|]
 
-guardTest = [r|foo := guard
+guardTest = [r|foo := guard {
   | x == 1 -> x.foo()
   | y == 2 -> x.map(y -> y + 1)
-|]
+}|]
 
 guardResult = [r|function foo() {
     if ($x == 1) {
@@ -196,20 +196,28 @@ guardResult = [r|function foo() {
     }
 }|]
 
-guardTestWithArgs = [r|foo a bar := guard
+guardTestWithArgs = [r|foo a bar := guard {
   | x == 1 -> x.foo()
-  | otherwise -> x.map(y -> y + 1)
+  | otherwise -> guard {
+    | y == 2 -> x.map(y -> y + 1)
+    | y == 3 -> Foo.new()
+  }
+}
 |]
 
 guardResultWithArgs = [r|function foo($a, $bar) {
     if ($x == 1) {
         return $x->foo();
     } else {
-        $result = [];
-        foreach ($x as $y) {
-            $result []= $y + 1;
+        if ($y == 2) {
+            $result = [];
+            foreach ($x as $y) {
+                $result []= $y + 1;
+            }
+            return $result;
+        } elseif ($y == 3) {
+            return (new Foo());
         }
-        return $result;
     }
 }|]
 transpileTests = [
@@ -495,6 +503,14 @@ transpileTests = [
     "foo[start:]" `matches` "array_slice($foo, $start);",
     "foo[2:count(foo)]" `matches` "array_slice($foo, 2, count($foo) - 2);",
 
+    -- string slices
+    "foo<1>" `matches` "substr($foo, 1, 1);",
+    "foo<1:>" `matches` "substr($foo, 1);",
+    "foo<:2>" `matches` "substr($foo, 0, 2);",
+    "foo<:>" `matches` "substr($foo, 0);",
+    "foo<1:5>" `matches` "substr($foo, 1, 4);",
+    "foo<start:>" `matches` "substr($foo, $start);",
+    "foo<2:count(foo)>" `matches` "substr($foo, 2, count($foo) - 2);",
     -- instanceof
     "foo instanceof Class" `matches` "$foo instanceof Class;",
     "foo isa Class" `matches` "$foo instanceof Class;",
@@ -598,7 +614,7 @@ transpileTests = [
     "foo.split(',').uniq()" `matches` "array_unique(explode(',', $foo));",
     "foo.sub(\"foo\", 'bar')" `matches` "str_replace(\"foo\", \"bar\", $foo);",
     "foo.sub(\"foo\", bar)" `matches` "str_replace(\"foo\", $bar, $foo);",
-    "Array.new(3, true)" `matches` "new Array(3,true);",
+    "Array.new(3, true)" `matches` "(new Array(3,true));",
 
     -- multi-assign
     "foo, bar = baz" `matches` "$foo = $baz[0];\n$bar = $baz[1];",

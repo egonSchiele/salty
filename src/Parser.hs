@@ -349,8 +349,9 @@ guard = debug "guard" >> do
   return $ Guard condition outcome
 
 saltyGuard = debug "saltyGuard" >> do
-  string "guard\n"
+  string "guard {\n"
   guards <- many1 guard
+  string "}"
   return $ SaltyGuard guards
 
 guardFunction = debug "guardFunction" >> do
