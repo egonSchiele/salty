@@ -213,6 +213,27 @@ guardResultWithArgs = [r|function foo($a, $bar) {
     }
 }|]
 
+guardTestWithWhere = [r|foo a bar := guard
+  | awesome -> x.foo()
+  | otherwise -> x.map(y -> y + 1)
+  where awesome = 1 + 1
+  and blossom = Foo.new()
+|]
+
+guardResultWithWhere = [r|function foo($a, $bar) {
+    $awesome = 1 + 1;
+    $blossom = (new Foo());
+    if ($awesome) {
+        return $x->foo();
+    } else {
+        $result = [];
+        foreach ($x as $y) {
+            $result []= $y + 1;
+        }
+        return $result;
+    }
+}|]
+
 transpileTests = [
     multiLineEachTest,
     multiLineMapTest,
@@ -223,6 +244,7 @@ transpileTests = [
     multiLineArrays `matches` multiLineArraysTest,
     guardTest `matches` guardResult,
     guardTestWithArgs `matches` guardResultWithArgs,
+    guardTestWithWhere `matches` guardResultWithWhere,
     -- operations
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",
@@ -276,6 +298,7 @@ transpileTests = [
 
     -- pass by reference
     "incr &count := ++count" `matches` "function incr(&$count) {\n    $count = $count + 1;\n}",
+    "foo a b := bar\n  where baz = b + 1\n  and bar = a + baz" `matches` "function foo($a, $b) {\n    $baz = $b + 1;\n    $bar = $a + $baz;\n    return $bar;\n}",
 
     -- fails, variables don't have the concept of pass by reference or not yet
     -- "foo = &bar" `matches` "$foo = &$bar",

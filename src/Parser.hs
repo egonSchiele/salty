@@ -312,14 +312,15 @@ onelineFunction = debug "onelineFunction" >> do
   space
   body_ <- many1 (noneOf "\n")
   optional $ char '\n'
+  wheres <- many whereClause
   case (build body_) of
        Left err -> return $ SaltyString (show err)
        Right body -> do
           case prevSalty of
                FunctionTypeSignature _ types ->
-                  return $ Function name (argWithTypes args types) body visibility scope
+                  return $ Function name (argWithTypes args types) (wheres ++ body) visibility scope
                _ ->
-                  return $ Function name (map argWithDefaults args) body visibility scope
+                  return $ Function name (map argWithDefaults args) (wheres ++ body) visibility scope
 
 multilineFunction = debug "multilineFunction" >> do
   prevSalty <- lastSalty <$> getState
@@ -348,6 +349,13 @@ guard = debug "guard" >> do
   optional $ char '\n'
   return $ Guard condition outcome
 
+whereClause = debug "whereClause" >> do
+  string "where" <||> string "and"
+  space
+  op <- operation
+  optional $ char '\n'
+  return op
+
 saltyGuard = debug "saltyGuard" >> do
   string "guard\n"
   guards <- many1 guard
@@ -361,11 +369,13 @@ guardFunction = debug "guardFunction" >> do
   args <- makeArgNames <$> functionArgs
   string ":= "
   modifyState (addScope FunctionScope)
-  body <- saltyGuard
+  guards <- saltyGuard
+  wheres <- many whereClause
+  let body = wheres ++ [guards]
   modifyState popScope
   case prevSalty of
-     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility scope
-     _ -> return $ Function name (map argWithDefaults args) [body] visibility scope
+     FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) body visibility scope
+     _ -> return $ Function name (map argWithDefaults args) body visibility scope
 
 argWithDefaults :: ArgumentName -> Argument
 argWithDefaults name = Argument Nothing name Nothing
