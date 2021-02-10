@@ -198,18 +198,14 @@ guardResult = [r|function foo() {
 
 guardTestWithArgs = [r|foo a bar := guard
   | x == 1 -> x.foo()
-  | otherwise -> x.map(y -> y + 1)
+  | otherwise -> Foo.new().bar()
 |]
 
 guardResultWithArgs = [r|function foo($a, $bar) {
     if ($x == 1) {
         return $x->foo();
     } else {
-        $result = [];
-        foreach ($x as $y) {
-            $result []= $y + 1;
-        }
-        return $result;
+        return (new Foo())->bar();
     }
 }|]
 

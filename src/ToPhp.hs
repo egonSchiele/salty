@@ -18,6 +18,9 @@ simpleVarName x = case x of
 formatLoopVars (x:[]) = "$" ++ x
 formatLoopVars (x:y:[]) = print2 "$% => $%" x y
 
+addReturnToArray :: [Salty] -> String
+addReturnToArray x = (concat . map toPhp . init $ x) ++ "\n" ++ (addReturn . last $ x)
+
 varName :: Salty -> String
 varName (Variable name scope) = toPhp name
 varName x = "this shouldnt be in varName: " ++ (show x)
@@ -73,8 +76,6 @@ instance (ConvertToPhp a1, ConvertToPhp a2) => ConvertToPhp (Either a1 a2) where
   toPhp (Left a) = toPhp a
   toPhp (Right a) = toPhp a
 
-instance ConvertToPhp Guard where
-  toPhp (Guard cond outcome) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn outcome)
 
 instance ConvertToPhp Salty where
   toPhp (Operation x op (WithNewLine y)) = (toPhp $ Operation x op y) ++ "\n"
@@ -307,11 +308,12 @@ instance ConvertToPhp Salty where
   -- toPhp (AttrAccess (Variable (StaticVar obj) _) attrName) = print2 "static::$%->%" obj attrName
   toPhp (Array salties@((Array _):rest)) = "[\n" ++ (intercalate ",\n" . map toPhp $ salties) ++ ",\n]"
   toPhp (Array salties) = "[" ++ (intercalate ", " . map toPhp $ salties) ++ "]"
-  toPhp (SaltyGuard ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn outcome)
+  toPhp (Guard cond outcome) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturnToArray outcome)
+  toPhp (SaltyGuard ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturnToArray outcome)
   toPhp (SaltyGuard guards) = initGuards ++ lastGuard
     where initGuards = intercalate " else" . map toPhp . init $ guards
           lastGuard = case (last guards) of
-                           (Guard (SaltyString "otherwise") outcome) -> " else {\n" ++ (addReturn outcome) ++  "\n}"
+                           (Guard (SaltyString "otherwise") outcome) -> " else {\n" ++ (addReturnToArray outcome) ++  "\n}"
                            _ -> " else" ++ (toPhp (last guards))
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"

@@ -301,6 +301,13 @@ makeArgNames (arg:rest)
 getOrDefaultScope (Just x) = x
 getOrDefaultScope Nothing = GlobalScope
 
+parseTillEndOfLine = debug "parseTillEndOfLine" >> do
+  body_ <- many1 (noneOf "\n")
+  optional $ char '\n'
+  case (build body_) of
+       Left err -> return $ [SaltyString (show err)]
+       Right body -> return body
+
 onelineFunction = debug "onelineFunction" >> do
   prevSalty <- lastSalty <$> getState
   scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
@@ -310,17 +317,13 @@ onelineFunction = debug "onelineFunction" >> do
   let args = makeArgNames _args
   string ":="
   space
-  body_ <- many1 (noneOf "\n")
-  optional $ char '\n'
+  body <- parseTillEndOfLine
   wheres <- many whereClause
-  case (build body_) of
-       Left err -> return $ SaltyString (show err)
-       Right body -> do
-          case prevSalty of
-               FunctionTypeSignature _ types ->
-                  return $ Function name (argWithTypes args types) (wheres ++ body) visibility scope
-               _ ->
-                  return $ Function name (map argWithDefaults args) (wheres ++ body) visibility scope
+  case prevSalty of
+       FunctionTypeSignature _ types ->
+          return $ Function name (argWithTypes args types) (wheres ++ body) visibility scope
+       _ ->
+          return $ Function name (map argWithDefaults args) (wheres ++ body) visibility scope
 
 multilineFunction = debug "multilineFunction" >> do
   prevSalty <- lastSalty <$> getState
@@ -345,8 +348,7 @@ guard = debug "guard" >> do
   space
   condition <- otherwiseGuard <||> validFuncArgTypes
   string " -> "
-  outcome <- saltyParserSingleWithoutNewline
-  optional $ char '\n'
+  outcome <- parseTillEndOfLine
   return $ Guard condition outcome
 
 whereClause = debug "whereClause" >> do
