@@ -26,7 +26,7 @@ Will write to `test.php`.
 
 ## Features
 
-See list of features [here]().
+See list of features [here](/egonSchiele/salty/blob/main/FEATURES.md).
 
 ## Vim integration
 
