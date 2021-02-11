@@ -330,8 +330,10 @@ onelineFunction = debug "onelineFunction" >> do
   let args = makeArgNames _args
   string ":="
   space
+  modifyState (addScope FunctionScope)
   body <- parseTill saltyNewline
   wheres <- many whereClause
+  modifyState popScope
   case prevSalty of
        FunctionTypeSignature _ types ->
           return $ Function name (argWithTypes args types) (wheres ++ body) visibility scope

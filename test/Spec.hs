@@ -446,7 +446,7 @@ transpileTests = [
     "foo := bar = 5" `matches` "function foo() {\n    $bar = 5;\n}",
     "foo := bar []= 5" `matches` "function foo() {\n    $bar []= 5;\n}",
     "foo := \"hello\"" `matches` "function foo() {\n    return \"hello\";\n}",
-    "foo x :=  if x then 'hi' else 'hello'" `matches` "function foo($x) {\n    if ($x) {\n        return \"hi\";\n    } else {\n        return \"hello\";\n    }\n}",
+    "foo x := if x then 'hi' else 'hello'" `matches` "function foo($x) {\n    if ($x) {\n        return \"hi\";\n    } else {\n        return \"hello\";\n    }\n}",
     "fib x := if x < 2 then x" `matches` "function fib($x) {\n    if ($x < 2) {\n        return $x;\n    }\n}",
     "foo := bar ||= 1" `matches` "function foo() {\n    $bar = $bar ?? 1;\n    return $bar;\n}",
 
