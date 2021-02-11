@@ -24,6 +24,10 @@ And it will print php code on stdout.
 
 Will write to `test.php`.
 
+    stack ghci
+
+to play with the parser in ghci.
+
 ## Features
 
 See list of features [here](FEATURES.md).

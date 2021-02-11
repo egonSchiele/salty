@@ -301,12 +301,25 @@ makeArgNames (arg:rest)
 getOrDefaultScope (Just x) = x
 getOrDefaultScope Nothing = GlobalScope
 
-parseTillEndOfLine = debug "parseTillEndOfLine" >> do
-  body_ <- many1 (noneOf "\n")
-  optional $ char '\n'
-  case (build body_) of
-       Left err -> return $ [SaltyString (show err)]
-       Right body -> return body
+bar = debug "foo" >> do
+  body <- saltyParser
+  return body
+
+saltyNewline = debug "saltyNewline" >> do
+  char '\n'
+  return Salt
+
+saltyEOF = debug "saltyEOF" >> do
+  eof
+  return Salt
+
+wrapInSalt parser = debug "wrapInSalt" >> do
+  parser
+  return Salt
+
+parseTill endParser = debug "parseTill" >> do
+  body <- manyTill saltyParserSingle_ (try (endParser <||> saltyEOF))
+  return body
 
 onelineFunction = debug "onelineFunction" >> do
   prevSalty <- lastSalty <$> getState
@@ -317,7 +330,7 @@ onelineFunction = debug "onelineFunction" >> do
   let args = makeArgNames _args
   string ":="
   space
-  body <- parseTillEndOfLine
+  body <- parseTill saltyNewline
   wheres <- many whereClause
   case prevSalty of
        FunctionTypeSignature _ types ->
@@ -343,12 +356,19 @@ otherwiseGuard = do
   string "otherwise"
   return $ SaltyString "otherwise"
 
+-- parseTillEndOfLine = debug "parseTillEndOfLine" >> do
+--   body_ <- many1 (noneOf "\n")
+--   optional $ char '\n'
+--   case (build body_) of
+--        Left err -> return $ [SaltyString (show err)]
+--        Right body -> return body
+
 guard = debug "guard" >> do
   char '|'
   space
   condition <- otherwiseGuard <||> validFuncArgTypes
   string " -> "
-  outcome <- parseTillEndOfLine
+  outcome <- parseTill saltyNewline
   return $ Guard condition outcome
 
 whereClause = debug "whereClause" >> do
@@ -477,7 +497,7 @@ operation = debug "operation" >> do
   space
   op <- operator
   space
-  right <- saltyParserSingle
+  right <- saltyParserSingle_
   return $ Operation left op right
 
 partialOperation = debug "partialOperation" >> do
@@ -485,7 +505,7 @@ partialOperation = debug "partialOperation" >> do
   space
   op <- operator
   space
-  right <- saltyParserSingle
+  right <- saltyParserSingle_
   return $ BackTrack (Operation leftHandSide op right)
 
 partialAttrAccess = debug "partialAttrAccess" >> do
@@ -509,7 +529,7 @@ partialFunctionCall = debug "partialFunctionCall" >> do
 
 negateSalty = debug "negateSalty" >> do
   char '!'
-  s <- saltyParserSingle
+  s <- saltyParserSingle_
   return $ Negate s
 
 emptyLine = debug "emptyLine" >> do
@@ -587,7 +607,7 @@ lambda = debug "lambda" >> do
   optional $ char '\\'
   args <-  many1 lambdaVarNameChars
   string "-> "
-  body <- (braces Nothing) <||> saltyParserSingle
+  body <- (braces Nothing) <||> saltyParserSingle_
   return $ LambdaFunction (words args) body
 
 returnStatement = debug "returnStatement" >> do
@@ -673,9 +693,9 @@ functionCallWithoutObjectWithoutParens = debug "functionCallWithoutObjectWithout
 arraySlice = debug "arraySlice" >> do
   array <- variable
   char '['
-  start_ <- (Just <$> saltyParserSingle) <||> nothing
+  start_ <- (Just <$> saltyParserSingle_) <||> nothing
   char ':'
-  end <- (Just <$> saltyParserSingle) <||> nothing
+  end <- (Just <$> saltyParserSingle_) <||> nothing
   char ']'
   let start = case start_ of
                 Just salty -> salty
@@ -685,9 +705,9 @@ arraySlice = debug "arraySlice" >> do
 stringSlice = debug "stringSlice" >> do
   string <- variable
   char '<'
-  start_ <- (Just <$> saltyParserSingle) <||> nothing
+  start_ <- (Just <$> saltyParserSingle_) <||> nothing
   char ':'
-  end <- (Just <$> saltyParserSingle) <||> nothing
+  end <- (Just <$> saltyParserSingle_) <||> nothing
   char '>'
   let start = case start_ of
                 Just salty -> salty
@@ -697,7 +717,7 @@ stringSlice = debug "stringSlice" >> do
 stringIndex = debug "stringIndex" >> do
   string <- variable
   char '<'
-  index <- saltyParserSingle
+  index <- saltyParserSingle_
   char '>'
   return $ StringIndex string index
 
@@ -747,31 +767,31 @@ ifStatement = debug "ifStatement" >> do
 ifWithElse = debug "ifWithElse" >> do
   string "if"
   space
-  condition <- saltyParserSingle
+  condition <- saltyParserSingle_
   space
   string "then"
   space
-  thenFork <- saltyParserSingle
+  thenFork <- saltyParserSingle_
   space
   string "else"
   space
-  elseFork <- saltyParserSingle
+  elseFork <- saltyParserSingle_
   return $ If condition thenFork (Just elseFork)
 
 ifWithoutElse = debug "ifWithoutElse" >> do
   string "if"
   space
-  condition <- saltyParserSingle
+  condition <- saltyParserSingle_
   space
   string "then"
   space
-  thenFork <- saltyParserSingle
+  thenFork <- saltyParserSingle_
   return $ If condition thenFork Nothing
 
 whileStatement = debug "whileStatement" >> do
   string "while"
   space
-  condition <- saltyParserSingle
+  condition <- saltyParserSingle_
   space
   body <- braces Nothing
   return $ While condition body
@@ -860,19 +880,19 @@ saltyKeywordUse = debug "saltyKeywordUse" >> do
 saltyKeywordThrow = debug "saltyKeywordThrow" >> do
   string "throw"
   space
-  salty <- saltyParserSingle
+  salty <- saltyParserSingle_
   return $ KwThrow salty
 
 saltyKeywordRequire = debug "saltyKeywordRequire" >> do
   string "require"
   space
-  salty <- saltyParserSingle
+  salty <- saltyParserSingle_
   return $ KwRequire salty
 
 saltyKeywordRequireOnce = debug "saltyKeywordRequireOnce" >> do
   string "require_once"
   space
-  salty <- saltyParserSingle
+  salty <- saltyParserSingle_
   return $ KwRequireOnce salty
 
 saltyKeywordConst = debug "saltyKeywordConst" >> do
@@ -884,37 +904,37 @@ saltyKeywordConst = debug "saltyKeywordConst" >> do
 saltyKeywordPublic = debug "saltyKeywordPublic" >> do
   string "public"
   space
-  salty <- saltyParserSingle
+  salty <- saltyParserSingle_
   return $ KwPublic salty
 
 saltyKeywordPrivate = debug "saltyKeywordPrivate" >> do
   string "private"
   space
-  salty <- saltyParserSingle
+  salty <- saltyParserSingle_
   return $ KwPrivate salty
 
 saltyKeywordProtected = debug "saltyKeywordProtected" >> do
   string "protected"
   space
-  salty <- saltyParserSingle
+  salty <- saltyParserSingle_
   return $ KwProtected salty
 
 saltyKeywordStatic = debug "saltyKeywordStatic" >> do
   string "static"
   space
-  salty <- saltyParserSingle
+  salty <- saltyParserSingle_
   return $ KwStatic salty
 
 saltyKeywordNamespace = debug "saltyKeywordNamespace" >> do
   string "namespace"
   space
-  salty <- saltyParserSingle
+  salty <- saltyParserSingle_
   return $ KwNamespace salty
 
 saltyKeywordEcho = debug "saltyKeywordEcho" >> do
   string "echo"
   space
-  salty <- saltyParserSingle
+  salty <- saltyParserSingle_
   return $ KwEcho salty
 
 saltyKeywordBreak = debug "saltyKeywordBreak" >> do
@@ -930,7 +950,7 @@ multiAssign = debug "multiAssign" >> do
   firstVar <- multiAssignVar
   restVars <- many1 multiAssignVar
   space
-  right <- saltyParserSingle
+  right <- saltyParserSingle_
   return $ MultiAssign (firstVar:restVars) right
 
 plusplusAll = debug "plusplusAll" >> do

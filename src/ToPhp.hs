@@ -2,9 +2,9 @@ module ToPhp where
 import Types
 import Print
 import Data.List (intercalate)
-import Utils (isConstant)
+import Utils (isConstant, join)
 
-initToPhp body = concat $ map toPhp (init body)
+initToPhp body = join "\n" $ map toPhp (init body)
 stripNewlineToPhp (WithNewLine salty) = toPhp salty
 stripNewlineToPhp salty = toPhp salty
 
@@ -19,7 +19,7 @@ formatLoopVars (x:[]) = "$" ++ x
 formatLoopVars (x:y:[]) = print2 "$% => $%" x y
 
 addReturnToArray :: [Salty] -> String
-addReturnToArray x = (concat . map toPhp . init $ x) ++ "\n" ++ (addReturn . last $ x)
+addReturnToArray x = ((join "\n") . map toPhp . init $ x) ++ "\n" ++ (addReturn . last $ x)
 
 varName :: Salty -> String
 varName (Variable name scope) = toPhp name
@@ -144,8 +144,8 @@ instance ConvertToPhp Salty where
           funcBody = case body of
                           [] -> ""
                           [Braces []] -> ""
-                          [Braces salties] -> print2 "%\n%" (concat . map toPhp . init $ salties) (addReturn . last $ salties)
-                          x -> print2 "%\n%" (concat . map toPhp . init $ x) (addReturn . last $ x)
+                          [Braces salties] -> print2 "%\n%" ((join "\n") . map toPhp . init $ salties) (addReturn . last $ salties)
+                          x -> print2 "%\n%" ((join "\n") . map toPhp . init $ x) (addReturn . last $ x)
 
   toPhp (SaltyNumber s) = s
   toPhp (SaltyString s) = "\"" ++ s ++ "\""
@@ -232,7 +232,7 @@ instance ConvertToPhp Salty where
   toPhp Salt = "I'm salty"
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
   toPhp (Parens s) = "(" ++ (concat $ map toPhp s) ++ ")"
-  toPhp (Braces s) = concat $ map toPhp s
+  toPhp (Braces s) = join "\n" $ map toPhp s
   toPhp (PurePhp line) = line
   toPhp (PhpComment str) = "// " ++ str ++ "\n"
   toPhp (SaltyComment str) = ""
