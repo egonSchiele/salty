@@ -63,8 +63,11 @@ saltyToDebugTreeCheckBackTracks str = case (build str) of
 
 startingState = SaltyState EmptyLine []
 
+-- <* eof operator will return what saltyParser parsed ... otherwise build would return `()`
+-- which is what eof returns.
+-- idea from https://stackoverflow.com/questions/16209278/parsec-consume-all-input
 build :: String -> Either ParseError [Salty]
-build str_ = runParser saltyParser startingState "saltyParser" str
+build str_ = runParser (saltyParser <* eof) startingState "saltyParser" str
   where str = unlines . (map (removeSemicolons . strip)) . lines $ str_
 
 saltyParser :: Parsec String SaltyState [Salty]
