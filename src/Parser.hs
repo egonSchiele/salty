@@ -142,7 +142,6 @@ saltyParserSingleWithoutNewline = do
   <||> phpVar
   <||> saltyOptional
   <||> variable
-  -- <|> parseError
 
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
@@ -173,6 +172,7 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> purePhp
   <||> saltyOptional
   <||> variable
+  <?> "a valid function argument type"
 
 safeHead [] = Nothing
 safeHead (x:xs) = Just x
@@ -192,6 +192,7 @@ variableName = debug "variableName" >> do
   <||>  instanceVar
   <||>  classVar
   <||>  simpleVar
+  <?> "a variable"
 
 parens = debug "parens" >> do
   char '('
@@ -212,6 +213,7 @@ validHashValue = debug "validHashValue" >> do
   <||> saltyMagicConstant
   <||> purePhp
   <||> variable
+  <?> "a valid hash value"
 
 stringKey = debug "stringKey" >> do
   key <- many1 hashKeyChars
@@ -483,6 +485,7 @@ operator = debug "operator" >> do
   <||> (string "*" >> return Multiply)
   <||> (string "=" >> return Equals)
   <||> (string "%" >> return Modulo)
+  <?> "an operator"
 
 atom = debug "atom" >> do
        functionCall
@@ -497,6 +500,7 @@ atom = debug "atom" >> do
   <||> variable
   <||> saltyString
   <||> saltyNumber
+  <?> "an atom"
 
 operation = debug "operation" >> do
   left <- atom
@@ -551,6 +555,7 @@ saltyString = debug "saltyString" >> do
 saltyNumber = debug "saltyNumber" >> do
        decimal
   <||> integer
+  <?> "a decimal or integer"
 
 integer = debug "integer" >> do
   head <- oneOf "1234567890-"
@@ -613,7 +618,7 @@ lambda = debug "lambda" >> do
   optional $ char '\\'
   args <-  many1 lambdaVarNameChars
   string "-> "
-  body <- (braces Nothing) <||> saltyParserSingle_
+  body <- (braces Nothing) <||> saltyParserSingle_ <?> "a lambda function body"
   return $ LambdaFunction (words args) body
 
 returnStatement = debug "returnStatement" >> do
@@ -629,12 +634,12 @@ saltyComment = do
   string "\n"
   return $ SaltyComment line
 
-phpComment = do
+phpComment = (do
   optional space
-  string "//"
+  string "//" <?> "a php comment"
   line <- many1 $ noneOf "\n"
   string "\n"
-  return $ PhpComment line
+  return $ PhpComment line) <?> "a php comment"
 
 purePhp = do
   string "`"
@@ -647,6 +652,7 @@ functionCall = debug "functionCall" >> do
   <||> functionCallWithoutObject
   <||> functionCallOnObjectWithoutParens
   <||> functionCallWithoutObjectWithoutParens
+  <?> "a function call"
 
 findArgs = debug "findArgs" >> do
   args <- many $ do
@@ -768,7 +774,9 @@ partialHashLookup = debug "partialHashLookup" >> do
   return $ BackTrack (HashLookup hash key)
 
 ifStatement = debug "ifStatement" >> do
-  ifWithElse <||> ifWithoutElse
+       ifWithElse
+  <||> ifWithoutElse
+  <?> "an if statement"
 
 ifWithElse = debug "ifWithElse" >> do
   string "if"
@@ -971,6 +979,7 @@ plusplusAll = debug "plusplusAll" >> do
   <||> plusplusEnd
   <||> minusminusStart
   <||> minusminusEnd
+  <?> "++ or -- statement"
 
 plusplusStart = debug "plusplusStart" >> do
   string "++"
@@ -1019,6 +1028,7 @@ validRangeArgTypes = debug "validRangeArgTypes" >> do
   <||> negateSalty
   <||> saltyMagicConstant
   <||> variable
+  <?> "a valid range argument type"
 
 range = debug "range" >> do
   left <- validRangeArgTypes
