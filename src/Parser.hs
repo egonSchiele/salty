@@ -8,6 +8,7 @@ import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 import Debug.Trace (trace)
 import ToPhp
+import Print
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 lambdaVarNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_ "
@@ -30,9 +31,16 @@ debug str = return (SaltyString str)
 
 saltyToPhp :: Int -> String -> String
 saltyToPhp indentAmt str = case (build str) of
-                   Left err -> show err
+                   Left err -> printError str err
                    Right xs -> saltyToPhp_ indentAmt xs
                    -- Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
+
+printError :: String -> ParseError -> String
+printError inputStr err = print3 "%\n%\n%" affectedLine pointer (show err)
+  where line = sourceLine . errorPos $ err
+        col  = sourceColumn . errorPos $ err
+        affectedLine = (lines inputStr) !! (line - 1)
+        pointer = (replicate (col - 1) $ ' ') ++ "^"
 
 numLines str = length . filter (/="") . lines $ str
 
@@ -52,12 +60,12 @@ findErrorLine_ lines = case (build (head lines)) of
 
 saltyToDebugTree :: String -> String
 saltyToDebugTree str = case (build str) of
-                   Left err -> show err
+                   Left err -> printError str err
                    Right xs -> formatDebug xs
 
 saltyToDebugTreeCheckBackTracks :: String -> String
 saltyToDebugTreeCheckBackTracks str = case (build str) of
-                   Left err -> show err
+                   Left err -> printError str err
                    Right xs -> formatDebugStripBackTracks xs
 
 
@@ -374,9 +382,9 @@ otherwiseGuard = do
 guard = debug "guard" >> do
   char '|'
   space
-  condition <- otherwiseGuard <||> (many1 validFuncArgTypes)
+  condition <- otherwiseGuard <||> (many1 validFuncArgTypes) <?> "a guard condition"
   optional $ string " -> "
-  outcome <- parseTill saltyNewline
+  outcome <- parseTill saltyNewline <?> "a guard outcome"
   return $ Guard condition outcome
 
 whereClause = debug "whereClause" >> do
