@@ -230,6 +230,17 @@ guardResultWithWhere = [r|function foo($a, $bar) {
     }
 }|]
 
+guardTestComplex = [r|foo :: bool
+foo := guard
+  | bar in ["aa", "bb"] && baz in ["cc", "dd"] -> true
+  | bar == "fr" && baz == "fr" -> true
+  | bar == "de" && baz == "de" -> true
+  | otherwise -> false
+|]
+
+guardTestComplexResult = [r|
+|]
+
 transpileTests = [
     multiLineEachTest,
     multiLineMapTest,
@@ -241,6 +252,7 @@ transpileTests = [
     guardTest `matches` guardResult,
     guardTestWithArgs `matches` guardResultWithArgs,
     guardTestWithWhere `matches` guardResultWithWhere,
+    guardTestComplex `matches` guardTestComplexResult,
     -- operations
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",
@@ -645,7 +657,8 @@ transpileTests = [
     "foo, bar = Foo.new(bar).run()" `matches` "$result = (new Foo($bar))->run();\n$foo = $result[0];\n$bar = $result[1];",
 
     -- new keyword
-    "new self()" `matches` "new self();"
+    "new self()" `matches` "new self();",
+    "new self(1, foo)" `matches` "new self(1,$foo);"
 
 
     -- empty hash
