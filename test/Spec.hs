@@ -514,6 +514,7 @@ transpileTests = [
     -- keywords
     "use Foo" `matches` "use Foo;",
     "use Foo\\Bar" `matches` "use Foo\\Bar;",
+    "use Foo\\Bar as Baz" `matches` "use Foo\\Bar as Baz;",
     "throw new Exception()" `matches` "throw new Exception();",
     "throw new Exception('foo')" `matches` "throw new Exception(\"foo\");",
     "throw e" `matches` "throw $e;",

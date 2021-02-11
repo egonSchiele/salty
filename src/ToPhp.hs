@@ -322,7 +322,8 @@ instance ConvertToPhp Salty where
   toPhp (SaltyBool FALSE) = "false"
   toPhp SaltyNull = "null"
   toPhp (SaltyMagicConstant c) = toPhp c
-  toPhp (Keyword (KwUse var)) = "use " ++ (toPhp var)
+  toPhp (Keyword (KwUse var Nothing)) = "use " ++ (toPhp var)
+  toPhp (Keyword (KwUse var (Just varAs))) = "use " ++ (toPhp var) ++ " as " ++ (toPhp varAs)
   toPhp (Keyword (KwThrow salty)) = "throw " ++ (toPhp salty)
   toPhp (Keyword (KwRequire salty)) = "require " ++ (toPhp salty)
   toPhp (Keyword (KwRequireOnce salty)) = "require_once " ++ (toPhp salty)

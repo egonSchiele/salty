@@ -869,10 +869,23 @@ saltyKeyword = debug "saltyKeyword" >> do
   return $ Keyword phpKeyword
 
 saltyKeywordUse = debug "saltyKeywordUse" >> do
+  saltyKeywordUseAs <||> saltyKeywordUseOnly
+
+saltyKeywordUseAs = debug "saltyKeywordUseAs" >> do
   string "use"
   space
   var <- variableName
-  return $ KwUse var
+  space
+  string "as"
+  space
+  varAs <- variableName
+  return $ KwUse var (Just varAs)
+
+saltyKeywordUseOnly = debug "saltyKeywordUseOnly" >> do
+  string "use"
+  space
+  var <- variableName
+  return $ KwUse var Nothing
 
 saltyKeywordThrow = debug "saltyKeywordThrow" >> do
   string "throw"

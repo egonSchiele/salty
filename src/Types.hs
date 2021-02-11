@@ -11,7 +11,7 @@ data VariableName =
   | SimpleVar String -- e.g. foo
   deriving (Show)
 
-data PhpKeyword =   KwUse VariableName
+data PhpKeyword =   KwUse VariableName (Maybe VariableName)
                   | KwThrow Salty
                   | KwRequire Salty
                   | KwRequireOnce Salty
