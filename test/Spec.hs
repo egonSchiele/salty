@@ -232,14 +232,26 @@ guardResultWithWhere = [r|function foo($a, $bar) {
 
 guardTestComplex = [r|foo :: bool
 foo := guard
-  | bar in ["aa", "bb"] && baz in ["cc", "dd"] -> true
+  | (bar in ["aa", "bb"]) && (baz in ["cc", "dd"]) -> true
   | bar == "fr" && baz == "fr" -> true
   | bar == "de" && baz == "de" -> true
   | otherwise -> false
 |]
 
-guardTestComplexResult = [r|
-|]
+guardTestComplexResult = [r|/**
+ * @return bool
+ */
+function foo() {
+    if ((in_array($bar, ["aa", "bb"])) && (in_array($baz, ["cc", "dd"]))) {
+        return true;
+    } elseif ($bar == "fr" && $baz == "fr") {
+        return true;
+    } elseif ($bar == "de" && $baz == "de") {
+        return true;
+    } else {
+        return false;
+    }
+}|]
 
 transpileTests = [
     multiLineEachTest,

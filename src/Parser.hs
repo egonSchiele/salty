@@ -143,8 +143,9 @@ saltyParserSingleWithoutNewline = do
 
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
-       hashTable
+       parens
   <||> array
+  <||> hashTable
   -- <||> emptyHash
   <||> operation
   <||> partialOperation
@@ -356,7 +357,7 @@ multilineFunction = debug "multilineFunction" >> do
 
 otherwiseGuard = do
   string "otherwise"
-  return $ SaltyString "otherwise"
+  return $ [SaltyString "otherwise"]
 
 -- parseTillEndOfLine = debug "parseTillEndOfLine" >> do
 --   body_ <- many1 (noneOf "\n")
@@ -368,8 +369,8 @@ otherwiseGuard = do
 guard = debug "guard" >> do
   char '|'
   space
-  condition <- otherwiseGuard <||> validFuncArgTypes
-  string " -> "
+  condition <- otherwiseGuard <||> (many1 validFuncArgTypes)
+  optional $ string " -> "
   outcome <- parseTill saltyNewline
   return $ Guard condition outcome
 
@@ -769,10 +770,7 @@ ifStatement = debug "ifStatement" >> do
 ifWithElse = debug "ifWithElse" >> do
   string "if"
   space
-  condition <- saltyParserSingle_
-  space
-  string "then"
-  space
+  condition <- parseTill (wrapInSalt $ string " then ")
   thenFork <- saltyParserSingle_
   space
   string "else"
@@ -783,10 +781,7 @@ ifWithElse = debug "ifWithElse" >> do
 ifWithoutElse = debug "ifWithoutElse" >> do
   string "if"
   space
-  condition <- saltyParserSingle_
-  space
-  string "then"
-  space
+  condition <- parseTill (wrapInSalt $ string " then ")
   thenFork <- saltyParserSingle_
   return $ If condition thenFork Nothing
 

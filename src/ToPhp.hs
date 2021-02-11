@@ -19,6 +19,8 @@ formatLoopVars (x:[]) = "$" ++ x
 formatLoopVars (x:y:[]) = print2 "$% => $%" x y
 
 addReturnToArray :: [Salty] -> String
+addReturnToArray [] = ""
+addReturnToArray (x:[]) = addReturn x
 addReturnToArray x = ((join "\n") . map toPhp . init $ x) ++ "\n" ++ (addReturn . last $ x)
 
 varName :: Salty -> String
@@ -96,7 +98,7 @@ instance ConvertToPhp Salty where
 
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
   -- toPhp (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
-  toPhp (Operation left Equals (If cond thenPath_ (Just elsePath_))) = print4 "% = % ? % : %" (toPhp left) (toPhp cond) (toPhp thenPath_) (toPhp elsePath_)
+  toPhp (Operation left Equals (If cond thenPath_ (Just elsePath_))) = print4 "% = % ? % : %" (toPhp left) (concat . map toPhp $ cond) (toPhp thenPath_) (toPhp elsePath_)
   toPhp (Operation (ArraySlice obj start Nothing) Equals arr) = print3 "array_splice(%, %, null, %)" (toPhp obj) (toPhp start) (toPhp arr)
   toPhp (Operation (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) Equals arr) = print4 "array_splice(%, %, %, %)" (toPhp obj) start newEnd (toPhp arr)
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
@@ -240,8 +242,8 @@ instance ConvertToPhp Salty where
   toPhp EmptyLine = ""
   toPhp (BackTrack s) = toPhp s
 
-  toPhp (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (toPhp thenFork) (toPhp elseFork)
-  toPhp (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (toPhp thenFork)
+  toPhp (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (concat . map toPhp $ cond) (toPhp thenFork) (toPhp elseFork)
+  toPhp (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (concat . map toPhp $ cond) (toPhp thenFork)
   toPhp (While cond body) = print2 "while (%) {\n%\n}" (toPhp cond) (toPhp body)
   toPhp (Class name Nothing Nothing body) = print2 "class % {\n%\n}" (toPhp name) (toPhp body)
   toPhp (Class name (Just extendsName) Nothing body) = print3 "class % extends % {\n%\n}" (toPhp name) (toPhp extendsName) (toPhp body)
@@ -308,12 +310,12 @@ instance ConvertToPhp Salty where
   -- toPhp (AttrAccess (Variable (StaticVar obj) _) attrName) = print2 "static::$%->%" obj attrName
   toPhp (Array salties@((Array _):rest)) = "[\n" ++ (intercalate ",\n" . map toPhp $ salties) ++ ",\n]"
   toPhp (Array salties) = "[" ++ (intercalate ", " . map toPhp $ salties) ++ "]"
-  toPhp (Guard cond outcome) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturnToArray outcome)
-  toPhp (SaltyGuard ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturnToArray outcome)
+  toPhp (Guard cond outcome) = print2 "if (%) {\n%\n}" (concat . map toPhp $ cond) (addReturnToArray outcome)
+  toPhp (SaltyGuard ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (concat . map toPhp $ cond) (addReturnToArray outcome)
   toPhp (SaltyGuard guards) = initGuards ++ lastGuard
     where initGuards = intercalate " else" . map toPhp . init $ guards
           lastGuard = case (last guards) of
-                           (Guard (SaltyString "otherwise") outcome) -> " else {\n" ++ (addReturnToArray outcome) ++  "\n}"
+                           (Guard [(SaltyString "otherwise")] outcome) -> " else {\n" ++ (addReturnToArray outcome) ++  "\n}"
                            _ -> " else" ++ (toPhp (last guards))
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
@@ -353,8 +355,8 @@ addReturn x@(Operation _ MultiplyEquals _) = toPhp x
 addReturn x@(Operation _ DivideEquals _) = toPhp x
 addReturn x@(Operation left OrEquals _) = (toPhp x) ++ "\nreturn " ++ (toPhp left) ++ ";"
 addReturn x@(Operation _ _ _) = "return " ++ (toPhp x)
-addReturn (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (toPhp cond) (addReturn thenFork) (addReturn elseFork)
-addReturn (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (toPhp cond) (addReturn thenFork)
+addReturn (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (concat . map toPhp $ cond) (addReturn thenFork) (addReturn elseFork)
+addReturn (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (concat . map toPhp $ cond) (addReturn thenFork)
 addReturn x@(Braces []) = toPhp x
 addReturn (Braces s) = (concat . map toPhp . init $ s) ++ "\n" ++ (addReturn . last $ s)
 addReturn (Variable name scope) = "return " ++ (toPhp name)
@@ -369,4 +371,5 @@ addReturn a@(AttrAccess _ _) = "return " ++ (toPhp a)
 addReturn x@(SaltyNumber _) = "return " ++ (toPhp x)
 addReturn x@(SaltyString _) = "return " ++ (toPhp x)
 addReturn x@(SaltyOptional salty) = "return " ++ (toPhp x)
+addReturn x@(SaltyBool _) = "return " ++ (toPhp x)
 addReturn x = toPhp x

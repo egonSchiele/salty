@@ -126,7 +126,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                lBody :: Salty
              }
              | If {
-               condition :: Salty,
+               condition :: [Salty],
                thenPath :: Salty,
                elsePath :: Maybe Salty
              }
@@ -173,7 +173,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              }
              | SaltyGuard [Salty]
              | Guard {
-                gCondition :: Salty,
+                gCondition :: [Salty],
                 gOutcome :: [Salty]
              }
              | Array [Salty]
