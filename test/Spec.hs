@@ -642,7 +642,10 @@ transpileTests = [
     "foo, bar = 0" `matches` "$foo = 0;\n$bar = 0;",
     "foo, bar = explode('.', array)" `matches` "$result = explode(\".\", $array);\n$foo = $result[0];\n$bar = $result[1];",
     "foo, bar = obj.func()" `matches` "$result = $obj->func();\n$foo = $result[0];\n$bar = $result[1];",
-    "foo, bar = Foo.new(bar).run()" `matches` "$result = (new Foo($bar))->run();\n$foo = $result[0];\n$bar = $result[1];"
+    "foo, bar = Foo.new(bar).run()" `matches` "$result = (new Foo($bar))->run();\n$foo = $result[0];\n$bar = $result[1];",
+
+    -- new keyword
+    "new self()" `matches` "new self();"
 
 
     -- empty hash

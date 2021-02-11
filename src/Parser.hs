@@ -354,7 +354,7 @@ guard = debug "guard" >> do
 whereClause = debug "whereClause" >> do
   string "where" <||> string "and"
   space
-  op <- operation
+  op <- operation <||> multiAssign
   optional $ char '\n'
   return op
 
@@ -556,8 +556,14 @@ simpleVar = debug "simpleVar" >> do
   rest <- many varNameChars
   return $ SimpleVar (first:rest)
 
--- Foo
 classVar = debug "classVar" >> do
+  classicClassVar <||> selfClassVar
+
+selfClassVar = debug "selfClassVar" >> do
+  string "self"
+  return $ ClassVar "self"
+
+classicClassVar = debug "classicClassVar" >> do
   start <- upper
   variable <- many1 classNameChars
   return $ ClassVar (start:variable)
