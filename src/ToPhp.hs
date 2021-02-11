@@ -99,6 +99,7 @@ instance ConvertToPhp Salty where
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
   -- toPhp (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
   toPhp (Operation left Equals (If cond thenPath_ (Just elsePath_))) = print4 "% = % ? % : %" (toPhp left) (concat . map toPhp $ cond) (toPhp thenPath_) (toPhp elsePath_)
+  toPhp (Operation left Equals (If cond thenPath_ Nothing)) = print3 "% = null;\nif (%) {\n%\n}" (toPhp left) (concat . map toPhp $ cond) (toPhp (Operation left Equals thenPath_))
   toPhp (Operation (ArraySlice obj start Nothing) Equals arr) = print3 "array_splice(%, %, null, %)" (toPhp obj) (toPhp start) (toPhp arr)
   toPhp (Operation (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) Equals arr) = print4 "array_splice(%, %, %, %)" (toPhp obj) start newEnd (toPhp arr)
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
