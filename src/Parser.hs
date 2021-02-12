@@ -124,6 +124,7 @@ saltyParserSingleWithoutNewline = do
   <||> partialOperation
   <||> saltyString
   <||> range
+  <||> indexIntoArray
   <||> saltyNumber
   <||> returnStatement
   <||> functionCall
@@ -162,6 +163,7 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> partialOperation
   <||> saltyString
   <||> range
+  <||> indexIntoArray
   <||> saltyNumber
   <||> functionCall
   <||> attrAccess
@@ -498,6 +500,7 @@ operator = debug "operator" >> do
 
 atom = debug "atom" >> do
        functionCall
+  <||> indexIntoArray
   <||> attrAccess
   <||> arraySlice
   <||> stringIndex
@@ -610,7 +613,7 @@ classicClassVar = debug "classicClassVar" >> do
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   optional $ char '('
-  obj <- range <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> stringSlice <||> saltyOptional <||> variable
+  obj <- range <||> indexIntoArray <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> stringSlice <||> saltyOptional <||> variable
   optional $ char ')'
   char '.'
   funcName <-      (string "map" >> return Map)
@@ -1072,3 +1075,9 @@ saltyOptional = debug "saltyOptional" >> do
   var <- variable
   char '?'
   return $ SaltyOptional var
+
+indexIntoArray = debug "indexIntoArray" >> do
+  var <- variable
+  char '.'
+  number <- integer
+  return $ HashLookup var number

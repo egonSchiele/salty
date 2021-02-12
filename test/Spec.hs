@@ -673,6 +673,11 @@ transpileTests = [
     "foo, bar = obj.func()" `matches` "$result = $obj->func();\n$foo = $result[0];\n$bar = $result[1];",
     "foo, bar = Foo.new(bar).run()" `matches` "$result = (new Foo($bar))->run();\n$foo = $result[0];\n$bar = $result[1];",
 
+    -- hash lookup
+    "arr.1 - arr.0" `matches` "$arr[1] - $arr[0];",
+    "func(a.1, a.2)" `matches` "func($a[1], $a[2]);",
+    "arr.1.count()" `matches` "count($arr[1]);",
+
     -- new keyword
     "new self()" `matches` "new self();",
     "new self(1, foo)" `matches` "new self(1,$foo);"
