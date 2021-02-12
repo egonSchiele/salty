@@ -238,7 +238,8 @@ foo := guard
   | otherwise -> false
 |]
 
-guardTestComplexResult = [r|/**
+guardTestComplexResult = [r|
+/**
  * @return bool
  */
 function foo() {

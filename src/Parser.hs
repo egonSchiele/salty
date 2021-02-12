@@ -207,8 +207,9 @@ variableName = debug "variableName" >> do
 
 parens = debug "parens" >> do
   char '('
-  body <- saltyParser
+  body <- many1 saltyParserSingleWithoutNewline
   char ')'
+  modifyState (saveIt (Parens body))
   debug $ "parens done with: " ++ (show body)
   return $ Parens body
 
@@ -499,7 +500,8 @@ operator = debug "operator" >> do
   <?> "an operator"
 
 atom = debug "atom" >> do
-       functionCall
+       parens
+  <||> functionCall
   <||> indexIntoArray
   <||> attrAccess
   <||> arraySlice
