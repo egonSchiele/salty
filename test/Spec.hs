@@ -468,6 +468,8 @@ transpileTests = [
     "arr.select(x -> x.isEven())" `matches`"$result = [];\nforeach ($arr as $x) {\n    if($x->isEven()) {\n        $result []= $x;\n    }\n}",
     "arr.each(x -> print(x))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
     "@adit.map(x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
+    "10.times(p('hello'))" `matches` "for ($x = 1; $x <= 10; $x++) {\n    var_dump(\"hello\");\n}",
+    "10.times(i -> Hello.new(i))" `matches` "for ($i = 1; $i <= 10; $i++) {\n    (new Hello($i));\n}",
     -- same but w parens
     "(@adit).map(x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
     "users = shops.map(s -> s.user)" `matches`"$users = [];\nforeach ($shops as $s) {\n    $users []= $s->user;\n}",

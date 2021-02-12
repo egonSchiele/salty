@@ -15,6 +15,7 @@ simpleVarName x = case x of
     ClassVar s -> s
     SimpleVar s -> s
 
+formatLoopVars [] = "$x"
 formatLoopVars (x:[]) = "$" ++ x
 formatLoopVars (x:y:[]) = print2 "$% => $%" x y
 

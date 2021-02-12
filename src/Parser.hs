@@ -110,6 +110,7 @@ saltyParserSingleWithoutNewline :: SaltyParser
 saltyParserSingleWithoutNewline = do
   parens
   <||> higherOrderFunctionCall
+  <||> times
   <||> hashTable
   <||> array
   -- <||> emptyHash
@@ -622,12 +623,25 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   char ')'
   return $ HigherOrderFunctionCall obj funcName func "$result"
 
+times = debug "times" >> do
+  number <- integer
+  char '.'
+  string "times"
+  char '('
+  func <- lambda <||> lambdaWithoutArgs
+  char ')'
+  return $ HigherOrderFunctionCall (Range (SaltyNumber "1") number)  Each func "$result"
+
 lambda = debug "lambda" >> do
   optional $ char '\\'
   args <-  many1 lambdaVarNameChars
   string "-> "
   body <- (braces Nothing) <||> saltyParserSingle_ <?> "a lambda function body"
   return $ LambdaFunction (words args) body
+
+lambdaWithoutArgs = debug "lambdaWithoutArgs" >> do
+  body <- (braces Nothing) <||> saltyParserSingle_ <?> "a lambda function (without args) body"
+  return $ LambdaFunction [] body
 
 returnStatement = debug "returnStatement" >> do
   string "return "
