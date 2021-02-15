@@ -56,7 +56,7 @@ phpBlob = [r|
 
 longerTest = saltyBlob `matches` phpBlob
 
-multiLineEach = [r|foo.each(x -> {
+multiLineEach = [r|foo.each(\x -> {
     x + 1
     y + 2
     hello("hi")
@@ -71,7 +71,7 @@ multiLineEachResult = [r|foreach ($foo as $x) {
 
 multiLineEachTest = multiLineEach `matches` multiLineEachResult
 
-multiLineMap = [r|foo.map(x -> {
+multiLineMap = [r|foo.map(\x -> {
     x + 1
     y + 2
     hello("hi")
@@ -87,7 +87,7 @@ foreach ($foo as $x) {
 
 multiLineMapTest = multiLineMap `matches` multiLineMapResult
 
-multiLineMapAssign = [r|myVar = foo.map(x -> {
+multiLineMapAssign = [r|myVar = foo.map(\x -> {
     x + 1
     y + 2
     hello("hi")
@@ -103,7 +103,7 @@ foreach ($foo as $x) {
 
 multiLineMapAssignTest = multiLineMapAssign `matches` multiLineMapAssignResult
 
-multiLineSelect = [r|foo.select(x -> {
+multiLineSelect = [r|foo.select(\x -> {
     x + 1
     y + 2
     hello("hi")
@@ -121,7 +121,7 @@ foreach ($foo as $x) {
 
 multiLineSelectTest = multiLineSelect `matches` multiLineSelectResult
 
-multiLineAny = [r|foo.any(x -> {
+multiLineAny = [r|foo.any(\x -> {
     x + 1
     y + 2
     hello("hi")
@@ -140,7 +140,7 @@ foreach ($foo as $x) {
 
 multiLineAnyTest = multiLineAny `matches` multiLineAnyResult
 
-multiLineAll = [r|foo.all(x -> {
+multiLineAll = [r|foo.all(\x -> {
     x + 1
     y + 2
     hello("hi")
@@ -181,7 +181,7 @@ multiLineArraysTest = [r|class Foo implements Bar {
 
 guardTest = [r|foo := guard
   | x == 1 -> x.foo()
-  | y == 2 -> x.map(y -> y + 1)
+  | y == 2 -> x.map(\y -> y + 1)
 |]
 
 guardResult = [r|function foo() {
@@ -211,7 +211,7 @@ guardResultWithArgs = [r|function foo($a, $bar) {
 
 guardTestWithWhere = [r|foo a bar := guard
   | awesome -> x.foo()
-  | otherwise -> x.map(y -> y + 1)
+  | otherwise -> x.map(\y -> y + 1)
   where awesome = 1 + 1
   and blossom = Foo.new()
 |]
@@ -256,7 +256,7 @@ function foo() {
 
 guardTestAsSwitch = [r|todos state action := guard(hi)
   | "ADD" -> todo(null, action)
-  | "TOGGLE" -> state.map(t -> todo(t, action))
+  | "TOGGLE" -> state.map(\t -> todo(t, action))
   | otherwise -> state
 |]
 
@@ -486,31 +486,31 @@ transpileTests = [
     "foo := bar ||= 1" `matches` "function foo() {\n    $bar = $bar ?? 1;\n    return $bar;\n}",
 
     -- higher order functions
-    "arr.any(x -> x == 1)" `matches`"$result = false;\nforeach ($arr as $x) {\n    if($x == 1) {\n        $result = true;\n        break;\n    }\n}",
-    "arr.all(x -> x.isEven())" `matches`"$result = true;\nforeach ($arr as $x) {\n    if(!$x->isEven()) {\n        $result = false;\n        break;\n    }\n}",
-    "arr.select(x -> x.isEven())" `matches`"$result = [];\nforeach ($arr as $x) {\n    if($x->isEven()) {\n        $result []= $x;\n    }\n}",
-    "arr.each(x -> print(x))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
-    "@adit.map(x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
+    "arr.any(\\x -> x == 1)" `matches`"$result = false;\nforeach ($arr as $x) {\n    if($x == 1) {\n        $result = true;\n        break;\n    }\n}",
+    "arr.all(\\x -> x.isEven())" `matches`"$result = true;\nforeach ($arr as $x) {\n    if(!$x->isEven()) {\n        $result = false;\n        break;\n    }\n}",
+    "arr.select(\\x -> x.isEven())" `matches`"$result = [];\nforeach ($arr as $x) {\n    if($x->isEven()) {\n        $result []= $x;\n    }\n}",
+    "arr.each(\\x -> print(x))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
+    "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
     "10.times(p('hello'))" `matches` "for ($x = 1; $x <= 10; $x++) {\n    var_dump(\"hello\");\n}",
-    "10.times(i -> Hello.new(i))" `matches` "for ($i = 1; $i <= 10; $i++) {\n    (new Hello($i));\n}",
+    "10.times(\\i -> Hello.new(i))" `matches` "for ($i = 1; $i <= 10; $i++) {\n    (new Hello($i));\n}",
     -- same but w parens
-    "(@adit).map(x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
-    "users = shops.map(s -> s.user)" `matches`"$users = [];\nforeach ($shops as $s) {\n    $users []= $s->user;\n}",
-    "users = shops.map(s x -> s.user)" `matches` "$users = [];\nforeach ($shops as $s => $x) {\n    $users []= $s->user;\n}",
-    "shops.each(s x -> s.user)" `matches` "foreach ($shops as $s => $x) {\n    $s->user;\n}",
-    "@shops().each(s -> s.user)" `matches` "foreach ($this->shops() as $s) {\n    $s->user;\n}",
-    "[foo, bar, baz].map(shop -> shop.listings)" `matches` "$result = [];\nforeach ([$foo, $bar, $baz] as $shop) {\n    $result []= $shop->listings;\n}",
-    "foo[:5].map(shop -> shop.listings)" `matches` "$result = [];\nforeach (array_slice($foo, 0, 5) as $shop) {\n    $result []= $shop->listings;\n}",
-    "@shops().find(1).each(s -> s.user)" `matches` "foreach ($this->shops()->find(1) as $s) {\n    $s->user;\n}",
-    "Foo.shops(arg1).each(s -> s.user)" `matches` "foreach (Foo::shops($arg1) as $s) {\n    $s->user;\n}",
-    "@@shops().map(s -> s.user)" `matches` "$result = [];\nforeach (static::shops() as $s) {\n    $result []= $s->user;\n}",
-    "Foo.shops().any(s -> s.user)" `matches`"$result = false;\nforeach (Foo::shops() as $s) {\n    if($s->user) {\n        $result = true;\n        break;\n    }\n}",
-    "@shops().all(s -> s.user)" `matches` "$result = true;\nforeach ($this->shops() as $s) {\n    if(!$s->user) {\n        $result = false;\n        break;\n    }\n}",
-    "@shops().select(s -> s.user)" `matches` "$result = [];\nforeach ($this->shops() as $s) {\n    if($s->user) {\n        $result []= $s;\n    }\n}",
+    "(@adit).map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
+    "users = shops.map(\\s -> s.user)" `matches`"$users = [];\nforeach ($shops as $s) {\n    $users []= $s->user;\n}",
+    "users = shops.map(\\s x -> s.user)" `matches` "$users = [];\nforeach ($shops as $s => $x) {\n    $users []= $s->user;\n}",
+    "shops.each(\\s x -> s.user)" `matches` "foreach ($shops as $s => $x) {\n    $s->user;\n}",
+    "@shops().each(\\s -> s.user)" `matches` "foreach ($this->shops() as $s) {\n    $s->user;\n}",
+    "[foo, bar, baz].map(\\shop -> shop.listings)" `matches` "$result = [];\nforeach ([$foo, $bar, $baz] as $shop) {\n    $result []= $shop->listings;\n}",
+    "foo[:5].map(\\shop -> shop.listings)" `matches` "$result = [];\nforeach (array_slice($foo, 0, 5) as $shop) {\n    $result []= $shop->listings;\n}",
+    "@shops().find(1).each(\\s -> s.user)" `matches` "foreach ($this->shops()->find(1) as $s) {\n    $s->user;\n}",
+    "Foo.shops(arg1).each(\\s -> s.user)" `matches` "foreach (Foo::shops($arg1) as $s) {\n    $s->user;\n}",
+    "@@shops().map(\\s -> s.user)" `matches` "$result = [];\nforeach (static::shops() as $s) {\n    $result []= $s->user;\n}",
+    "Foo.shops().any(\\s -> s.user)" `matches`"$result = false;\nforeach (Foo::shops() as $s) {\n    if($s->user) {\n        $result = true;\n        break;\n    }\n}",
+    "@shops().all(\\s -> s.user)" `matches` "$result = true;\nforeach ($this->shops() as $s) {\n    if(!$s->user) {\n        $result = false;\n        break;\n    }\n}",
+    "@shops().select(\\s -> s.user)" `matches` "$result = [];\nforeach ($this->shops() as $s) {\n    if($s->user) {\n        $result []= $s;\n    }\n}",
 
     -- chain a function onto the end of a HoF
-    "count_alive = shops.select(s -> s.isAlive()).count()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = count($count_alive);",
-    "count_alive = shops.select(s -> s.isAlive()).foo()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = $count_alive->foo();",
+    "count_alive = shops.select(\\s -> s.isAlive()).count()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = count($count_alive);",
+    "count_alive = shops.select(\\s -> s.isAlive()).foo()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = $count_alive->foo();",
     -- TODO attr access and array slices don't work on this
     -- "count_alive = shops.select(\\s -> s.isAlive()).foo" `matches` "",
     -- "count_alive = shops.select(\\s -> s.isAlive())[:2]" `matches` "",
@@ -518,23 +518,23 @@ transpileTests = [
     -- "count_alive = shops.select(\\s -> s.isAlive()).uniq().count()" `matches` "",
 
     -- assigning accVar manually
-    "myAcc = foo.each(x -> print(x))" `matches` "foreach ($foo as $x) {\n    print($x);\n}",
-    "@myAcc = foo.map(x -> x + 1)" `matches` "$this->myAcc = [];\nforeach ($foo as $x) {\n    $this->myAcc []= $x + 1;\n}",
-    "@@myAcc = foo.any(x -> x.isEven())" `matches` "static::$myAcc = false;\nforeach ($foo as $x) {\n    if($x->isEven()) {\n        static::$myAcc = true;\n        break;\n    }\n}",
-    "myAcc = foo.all(x -> x.isEven())" `matches` "$myAcc = true;\nforeach ($foo as $x) {\n    if(!$x->isEven()) {\n        $myAcc = false;\n        break;\n    }\n}",
+    "myAcc = foo.each(\\x -> print(x))" `matches` "foreach ($foo as $x) {\n    print($x);\n}",
+    "@myAcc = foo.map(\\x -> x + 1)" `matches` "$this->myAcc = [];\nforeach ($foo as $x) {\n    $this->myAcc []= $x + 1;\n}",
+    "@@myAcc = foo.any(\\x -> x.isEven())" `matches` "static::$myAcc = false;\nforeach ($foo as $x) {\n    if($x->isEven()) {\n        static::$myAcc = true;\n        break;\n    }\n}",
+    "myAcc = foo.all(\\x -> x.isEven())" `matches` "$myAcc = true;\nforeach ($foo as $x) {\n    if(!$x->isEven()) {\n        $myAcc = false;\n        break;\n    }\n}",
 
     -- assigning accVar manually plus implicit return
-    "bar := myAcc = foo.each(x -> print(x))" `matches` "function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
-    "bar := @myAcc = foo.map(x -> x + 1)" `matches` "function bar() {\n    $this->myAcc = [];\n    foreach ($foo as $x) {\n        $this->myAcc []= $x + 1;\n    }\n    return $this->myAcc;\n}",
-    "bar := @@myAcc = foo.any(x -> x.isEven())" `matches` "function bar() {\n    static::$myAcc = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            static::$myAcc = true;\n            break;\n        }\n    }\n    return static::$myAcc;\n}",
-    "bar := myAcc = foo.all(x -> x.isEven())" `matches` "function bar() {\n    $myAcc = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $myAcc = false;\n            break;\n        }\n    }\n    return $myAcc;\n}",
+    "bar := myAcc = foo.each(\\x -> print(x))" `matches` "function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
+    "bar := @myAcc = foo.map(\\x -> x + 1)" `matches` "function bar() {\n    $this->myAcc = [];\n    foreach ($foo as $x) {\n        $this->myAcc []= $x + 1;\n    }\n    return $this->myAcc;\n}",
+    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "function bar() {\n    static::$myAcc = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            static::$myAcc = true;\n            break;\n        }\n    }\n    return static::$myAcc;\n}",
+    "bar := myAcc = foo.all(\\x -> x.isEven())" `matches` "function bar() {\n    $myAcc = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $myAcc = false;\n            break;\n        }\n    }\n    return $myAcc;\n}",
 
     -- implicit returns for higher order functions
-    "bar := foo.each(x -> print(x))" `matches` "function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
-    "bar := foo.map(x -> x + 1)" `matches`"function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n    return $result;\n}",
-    "bar := foo.any(x -> x.isEven())" `matches`"function bar() {\n    $result = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result = true;\n            break;\n        }\n    }\n    return $result;\n}",
-    "bar := foo.all(x -> x.isEven())" `matches`"function bar() {\n    $result = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $result = false;\n            break;\n        }\n    }\n    return $result;\n}",
-    "bar := foo.select(x -> x.isEven())" `matches` "function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= $x;\n        }\n    }\n    return $result;\n}",
+    "bar := foo.each(\\x -> print(x))" `matches` "function bar() {\n    foreach ($foo as $x) {\n        print($x);\n    }\n}",
+    "bar := foo.map(\\x -> x + 1)" `matches`"function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n    return $result;\n}",
+    "bar := foo.any(\\x -> x.isEven())" `matches`"function bar() {\n    $result = false;\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result = true;\n            break;\n        }\n    }\n    return $result;\n}",
+    "bar := foo.all(\\x -> x.isEven())" `matches`"function bar() {\n    $result = true;\n    foreach ($foo as $x) {\n        if(!$x->isEven()) {\n            $result = false;\n            break;\n        }\n    }\n    return $result;\n}",
+    "bar := foo.select(\\x -> x.isEven())" `matches` "function bar() {\n    $result = [];\n    foreach ($foo as $x) {\n        if($x->isEven()) {\n            $result []= $x;\n        }\n    }\n    return $result;\n}",
 
     -- keywords
     "use Foo" `matches` "use Foo;",
@@ -609,8 +609,8 @@ transpileTests = [
     "take(5, 1..10)" `matches` "take(5, [1,2,3,4,5,6,7,8,9,10]);",
 
     -- classic for loop using each + range
-    "(1..10).each(x -> x + 1)" `matches` "for ($x = 1; $x <= 10; $x++) {\n    $x + 1;\n}",
-    "(start..end).each(x -> x + 1)" `matches` "for ($x = $start; $x <= $end; $x++) {\n    $x + 1;\n}",
+    "(1..10).each(\\x -> x + 1)" `matches` "for ($x = 1; $x <= 10; $x++) {\n    $x + 1;\n}",
+    "(start..end).each(\\x -> x + 1)" `matches` "for ($x = $start; $x <= $end; $x++) {\n    $x + 1;\n}",
     "foo in 1..10" `matches` "$foo >= 1 && $foo <= 10;",
     "foo in (1..10)" `matches` "$foo >= 1 && $foo <= 10;",
     "foo in (start..end.baz)" `matches` "$foo >= $start && $foo <= $end->baz;",
@@ -640,10 +640,10 @@ transpileTests = [
     "var = foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $foo->bar();\n}",
     "var += foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $var + $foo->bar;\n}",
     "var *= foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $var * $foo->bar();\n}",
-    "foo?.map(x -> x + 1)" `matches` "if (!is_null($foo)) {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n}",
-    "var = foo?.map(x -> x + 1)" `matches` "if (!is_null($foo)) {\n    $var = [];\n    foreach ($foo as $x) {\n        $var []= $x + 1;\n    }\n}",
+    "foo?.map(\\x -> x + 1)" `matches` "if (!is_null($foo)) {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n}",
+    "var = foo?.map(\\x -> x + 1)" `matches` "if (!is_null($foo)) {\n    $var = [];\n    foreach ($foo as $x) {\n        $var []= $x + 1;\n    }\n}",
     "foo := bar?" `matches` "function foo() {\n    return !is_null($bar);\n}",
-    "foo := bar?.map(x -> x + 1)" `matches` "function foo() {\n    if (!is_null($bar)) {\n        $result = [];\n        foreach ($bar as $x) {\n            $result []= $x + 1;\n        }\n    }\n    return $result;\n}",
+    "foo := bar?.map(\\x -> x + 1)" `matches` "function foo() {\n    if (!is_null($bar)) {\n        $result = [];\n        foreach ($bar as $x) {\n            $result []= $x + 1;\n        }\n    }\n    return $result;\n}",
     "var = :foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $foo[\"bar\"];\n}",
 
     -- TODO
