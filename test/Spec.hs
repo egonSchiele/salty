@@ -264,17 +264,14 @@ guardTestAsSwitchResult = [r|function todos($state, $action) {
     switch ($hi) {
         case "ADD":
             return todo(null, $action);
-            break;
         case "TOGGLE":
             $result = [];
         foreach ($state as $t) {
             $result []= todo($t, $action);
         }
         return $result;
-            break;
-        case "otherwise":
+        case default:
             return $state;
-            break;
     }
 }|]
 

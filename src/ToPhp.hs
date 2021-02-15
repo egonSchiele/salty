@@ -323,7 +323,9 @@ instance ConvertToPhp Salty where
 
   toPhp (SaltyGuard (Just val) guards) = print2 "switch (%) {\n%\n}" (toPhp val) guardsToPhp
     where guardsToPhp = concat . map phpFunc $ guards
-          phpFunc (Guard cond outcome) = print2 "case %:\n    %\n    break\n" (join "\n" . map toPhp $ cond) (join "\n" . map toPhp $ outcome)
+          phpFunc (Guard cond outcome) = print2 "case %:\n    %\n" (toPhp_ cond) (join "\n" . map toPhp $ outcome)
+          toPhp_ [(SaltyString "otherwise")] = "default"
+          toPhp_ cond_ = (join "\n" . map toPhp $ cond_)
 
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"

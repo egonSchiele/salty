@@ -192,34 +192,43 @@ instance ConvertToJs Salty where
 
   -- map
   toJs (HigherOrderFunctionCall obj Map (LambdaFunction loopVar (Braces body)) accVar) =
-                print5 "% = %.map((%) => {\n%\nreturn %\n})" accVar (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs (last body))
+                print5 "% = %.map((%) => {\n%\nreturn %\n})" accVar_ (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs (last body))
+                where accVar_ = if accVar == "$result" then "result" else accVar
 
   toJs (HigherOrderFunctionCall obj Map (LambdaFunction loopVar body) accVar) =
-                print4 "% = %.map((%) => %)" accVar (toJs obj) (formatLoopVars loopVar) (toJs body)
+                print4 "% = %.map((%) => %)" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body)
+                where accVar_ = if accVar == "$result" then "result" else accVar
 
   -- select
   toJs (HigherOrderFunctionCall obj Select (LambdaFunction loopVar (Braces body)) accVar) =
-                accVar ++ " = [];\n" ++ (print6 "foreach (% as %) {\n%\nif(%) {\n% []= %;\n}\n}\n" (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs . last $ body) accVar (formatLoopVars loopVar))
+                accVar_ ++ " = [];\n" ++ (print6 "foreach (% as %) {\n%\nif(%) {\n% []= %;\n}\n}\n" (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs . last $ body) accVar_ (formatLoopVars loopVar))
+                where accVar_ = if accVar == "$result" then "result" else accVar
 
   toJs (HigherOrderFunctionCall obj Select (LambdaFunction loopVar body) accVar) =
-                print6 "% = [];\nforeach (% as %) {\nif(%) {\n% []= %;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (toJs body) accVar (formatLoopVars loopVar)
+                print6 "% = [];\nforeach (% as %) {\nif(%) {\n% []= %;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body) accVar_ (formatLoopVars loopVar)
+                where accVar_ = if accVar == "$result" then "result" else accVar
 
   -- any
   toJs (HigherOrderFunctionCall obj Any (LambdaFunction loopVar (Braces body)) accVar) =
-                print6 "% = false;\nforeach (% as %) {\n%\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs . last $ body) accVar
+                print6 "% = false;\nforeach (% as %) {\n%\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs . last $ body) accVar_
+                where accVar_ = if accVar == "$result" then "result" else accVar
 
   toJs (HigherOrderFunctionCall obj Any (LambdaFunction loopVar body) accVar) =
-                print5 "% = false;\nforeach (% as %) {\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (toJs body) accVar
+                print5 "% = false;\nforeach (% as %) {\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body) accVar_
+                where accVar_ = if accVar == "$result" then "result" else accVar
 
   -- all
   toJs (HigherOrderFunctionCall obj All (LambdaFunction loopVar (Braces body)) accVar) =
-                print6 "% = true;\nforeach (% as %) {\n%\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs . last $ body) accVar
+                print6 "% = true;\nforeach (% as %) {\n%\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs . last $ body) accVar_
+                where accVar_ = if accVar == "$result" then "result" else accVar
 
   toJs (HigherOrderFunctionCall obj All (LambdaFunction loopVar body) accVar) =
-                print5 "% = true;\nforeach (% as %) {\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (toJs body) accVar
+                print5 "% = true;\nforeach (% as %) {\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body) accVar_
+                where accVar_ = if accVar == "$result" then "result" else accVar
 
   toJs Salt = "I'm salty"
   toJs (ReturnStatement s) = "return " ++ (toJs s) ++ ";"
+  toJs (ReturnStatementForAddReturn s) = addReturn s
   toJs (Parens s) = "(" ++ (concat $ map toJs s) ++ ")"
   toJs (Braces s) = join "\n" $ map toJs s
   toJs (PurePhp line) = line
@@ -286,6 +295,13 @@ instance ConvertToJs Salty where
           lastGuard = case (last guards) of
                            (Guard [(SaltyString "otherwise")] outcome) -> " else {\n" ++ (addReturnToArray outcome) ++  "\n}"
                            _ -> " else" ++ (toJs (last guards))
+
+  toJs (SaltyGuard (Just val) guards) = print2 "switch (%) {\n%\n}" (toJs val) guardsToJs
+    where guardsToJs = concat . map jsFunc $ guards
+          jsFunc (Guard cond outcome) = print2 "case %:\n  %\n" (toJs_ cond) (join "\n" . map toJs $ outcome)
+          toJs_ [(SaltyString "otherwise")] = "default"
+          toJs_ cond_ = (join "\n" . map toJs $ cond_)
+
   toJs (SaltyBool TRUE) = "true"
   toJs (SaltyBool FALSE) = "false"
   toJs SaltyNull = "null"
@@ -336,11 +352,15 @@ addReturn f@(FunctionCall o n a) = "return " ++ (toJs f)
 addReturn h@(HashTable kv) = "return " ++ (toJs h)
 addReturn a@(Array xs) = "return " ++ (toJs a)
 addReturn f@(HigherOrderFunctionCall _ Each _ _) = toJs f
-addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toJs f) ++ "\nreturn " ++ accVar
+addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toJs f) ++ "\nreturn " ++ accVar_
+                where accVar_ = if accVar == "$result" then "result" else accVar
 addReturn a@(AttrAccess _ _) = "return " ++ (toJs a)
 addReturn x@(SaltyNumber _) = "return " ++ (toJs x)
 addReturn x@(SaltyString _) = "return " ++ (toJs x)
 addReturn x@(SaltyOptional salty) = "return " ++ (toJs x)
 addReturn x@(SaltyBool _) = "return " ++ (toJs x)
+addReturn x@(SaltyGuard (Just val) guards) = toJs (SaltyGuard (Just val) newGuards)
+  where newGuards = map addReturn_ guards
+        addReturn_ (Guard cond outcome) = Guard cond ((init outcome) ++ [ReturnStatementForAddReturn (last outcome)])
 addReturn x = toJs x
 
