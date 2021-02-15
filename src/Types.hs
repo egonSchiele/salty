@@ -179,6 +179,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              }
              | Array [Salty]
              | ReturnStatement Salty
+             | ReturnStatementForAddReturn Salty
              | Negate Salty
              | EmptyLine
              | WithNewLine Salty

@@ -254,6 +254,30 @@ function foo() {
     }
 }|]
 
+guardTestAsSwitch = [r|todos state action := guard(hi)
+  | "ADD" -> todo(null, action)
+  | "TOGGLE" -> state.map(t -> todo(t, action))
+  | otherwise -> state
+|]
+
+guardTestAsSwitchResult = [r|function todos($state, $action) {
+    switch ($hi) {
+        case "ADD":
+            return todo(null, $action);
+            break;
+        case "TOGGLE":
+            $result = [];
+        foreach ($state as $t) {
+            $result []= todo($t, $action);
+        }
+        return $result;
+            break;
+        case "otherwise":
+            return $state;
+            break;
+    }
+}|]
+
 transpileTests = [
     multiLineEachTest,
     multiLineMapTest,
@@ -266,6 +290,7 @@ transpileTests = [
     guardTestWithArgs `matches` guardResultWithArgs,
     guardTestWithWhere `matches` guardResultWithWhere,
     guardTestComplex `matches` guardTestComplexResult,
+    guardTestAsSwitch `matches` guardTestAsSwitchResult,
     -- operations
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",

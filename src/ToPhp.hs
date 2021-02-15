@@ -235,6 +235,7 @@ instance ConvertToPhp Salty where
 
   toPhp Salt = "I'm salty"
   toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
+  toPhp (ReturnStatementForAddReturn s) = addReturn s
   toPhp (Parens s) = "(" ++ (concat $ map toPhp s) ++ ")"
   toPhp (Braces s) = join "\n" $ map toPhp s
   toPhp (PurePhp line) = line
@@ -319,6 +320,11 @@ instance ConvertToPhp Salty where
           lastGuard = case (last guards) of
                            (Guard [(SaltyString "otherwise")] outcome) -> " else {\n" ++ (addReturnToArray outcome) ++  "\n}"
                            _ -> " else" ++ (toPhp (last guards))
+
+  toPhp (SaltyGuard (Just val) guards) = print2 "switch (%) {\n%\n}" (toPhp val) guardsToPhp
+    where guardsToPhp = concat . map phpFunc $ guards
+          phpFunc (Guard cond outcome) = print2 "case %:\n    %\n    break\n" (join "\n" . map toPhp $ cond) (join "\n" . map toPhp $ outcome)
+
   toPhp (SaltyBool TRUE) = "true"
   toPhp (SaltyBool FALSE) = "false"
   toPhp SaltyNull = "null"
@@ -375,4 +381,7 @@ addReturn x@(SaltyNumber _) = "return " ++ (toPhp x)
 addReturn x@(SaltyString _) = "return " ++ (toPhp x)
 addReturn x@(SaltyOptional salty) = "return " ++ (toPhp x)
 addReturn x@(SaltyBool _) = "return " ++ (toPhp x)
+addReturn x@(SaltyGuard (Just val) guards) = toPhp (SaltyGuard (Just val) newGuards)
+  where newGuards = map addReturn_ guards
+        addReturn_ (Guard cond outcome) = Guard cond ((init outcome) ++ [ReturnStatementForAddReturn (last outcome)])
 addReturn x = toPhp x

@@ -380,7 +380,7 @@ multilineFunction = debug "multilineFunction" >> do
      _ -> return $ Function name (map argWithDefaults args) [body] visibility scope
 
 otherwiseGuard = do
-  string "otherwise"
+  string "otherwise" <||> string "_"
   return $ [SaltyString "otherwise"]
 
 -- parseTillEndOfLine = debug "parseTillEndOfLine" >> do
@@ -406,6 +406,19 @@ whereClause = debug "whereClause" >> do
   return op
 
 saltyGuard = debug "saltyGuard" >> do
+       saltyGuardSwitchStatement
+  <||> saltyGuardOnly
+
+saltyGuardSwitchStatement = debug "saltyGuardSwitchStatement" >> do
+  string "guard"
+  char '('
+  val <- validFuncArgTypes
+  char ')'
+  char '\n'
+  guards <- many1 guard
+  return $ SaltyGuard (Just val) guards
+
+saltyGuardOnly = debug "saltyGuardOnly" >> do
   string "guard\n"
   guards <- many1 guard
   return $ SaltyGuard Nothing guards
