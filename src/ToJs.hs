@@ -11,6 +11,7 @@ stripNewlineToJs salty = toJs salty
 toReact :: Salty -> String
 toReact (WithNewLine s) = toReact s
 toReact (SaltyString str) = str
+toReact f@(FunctionCall _ (Right (SimpleVar "new")) _) = toJs f
 toReact f@(Function (SimpleVar "tag") [Argument _ (ArgumentName name _) _] body _ _) = toJs f
 toReact x = "{" ++ (toJs x) ++ "}"
 
@@ -163,7 +164,9 @@ instance ConvertToJs Salty where
                                               [(Braces salty)] -> print3 "<%>%</%>" name (join "" . map toReact $ salty) name
                                               _ -> print3 "<%>%</%>" name (concat . map toReact $ body) name
 
-  toJs (Function name args body visibility scope) = print3 "const % = (%) => {\n%\n}\n" (simpleVarName name) funcArgs funcBody
+  toJs (Function name args body visibility scope)
+    | scope == ClassScope = print3 "%(%) {\n%\n}\n" (simpleVarName name) funcArgs funcBody
+    | otherwise = print3 "const % = (%) => {\n%\n}\n" (simpleVarName name) funcArgs funcBody
     where funcArgs = intercalate ", " $ map toJs args
           funcBody = case body of
                           [] -> ""
@@ -197,7 +200,7 @@ instance ConvertToJs Salty where
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toJs obj) ++ ")"
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
   toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace]) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs]) = print2 "<%% />" (simpleVarName vName) (pairsToReact kvPairs)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs]) = print2 "\n<%% />" (simpleVarName vName) (pairsToReact kvPairs)
     where pairsToReact pairs = case pairs of
             [] -> ""
             _ -> " " ++ (join " " . map toPair $ pairs)
@@ -395,7 +398,6 @@ addReturn x@(SaltyString _) = "return " ++ (toJs x)
 addReturn x@(SaltyOptional salty) = "return " ++ (toJs x)
 addReturn x@(SaltyBool _) = "return " ++ (toJs x)
 addReturn x@(PurePhp _) = "return " ++ (toJs x)
-addReturn x@(Function _ _ _ _ _) = "return " ++ (toJs x)
 addReturn x@(SaltyGuard (Just val) guards) = toJs (SaltyGuard (Just val) newGuards)
   where newGuards = map addReturn_ guards
         addReturn_ (Guard cond outcome) = Guard cond ((init outcome) ++ [ReturnStatementForAddReturn (last outcome)])
