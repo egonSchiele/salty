@@ -342,11 +342,11 @@ becomes:
 ## Higher-order functions
 
 ```
-foo.each(x -> print(x))
-foo.map(x -> x + 1)
-foo.any(x -> x.isEven())
-foo.all(x -> x.isEven())
-foo.select(x -> x.isEven())
+foo.each(\x -> print(x))
+foo.map(\x -> x + 1)
+foo.any(\x -> x.isEven())
+foo.all(\x -> x.isEven())
+foo.select(\x -> x.isEven())
 ```
 
 become
@@ -393,7 +393,7 @@ foreach ($foo as $x) {
 Implicit return works correctly with these too.
 
 ```
-bar := foo.map(x -> x + 1)
+bar := foo.map(\x -> x + 1)
 ```
 
 becomes
@@ -411,7 +411,7 @@ public function bar() {
 Multi-line:
 
 ```
-myVar = foo.map(x -> {
+myVar = foo.map(\x -> {
     x + 1
     y + 2
     hello("hi")
@@ -431,7 +431,7 @@ foreach ($foo as $x) {
 
 For key-value, do:
 
-    users = shops.map(s x -> s.user)
+    users = shops.map(\s x -> s.user)
 
 which becomes:
 
