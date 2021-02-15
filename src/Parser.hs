@@ -149,6 +149,7 @@ saltyParserSingleWithoutNewline = do
   <||> saltyComment
   <||> phpComment
   <||> purePhp
+  <||> html
   <||> emptyLine
   <||> ifStatement
   <||> whileStatement
@@ -191,6 +192,7 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> saltyMagicConstant
   <||> phpVar
   <||> purePhp
+  <||> html
   <||> saltyOptional
   <||> variable
   <?> "a valid function argument type"
@@ -235,6 +237,7 @@ validHashValue = debug "validHashValue" >> do
   <||> saltyNull
   <||> saltyMagicConstant
   <||> purePhp
+  <||> html
   <||> variable
   <?> "a valid hash value"
 
@@ -362,6 +365,10 @@ wrapInSalt parser = debug "wrapInSalt" >> do
 
 parseTill endParser = debug "parseTill" >> do
   body <- manyTill saltyParserSingle_ (try (endParser <||> saltyEOF))
+  return body
+
+readTill endParser = debug "readTill" >> do
+  body <- manyTill anyChar (try (endParser <||> saltyEOF))
   return body
 
 onelineFunction = debug "onelineFunction" >> do
@@ -712,6 +719,13 @@ purePhp = do
   line <- many1 $ noneOf "`"
   string "`"
   return $ PurePhp line
+
+html = do
+  char '<'
+  tag <- many1 varNameChars
+  char '>'
+  line <- readTill (wrapInSalt (string ("</" ++ tag ++ ">")))
+  return $ PurePhp $ "<" ++ tag ++ ">" ++ line ++ "</" ++ tag ++ ">"
 
 functionCall = debug "functionCall" >> do
        functionCallOnObject

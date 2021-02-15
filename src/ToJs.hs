@@ -355,6 +355,7 @@ addReturn x@(SaltyNumber _) = "return " ++ (toJs x)
 addReturn x@(SaltyString _) = "return " ++ (toJs x)
 addReturn x@(SaltyOptional salty) = "return " ++ (toJs x)
 addReturn x@(SaltyBool _) = "return " ++ (toJs x)
+addReturn x@(PurePhp _) = "return " ++ (toJs x)
 addReturn x@(SaltyGuard (Just val) guards) = toJs (SaltyGuard (Just val) newGuards)
   where newGuards = map addReturn_ guards
         addReturn_ (Guard cond outcome) = Guard cond ((init outcome) ++ [ReturnStatementForAddReturn (last outcome)])
