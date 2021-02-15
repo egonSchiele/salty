@@ -408,7 +408,7 @@ whereClause = debug "whereClause" >> do
 saltyGuard = debug "saltyGuard" >> do
   string "guard\n"
   guards <- many1 guard
-  return $ SaltyGuard guards
+  return $ SaltyGuard Nothing guards
 
 guardFunction = debug "guardFunction" >> do
   prevSalty <- lastSalty <$> getState
@@ -911,6 +911,7 @@ saltyKeyword = debug "saltyKeyword" >> do
                 <||> saltyKeywordNamespace
                 <||> saltyKeywordEcho
                 <||> saltyKeywordBreak
+                <||> saltyKeywordUndefined
   return $ Keyword phpKeyword
 
 saltyKeywordUse = debug "saltyKeywordUse" >> do
@@ -995,6 +996,10 @@ saltyKeywordEcho = debug "saltyKeywordEcho" >> do
 saltyKeywordBreak = debug "saltyKeywordBreak" >> do
   string "break"
   return KwBreak
+
+saltyKeywordUndefined = debug "saltyKeywordUndefined" >> do
+  string "undefined"
+  return KwUndefined
 
 multiAssignVar = debug "multiAssignVar" >> do
   var <- variable

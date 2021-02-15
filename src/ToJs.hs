@@ -280,8 +280,8 @@ instance ConvertToJs Salty where
   toJs (Array salties@((Array _):rest)) = "[\n" ++ (intercalate ",\n" . map toJs $ salties) ++ ",\n]"
   toJs (Array salties) = "[" ++ (intercalate ", " . map toJs $ salties) ++ "]"
   toJs (Guard cond outcome) = print2 "if (%) {\n%\n}" (concat . map toJs $ cond) (addReturnToArray outcome)
-  toJs (SaltyGuard ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (concat . map toJs $ cond) (addReturnToArray outcome)
-  toJs (SaltyGuard guards) = initGuards ++ lastGuard
+  toJs (SaltyGuard Nothing ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (concat . map toJs $ cond) (addReturnToArray outcome)
+  toJs (SaltyGuard Nothing guards) = initGuards ++ lastGuard
     where initGuards = intercalate " else" . map toJs . init $ guards
           lastGuard = case (last guards) of
                            (Guard [(SaltyString "otherwise")] outcome) -> " else {\n" ++ (addReturnToArray outcome) ++  "\n}"

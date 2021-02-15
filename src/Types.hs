@@ -22,6 +22,7 @@ data PhpKeyword =   KwUse VariableName (Maybe VariableName)
                   | KwStatic Salty
                   | KwEcho Salty
                   | KwBreak
+                  | KwUndefined
                   | KwNamespace Salty deriving (Show)
 
 data MagicConstant =   MCLINE
@@ -171,7 +172,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                muVars :: [Salty],
                muValue :: Salty
              }
-             | SaltyGuard [Salty]
+             | SaltyGuard (Maybe Salty) [Salty]
              | Guard {
                 gCondition :: [Salty],
                 gOutcome :: [Salty]

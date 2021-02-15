@@ -313,8 +313,8 @@ instance ConvertToPhp Salty where
   toPhp (Array salties@((Array _):rest)) = "[\n" ++ (intercalate ",\n" . map toPhp $ salties) ++ ",\n]"
   toPhp (Array salties) = "[" ++ (intercalate ", " . map toPhp $ salties) ++ "]"
   toPhp (Guard cond outcome) = print2 "if (%) {\n%\n}" (concat . map toPhp $ cond) (addReturnToArray outcome)
-  toPhp (SaltyGuard ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (concat . map toPhp $ cond) (addReturnToArray outcome)
-  toPhp (SaltyGuard guards) = initGuards ++ lastGuard
+  toPhp (SaltyGuard Nothing ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (concat . map toPhp $ cond) (addReturnToArray outcome)
+  toPhp (SaltyGuard Nothing guards) = initGuards ++ lastGuard
     where initGuards = intercalate " else" . map toPhp . init $ guards
           lastGuard = case (last guards) of
                            (Guard [(SaltyString "otherwise")] outcome) -> " else {\n" ++ (addReturnToArray outcome) ++  "\n}"
