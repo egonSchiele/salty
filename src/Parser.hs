@@ -642,6 +642,7 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   funcName <-      (string "map" >> return Map)
               <||> (string "each" >> return Each)
               <||> (string "select" >> return Select)
+              <||> (string "filter" >> return Select)
               <||> (string "any" >> return Any)
               <||> (string "all" >> return All)
   char '('
