@@ -67,6 +67,10 @@ readFromStdin = do
     contents <- getContents
     putStrLn $ saltyToPhp (getIndentAmt contents) contents
 
+convertToJs = do
+    contents <- getContents
+    putStrLn $ saltyToJs (getIndentAmt contents) contents
+
 debugFromStdin = do
     contents <- getContents
     putStrLn . saltyToDebugTree $ contents
@@ -84,8 +88,9 @@ main = do
        ["-e"] -> findErrorInStdin
        ["-f", inputFile] -> convertToFile inputFile (replace ".salt" ".php" inputFile)
        ["-e", inputFile] -> findErrorInFile inputFile
+       ["-p", inputFile] -> convertToPhp inputFile
+       ["-j"] -> convertToJs
+       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".js" inputFile)
        [inputFile] -> convert inputFile
        [] -> readFromStdin
-       ["-p", inputFile] -> convertToPhp inputFile
-       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".js" inputFile)
        _ -> printHelp

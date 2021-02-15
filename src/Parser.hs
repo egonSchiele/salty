@@ -658,7 +658,7 @@ times = debug "times" >> do
   return $ HigherOrderFunctionCall (Range (SaltyNumber "1") number)  Each func "$result"
 
 lambda = debug "lambda" >> do
-  optional $ char '\\'
+  char '\\'
   args <-  many1 lambdaVarNameChars
   string "-> "
   body <- (braces Nothing) <||> saltyParserSingle_ <?> "a lambda function body"
