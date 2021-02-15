@@ -33,6 +33,11 @@ convertToPhp infile = do
        then putStrLn $ print2 "\"%\" : \"%\"," out infile
        else return ()
 
+convertToJsFile infile outfile = do
+    contents <- readFile infile
+    let out = saltyToJs (getIndentAmt contents) contents
+    writeFile outfile out
+
 printHelp = do
     putStrLn "Usage: `salty test.salt` prints to stdout"
     putStrLn "Usage: `salty` reads from stdin and prints to stdout"
@@ -82,4 +87,5 @@ main = do
        [inputFile] -> convert inputFile
        [] -> readFromStdin
        ["-p", inputFile] -> convertToPhp inputFile
+       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".js" inputFile)
        _ -> printHelp

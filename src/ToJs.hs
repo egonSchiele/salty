@@ -1,0 +1,379 @@
+module ToJs where
+import Types
+import Print
+import Data.List (intercalate)
+import Utils (isConstant, join)
+
+initToPhp body = join "\n" $ map toJs (init body)
+stripNewlineToPhp (WithNewLine salty) = toJs salty
+stripNewlineToPhp salty = toJs salty
+
+simpleVarName :: VariableName -> String
+simpleVarName x = case x of
+    InstanceVar s -> s
+    StaticVar s -> s
+    ClassVar s -> s
+    SimpleVar s -> s
+
+formatLoopVars [] = "$x"
+formatLoopVars (x:[]) = "$" ++ x
+formatLoopVars (x:y:[]) = print2 "$% => $%" x y
+
+addReturnToArray :: [Salty] -> String
+addReturnToArray [] = ""
+addReturnToArray (x:[]) = addReturn x
+addReturnToArray x = ((join "\n") . map toJs . init $ x) ++ "\n" ++ (addReturn . last $ x)
+
+varName :: Salty -> String
+varName (Variable name scope) = toJs name
+varName x = "this shouldnt be in varName: " ++ (show x)
+
+varNameToFunc (InstanceVar s) = "$this->" ++ s
+varNameToFunc (StaticVar s) = "static::" ++ s
+varNameToFunc (ClassVar s) = "error classvar as funcname"
+varNameToFunc (SimpleVar s) = s
+
+class ConvertToJs a where
+    toJs :: a -> String
+
+instance ConvertToJs VariableName where
+  toJs (InstanceVar s) = "$this->" ++ s
+  toJs (StaticVar s) = "static::$" ++ s
+  toJs (ClassVar s) = s
+  toJs (SimpleVar s) = '$':s
+
+instance ConvertToJs ArgumentType where
+  toJs (ArgumentType True typ False) = "@param " ++ typ ++ "|null"
+  toJs (ArgumentType False typ False) = "@param " ++ typ
+  toJs (ArgumentType True typ True) = "@return " ++ typ ++ "|null"
+  toJs (ArgumentType False typ True) = "@return " ++ typ
+
+instance ConvertToJs Visibility where
+  toJs Public = "public"
+  toJs Private = "private"
+
+instance ConvertToJs MagicConstant where
+  toJs MCLINE = "__LINE__"
+  toJs MCFILE = "__FILE__"
+  toJs MCDIR = "__DIR__"
+  toJs MCFUNCTION = "__FUNCTION__"
+  toJs MCCLASS = "__CLASS__"
+  toJs MCTRAIT = "__TRAIT__"
+  toJs MCMETHOD = "__METHOD__"
+  toJs MCNAMESPACE = "__NAMESPACE__"
+
+instance ConvertToJs ArgumentName where
+  toJs (ArgumentName name False)
+    | (take 3 name == "...") = "...$" ++ (drop 3 name)
+    | otherwise = "$" ++ name
+  toJs (ArgumentName name True) = "&$" ++ name
+instance ConvertToJs Argument where
+  toJs (Argument (Just (ArgumentType False typ _)) name (Just default_)) = print3 "?% % = %" typ (toJs name) default_
+  toJs (Argument (Just (ArgumentType True typ _)) name (Just default_)) = print3 "?% % = %" typ (toJs name) default_
+  toJs (Argument (Just (ArgumentType False typ _)) name Nothing) = typ ++ " " ++ (toJs name)
+  toJs (Argument (Just (ArgumentType True typ _)) name Nothing) = print2 "?% % = null" typ (toJs name)
+  toJs (Argument Nothing name (Just default_)) = print2 "% = %" (toJs name) default_
+  toJs (Argument Nothing name Nothing) = toJs name
+
+instance (ConvertToJs a1, ConvertToJs a2) => ConvertToJs (Either a1 a2) where
+  toJs (Left a) = toJs a
+  toJs (Right a) = toJs a
+
+
+instance ConvertToJs Salty where
+  toJs (Operation x op (WithNewLine y)) = (toJs $ Operation x op y) ++ "\n"
+  toJs (Operation x@(Variable _ _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toJs $ HigherOrderFunctionCall obj callName func (varName x)
+  toJs (Operation x@(Variable _ _) Equals (FunctionCall (Just (HigherOrderFunctionCall obj callName func accVar)) fName args)) = toJs $ FunctionCall (Just $ HigherOrderFunctionCall obj callName func (varName x)) fName args
+
+  toJs op@(Operation left operator (AttrAccess (SaltyOptional salty) attr)) = print2 "if (!is_null(%)) {\n%\n}" (toJs salty) (toJs newOperation)
+          where newOperation = Operation left operator (AttrAccess salty attr)
+
+  toJs op@(Operation left operator (FunctionCall (Just (SaltyOptional salty)) callName args)) = print2 "if (!is_null(%)) {\n%\n}" (toJs salty) (toJs newOperation)
+          where newOperation = Operation left operator (FunctionCall (Just salty) callName args)
+
+  toJs op@(Operation left operator (SaltyOptional salty)) = print2 "if (!is_null(%)) {\n%\n}" (toJs salty) (toJs newOperation)
+          where newOperation = Operation left operator salty
+
+  toJs op@(Operation left operator (HashLookup (SaltyOptional salty) k)) = print2 "if (!is_null(%)) {\n%\n}" (toJs salty) (toJs newOperation)
+          where newOperation = Operation left operator (HashLookup salty k)
+
+  -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
+  -- toJs (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toJs $ HigherOrderFunctionCall obj callName func (varName x)
+  toJs (Operation left Equals (If cond thenPath_ (Just elsePath_))) = print4 "% = % ? % : %" (toJs left) (concat . map toJs $ cond) (toJs thenPath_) (toJs elsePath_)
+  toJs (Operation left Equals (If cond thenPath_ Nothing)) = print3 "% = null;\nif (%) {\n%\n}" (toJs left) (concat . map toJs $ cond) (toJs (Operation left Equals thenPath_))
+  toJs (Operation (ArraySlice obj start Nothing) Equals arr) = print3 "array_splice(%, %, null, %)" (toJs obj) (toJs start) (toJs arr)
+  toJs (Operation (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) Equals arr) = print4 "array_splice(%, %, %, %)" (toJs obj) start newEnd (toJs arr)
+    where newEnd = show $ (read end :: Integer) - (read start :: Integer)
+  toJs (Operation (ArraySlice obj start (Just end)) Equals arr) = print5 "array_splice(%, %, % - %, %)" (toJs obj) (toJs start) (toJs end) (toJs start) (toJs arr)
+  toJs (Operation left Equals right) = (toJs left) ++ " = " ++ (toJs right)
+  toJs (Operation left NotEquals right) = (toJs left) ++ " != " ++ (toJs right)
+  toJs (Operation left PlusEquals right) = print3 "% = % + %" (toJs left) (toJs left) (toJs right)
+  toJs (Operation left MinusEquals right) = print3 "% = % - %" (toJs left) (toJs left) (toJs right)
+  toJs (Operation left MultiplyEquals right) = print3 "% = % * %" (toJs left) (toJs left) (toJs right)
+  toJs (Operation left DivideEquals right) = print3 "% = % / %" (toJs left) (toJs left) (toJs right)
+  toJs (Operation left OrEquals right) = print3 "% = % ?? %" (toJs left) (toJs left) (toJs right)
+  toJs (Operation left ArrayPush right) = print2 "% []= %" (toJs left) (toJs right)
+  toJs (Operation left Add right) = print2 "% + %" (toJs left) (toJs right)
+  toJs (Operation left Subtract right) = print2 "% - %" (toJs left) (toJs right)
+  toJs (Operation left Divide right) = print2 "% / %" (toJs left) (toJs right)
+  toJs (Operation left Modulo right) = (toJs left) ++ " % " ++ (toJs right)
+  toJs (Operation left Multiply right) = print2 "% * %" (toJs left) (toJs right)
+  toJs (Operation left OrOr right) = print2 "% || %" (toJs left) (toJs right)
+  toJs (Operation left AndAnd right) = print2 "% && %" (toJs left) (toJs right)
+  toJs (Operation left NullCoalesce right) = print2 "% ?? %" (toJs left) (toJs right)
+  toJs (Operation left PlusPlus right) = print2 "% . %" (toJs left) (toJs right)
+  toJs (Operation left ArrayMerge right) = print2 "array_merge(%, %)" (toJs left) (toJs right)
+  toJs (Operation left ArrayDiff right) = print2 "array_diff(%, %)" (toJs left) (toJs right)
+  toJs (Operation left In (Range start end)) = print4 "% >= % && % <= %" (toJs left) (toJs start) (toJs left) (toJs end)
+  toJs (Operation left In (Parens [Range start end])) = print4 "% >= % && % <= %" (toJs left) (toJs start) (toJs left) (toJs end)
+  toJs (Operation left In right) = print2 "in_array(%, %)" (toJs left) (toJs right)
+  toJs (Operation left KeyIn right) = print2 "array_key_exists(%, %)" (toJs left) (toJs right)
+  toJs (Operation left InstanceOf right) = print2 "% instanceof %" (toJs left) (toJs right)
+  toJs (Operation left EqualsEquals right) = print2 "% == %" (toJs left) (toJs right)
+  toJs (Operation left LessThan right) = print2 "% < %" (toJs left) (toJs right)
+  toJs (Operation left LessThanOrEqualTo right) = print2 "% <= %" (toJs left) (toJs right)
+  toJs (Operation left GreaterThan right) = print2 "% > %" (toJs left) (toJs right)
+  toJs (Operation left GreaterThanOrEqualTo right) = print2 "% >= %" (toJs left) (toJs right)
+  toJs (Operation left Spaceship right) = print2 "% <=> %" (toJs left) (toJs right)
+
+  toJs (Function name args body visibility scope) = print4 "%%(%) {\n%\n}\n" visibilityToDisplay funcName funcArgs funcBody
+    where funcName = case name of
+            InstanceVar str -> "function " ++ str
+            StaticVar str -> "static function " ++ str
+            SimpleVar str -> "function " ++ str
+          visibilityToDisplay = case scope of
+                                     ClassScope -> (toJs visibility) ++ " "
+                                     _ -> ""
+          funcArgs = intercalate ", " $ map toJs args
+          funcBody = case body of
+                          [] -> ""
+                          [Braces []] -> ""
+                          [Braces salties] -> print2 "%\n%" ((join "\n") . map toJs . init $ salties) (addReturn . last $ salties)
+                          x -> print2 "%\n%" ((join "\n") . map toJs . init $ x) (addReturn . last $ x)
+
+  toJs (SaltyNumber s) = s
+  toJs (SaltyString s) = "\"" ++ s ++ "\""
+
+  -- functions called without an object (bare)
+  toJs (FunctionCall Nothing (Right var) args) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args)
+
+  -- builtin bare functions
+  toJs (FunctionCall Nothing (Left VarDumpShort) args) = "var_dump(" ++ (intercalate ", " . map toJs $ args) ++ ")"
+
+  -- functions called on higher order functions
+  toJs (FunctionCall (Just hof@(HigherOrderFunctionCall _ _ _ accVar)) (Right funcName) args) = print3 "%\n% = %" (toJs hof) accVar (toJs (FunctionCall (Just (PurePhp accVar)) (Right funcName) args))
+  -- builtin functions on an obj
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "split")) []) = print2 "explode('%', %)" " " (toJs obj)
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "join")) []) = print2 "implode('%', %)" " " (toJs obj)
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "split")) [SaltyString separator]) = print2 "explode('%', %)" separator (toJs obj)
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "join")) [SaltyString separator]) = print2 "implode('%', %)" separator (toJs obj)
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "uniq")) []) = "array_unique(" ++ (toJs obj) ++ ")"
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "pop")) []) = "array_pop(" ++ (toJs obj) ++ ")"
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "keys")) []) = "array_keys(" ++ (toJs obj) ++ ")"
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "values")) []) = "array_values(" ++ (toJs obj) ++ ")"
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "reverse")) []) = "array_reverse(" ++ (toJs obj) ++ ")"
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "count")) []) = "count(" ++ (toJs obj) ++ ")"
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toJs obj) ++ ")"
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace]) = print3 "str_replace(%, %, %)" (toJs search) (toJs replace) (toJs obj)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args) = "(" ++ (toJs $ New vName args) ++ ")"
+
+  -- functions called on an obj
+  toJs (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args) = print3 "%->%(%)" (toJs var) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+
+  -- an optional containing whatever other salty
+  toJs (FunctionCall (Just (SaltyOptional salty)) (Right funcName) args) = print4 "if (!is_null(%)) {\n%->%(%)\n}" (toJs salty) (toJs salty) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+
+  toJs (FunctionCall (Just obj) (Right funcName) args) = print3 "%->%(%)" (toJs obj) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+
+  -- same as above but with parens
+  toJs (FunctionCall (Just (Parens [obj])) (Right funcName) args) = print3 "(%)->%(%)" (toJs obj) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+
+  toJs (LambdaFunction [] body) =  toJs body
+  toJs (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toJs $ LambdaFunction args body)
+
+  -- special case, each with a range
+  toJs (HigherOrderFunctionCall (Range left right) Each (LambdaFunction loopVar body) _)  =
+                print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toJs left) (formatLoopVars loopVar) (toJs right) (formatLoopVars loopVar) (toJs body)
+
+  -- optionals
+  toJs (HigherOrderFunctionCall (SaltyOptional salty) func lambda accVar)  = print2 "if (!is_null(%)) {\n%\n}" (toJs salty) (toJs newHoF)
+    where newHoF = HigherOrderFunctionCall salty func lambda accVar
+
+  -- each
+  toJs (HigherOrderFunctionCall obj Each (LambdaFunction loopVar body) _)  =
+                print3 "foreach (% as %) {\n%;\n}\n" (toJs obj) (formatLoopVars loopVar) (toJs body)
+
+  -- map
+  toJs (HigherOrderFunctionCall obj Map (LambdaFunction loopVar (Braces body)) accVar) =
+                print6 "% = [];\nforeach (% as %) {\n%\n% []= %;\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (initToPhp body) accVar (stripNewlineToPhp (last body))
+
+  toJs (HigherOrderFunctionCall obj Map (LambdaFunction loopVar body) accVar) =
+                print5 "% = [];\nforeach (% as %) {\n% []= %;\n}\n" accVar (toJs obj) (formatLoopVars loopVar) accVar (toJs body)
+
+  -- select
+  toJs (HigherOrderFunctionCall obj Select (LambdaFunction loopVar (Braces body)) accVar) =
+                accVar ++ " = [];\n" ++ (print6 "foreach (% as %) {\n%\nif(%) {\n% []= %;\n}\n}\n" (toJs obj) (formatLoopVars loopVar) (initToPhp body) (stripNewlineToPhp . last $ body) accVar (formatLoopVars loopVar))
+
+  toJs (HigherOrderFunctionCall obj Select (LambdaFunction loopVar body) accVar) =
+                print6 "% = [];\nforeach (% as %) {\nif(%) {\n% []= %;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (toJs body) accVar (formatLoopVars loopVar)
+
+  -- any
+  toJs (HigherOrderFunctionCall obj Any (LambdaFunction loopVar (Braces body)) accVar) =
+                print6 "% = false;\nforeach (% as %) {\n%\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (initToPhp body) (stripNewlineToPhp . last $ body) accVar
+
+  toJs (HigherOrderFunctionCall obj Any (LambdaFunction loopVar body) accVar) =
+                print5 "% = false;\nforeach (% as %) {\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (toJs body) accVar
+
+  -- all
+  toJs (HigherOrderFunctionCall obj All (LambdaFunction loopVar (Braces body)) accVar) =
+                print6 "% = true;\nforeach (% as %) {\n%\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (initToPhp body) (stripNewlineToPhp . last $ body) accVar
+
+  toJs (HigherOrderFunctionCall obj All (LambdaFunction loopVar body) accVar) =
+                print5 "% = true;\nforeach (% as %) {\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (toJs obj) (formatLoopVars loopVar) (toJs body) accVar
+
+  toJs Salt = "I'm salty"
+  toJs (ReturnStatement s) = "return " ++ (toJs s) ++ ";"
+  toJs (Parens s) = "(" ++ (concat $ map toJs s) ++ ")"
+  toJs (Braces s) = join "\n" $ map toJs s
+  toJs (PurePhp line) = line
+  toJs (PhpComment str) = "// " ++ str ++ "\n"
+  toJs (SaltyComment str) = ""
+  toJs (Negate s) = "!" ++ (toJs s)
+  toJs EmptyLine = ""
+  toJs (BackTrack s) = toJs s
+
+  toJs (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (concat . map toJs $ cond) (toJs thenFork) (toJs elseFork)
+  toJs (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (concat . map toJs $ cond) (toJs thenFork)
+  toJs (While cond body) = print2 "while (%) {\n%\n}" (toJs cond) (toJs body)
+  toJs (Class name Nothing Nothing body) = print2 "class % {\n%\n}" (toJs name) (toJs body)
+  toJs (Class name (Just extendsName) Nothing body) = print3 "class % extends % {\n%\n}" (toJs name) (toJs extendsName) (toJs body)
+  toJs (Class name Nothing (Just implementsName) body) = print3 "class % implements % {\n%\n}" (toJs name) (toJs implementsName) (toJs body)
+  toJs (Class name (Just extendsName) (Just implementsName) body) = print4 "class % extends % implements % {\n%\n}" (toJs name) (toJs extendsName) (toJs implementsName) (toJs body)
+  toJs (New name args) = print2 "new %(%)" (toJs name) (intercalate "," . map toJs $ args)
+
+  toJs (Variable (InstanceVar ('_':s)) ClassScope) = "private $" ++ s
+  toJs (Variable (StaticVar ('_':s)) ClassScope) = "private static $" ++ s
+  toJs (Variable (SimpleVar ('_':s)) ClassScope) = "private $" ++ s
+  toJs (Variable (InstanceVar s) ClassScope) = "public $" ++ s
+  toJs (Variable (StaticVar s) ClassScope) = "public static $" ++ s
+  toJs (Variable (SimpleVar s) ClassScope) = "public $" ++ s
+  toJs (Variable x _) = toJs x
+  toJs (WithNewLine s) = (toJs s) ++ "\n"
+  toJs (HashLookup (SaltyOptional h) k) = print3 "if (!is_null(%)) {\n%[%]\n}" (toJs h) (toJs h) (toJs k)
+  toJs (HashLookup h k) = print2 "%[%]" (toJs h) (toJs k)
+  toJs (FunctionTypeSignature var types)
+      | simpleVarName var == "var" = "<EMPTYLINE>\n/** @var " ++ (showVar . head $ types) ++ " */"
+      | otherwise = "<EMPTYLINE>\n/**\n" ++ (concat $ map showType types) ++ " */\n"
+    where showType t = " * " ++ (toJs t) ++ "\n"
+          showVar (ArgumentType False n _) = n
+          showVar (ArgumentType True n _) = n ++ "|null"
+
+  toJs (Constant (Variable (InstanceVar ('_':s)) ClassScope)) = "private const " ++ s
+  toJs (Constant (Variable (StaticVar ('_':s)) ClassScope)) = "private static const " ++ s
+  toJs (Constant (Variable (SimpleVar ('_':s)) ClassScope)) = "private const " ++ s
+  toJs (Constant (Variable (ClassVar ('_':s)) ClassScope)) = "private const " ++ s
+  toJs (Constant (Variable (InstanceVar s) ClassScope)) = "public const " ++ s
+  toJs (Constant (Variable (StaticVar s) ClassScope)) = "public static const " ++ s
+  toJs (Constant (Variable (SimpleVar s) ClassScope)) = "public const " ++ s
+  toJs (Constant (Variable (ClassVar s) ClassScope)) = "public const " ++ s
+  toJs (Constant (Variable (InstanceVar s) _)) = s
+  toJs (Constant (Variable (StaticVar s) _)) = "static::" ++ s
+  toJs (Constant (Variable (ClassVar s) _)) = s
+  toJs (Constant (Variable (SimpleVar s) _)) = s
+
+  toJs (HashTable nameValuePairs) = "[\n" ++ hashBody ++ "\n]"
+    where kvtoJs (name, val) = print2 "% => %" (toJs name) (toJs val)
+          hashBody = intercalate ",\n" $ map kvtoJs nameValuePairs
+
+  toJs (ArraySlice obj start Nothing) = print2 "array_slice(%, %)" (toJs obj) (toJs start)
+  toJs (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "array_slice(%, %, %)" (toJs obj) start newEnd
+    where newEnd = show $ (read end :: Integer) - (read start :: Integer)
+  toJs (ArraySlice obj start (Just end)) = print4 "array_slice(%, %, % - %)" (toJs obj) (toJs start) (toJs end) (toJs start)
+  toJs (StringSlice obj start Nothing) = print2 "substr(%, %)" (toJs obj) (toJs start)
+  toJs (StringSlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "substr(%, %, %)" (toJs obj) start newEnd
+    where newEnd = show $ (read end :: Integer) - (read start :: Integer)
+  toJs (StringSlice obj start (Just end)) = print4 "substr(%, %, % - %)" (toJs obj) (toJs start) (toJs end) (toJs start)
+  toJs (StringIndex obj index) = print2 "substr(%, %, 1)" (toJs obj) (toJs index)
+  toJs (AttrAccess (SaltyOptional salty) attrName) = print3 "if (!is_null(%)) {\n%->%\n}" (toJs salty) (toJs salty) attrName
+  toJs (AttrAccess (Variable (ClassVar obj) _) attrName)
+      | isConstant attrName = print2 "%::%" obj attrName
+      | otherwise = print2 "%::$%" obj attrName
+
+  toJs (AttrAccess obj attrName) = print2 "%->%" (toJs obj) attrName
+  toJs (MultiAssign vars (WithNewLine value)) = toJs $ WithNewLine (MultiAssign vars value)
+  toJs (MultiAssign vars value@(Variable _ _)) = (intercalate "\n" . map (\(i,var) -> print3 "% = %[%]" (toJs var) (toJs value) (show i)) $ zip [0..] vars)
+  toJs (MultiAssign vars value@(FunctionCall _ _ _)) = initResult ++ "\n" ++ multiAssign
+      where initResult = "$result = " ++ (toJs value)
+            multiAssign = (intercalate "\n" . map (\(i,var) -> print2 "% = $result[%]" (toJs var) (show i)) $ zip [0..] vars)
+  toJs (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toJs var) (toJs value)) $ vars)
+  -- toJs (AttrAccess (Variable (InstanceVar obj) _) attrName) = print2 "$this->%->%" obj attrName
+  -- toJs (AttrAccess (Variable (StaticVar obj) _) attrName) = print2 "static::$%->%" obj attrName
+  toJs (Array salties@((Array _):rest)) = "[\n" ++ (intercalate ",\n" . map toJs $ salties) ++ ",\n]"
+  toJs (Array salties) = "[" ++ (intercalate ", " . map toJs $ salties) ++ "]"
+  toJs (Guard cond outcome) = print2 "if (%) {\n%\n}" (concat . map toJs $ cond) (addReturnToArray outcome)
+  toJs (SaltyGuard ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (concat . map toJs $ cond) (addReturnToArray outcome)
+  toJs (SaltyGuard guards) = initGuards ++ lastGuard
+    where initGuards = intercalate " else" . map toJs . init $ guards
+          lastGuard = case (last guards) of
+                           (Guard [(SaltyString "otherwise")] outcome) -> " else {\n" ++ (addReturnToArray outcome) ++  "\n}"
+                           _ -> " else" ++ (toJs (last guards))
+  toJs (SaltyBool TRUE) = "true"
+  toJs (SaltyBool FALSE) = "false"
+  toJs SaltyNull = "null"
+  toJs (SaltyMagicConstant c) = toJs c
+  toJs (Keyword (KwUse var Nothing)) = "use " ++ (toJs var)
+  toJs (Keyword (KwUse var (Just varAs))) = "use " ++ (toJs var) ++ " as " ++ (toJs varAs)
+  toJs (Keyword (KwThrow salty)) = "throw " ++ (toJs salty)
+  toJs (Keyword (KwRequire salty)) = "require " ++ (toJs salty)
+  toJs (Keyword (KwRequireOnce salty)) = "require_once " ++ (toJs salty)
+  toJs (Keyword (KwConst salty)) = "const " ++ (toJs salty)
+  toJs (Keyword (KwPublic salty)) = "public " ++ (toJs salty)
+  toJs (Keyword (KwPrivate salty)) = "private " ++ (toJs salty)
+  toJs (Keyword (KwProtected salty)) = "protected " ++ (toJs salty)
+  toJs (Keyword (KwStatic salty)) = "static " ++ (toJs salty)
+  toJs (Keyword (KwEcho salty)) = "echo " ++ (toJs salty)
+  toJs (Keyword KwBreak) = "break"
+  toJs (Keyword (KwNamespace salty)) = "namespace " ++ (toJs salty)
+  toJs (SaltyOptional salty) = "!is_null(" ++ (toJs salty) ++ ")"
+  toJs (Range (SaltyNumber l) (SaltyNumber r)) = show $ [left..right]
+      where left = read l :: Integer
+            right = read r :: Integer
+  toJs (Range l r) = "a range: (" ++ (toJs l) ++ ".." ++ (toJs r) ++ ")"
+  toJs (Keyword x) = "keyword not implemented yet: " ++ (show x)
+  toJs (ParseError x) = x ++ "\n"
+  toJs x = "not implemented yet: " ++ (show x)
+
+
+addReturn :: Salty -> String
+addReturn x@(ReturnStatement _) = toJs x
+addReturn x@(Operation var@(Variable _ _) Equals h@(HigherOrderFunctionCall obj callName func accVar)) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
+addReturn x@(Operation var@(Variable _ _) Equals (WithNewLine(h@(HigherOrderFunctionCall obj callName func accVar)))) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
+addReturn x@(Operation _ Equals _) = toJs x
+addReturn x@(Operation _ ArrayPush _) = toJs x
+addReturn x@(Operation _ PlusEquals _) = toJs x
+addReturn x@(Operation _ MinusEquals _) = toJs x
+addReturn x@(Operation _ MultiplyEquals _) = toJs x
+addReturn x@(Operation _ DivideEquals _) = toJs x
+addReturn x@(Operation left OrEquals _) = (toJs x) ++ "\nreturn " ++ (toJs left) ++ ";"
+addReturn x@(Operation _ _ _) = "return " ++ (toJs x)
+addReturn (If cond thenFork (Just elseFork)) = print3 "if (%) {\n%\n} else {\n%\n}" (concat . map toJs $ cond) (addReturn thenFork) (addReturn elseFork)
+addReturn (If cond thenFork Nothing) = print2 "if (%) {\n%\n}" (concat . map toJs $ cond) (addReturn thenFork)
+addReturn x@(Braces []) = toJs x
+addReturn (Braces s) = (concat . map toJs . init $ s) ++ "\n" ++ (addReturn . last $ s)
+addReturn (Variable name scope) = "return " ++ (toJs name)
+addReturn (WithNewLine x) = (addReturn x) ++ "\n"
+addReturn p@(Parens x) = "return " ++ (toJs p)
+addReturn f@(FunctionCall o n a) = "return " ++ (toJs f)
+addReturn h@(HashTable kv) = "return " ++ (toJs h)
+addReturn a@(Array xs) = "return " ++ (toJs a)
+addReturn f@(HigherOrderFunctionCall _ Each _ _) = toJs f
+addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toJs f) ++ "\nreturn " ++ accVar
+addReturn a@(AttrAccess _ _) = "return " ++ (toJs a)
+addReturn x@(SaltyNumber _) = "return " ++ (toJs x)
+addReturn x@(SaltyString _) = "return " ++ (toJs x)
+addReturn x@(SaltyOptional salty) = "return " ++ (toJs x)
+addReturn x@(SaltyBool _) = "return " ++ (toJs x)
+addReturn x = toJs x
+

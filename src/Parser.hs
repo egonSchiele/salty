@@ -35,6 +35,13 @@ saltyToPhp indentAmt str = case (build str) of
                    Right xs -> saltyToPhp_ indentAmt xs
                    -- Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
 
+saltyToJs :: Int -> String -> String
+saltyToJs indentAmt str = case (build str) of
+                   Left err -> printError str err
+                   Right xs -> saltyToJs_ indentAmt xs
+                   -- Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
+
+
 printError :: String -> ParseError -> String
 printError inputStr err = print3 "%\n%\n%" affectedLine pointer (show err)
   where line = sourceLine . errorPos $ err

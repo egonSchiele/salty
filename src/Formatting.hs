@@ -3,6 +3,7 @@ module Formatting where
 import Utils
 import Types
 import ToPhp
+import ToJs
 import Data.List
 import Data.Maybe
 import Data.Char (isSpace)
@@ -111,7 +112,9 @@ checkBackTracksSingle x = x
 
 saltyToPhp_ :: Int -> [Salty] -> String
 saltyToPhp_ indentAmt tree = rstrip . unlines . (indent indentAmt) . addSemicolons . (map addBlanks) . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
--- saltyToPhp_ indentAmt tree = show . addSemicolons . (map addBlanks) . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
+
+saltyToJs_ :: Int -> [Salty] -> String
+saltyToJs_ indentAmt tree = rstrip . unlines . (indent indentAmt) . addSemicolons . (map addBlanks) . removeBlanks . lines . concat . (map toJs) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
 
 removeBlanks list = filter (\item -> (not (item `elem` ["", "\n", ";"]))) list
 addBlanks line
