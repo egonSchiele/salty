@@ -8,6 +8,28 @@ initToJs body = join "\n" $ map toJs (init body)
 stripNewlineToJs (WithNewLine salty) = toJs salty
 stripNewlineToJs salty = toJs salty
 
+toReact (WithNewLine s) = toReact s
+toReact (SaltyString str) = str
+toReact f@(Function (SimpleVar "tag") [Argument _ (ArgumentName name _) _] body _ _) = toJs f
+toReact x = "{" ++ (toJs x) ++ "}"
+
+toReactArg x@(SaltyString str) = toJs x
+toReactArg x = "{" ++ (toJs x) ++ "}"
+
+isBody (Guard [Variable (SimpleVar "body") _] _) = True
+isBody _ = False
+
+toReactArgs (SaltyGuard _ guards) =
+  case argGuards of
+       [] -> ""
+       _ -> " " ++ (join " " . map makeAttr $ argGuards)
+  where argGuards = filter (not . isBody) guards
+        makeAttr (Guard cond outcome) = (concat . map toJs $ cond) ++ "=" ++ (concat . map toReactArg $ outcome)
+
+toReactBody (SaltyGuard _ guards) = join "" . map makeBody $ bodyGuards
+  where bodyGuards = filter isBody guards
+        makeBody (Guard cond outcome) = concat . map toReact $ outcome
+
 getAccVar var
   | var == "$result" = ""
   | otherwise = var ++ " = "
@@ -130,6 +152,11 @@ instance ConvertToJs Salty where
   toJs (Operation left GreaterThan right) = print2 "% > %" (toJs left) (toJs right)
   toJs (Operation left GreaterThanOrEqualTo right) = print2 "% >= %" (toJs left) (toJs right)
   toJs (Operation left Spaceship right) = print2 "% <=> %" (toJs left) (toJs right)
+
+  toJs (Function (SimpleVar "tag") [Argument _ (ArgumentName name _) _] body _ _) = case body of
+                                              [guard@(SaltyGuard Nothing guards)] -> print4 "<%%>%</%>" name (toReactArgs guard) (toReactBody guard) name
+                                              [(Braces salty)] -> print3 "<%>%</%>" name (join "" . map toReact $ salty) name
+                                              _ -> print3 "<%>%</%>" name (concat . map toReact $ body) name
 
   toJs (Function name args body visibility scope) = print3 "const % = (%) => {\n%\n}\n" (simpleVarName name) funcArgs funcBody
     where funcArgs = intercalate ", " $ map toJs args
