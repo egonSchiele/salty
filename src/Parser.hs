@@ -121,6 +121,7 @@ saltyParserSingleWithoutNewline = do
   <||> times
   <||> hashTable
   <||> array
+  <||> hashShorthand
   -- <||> emptyHash
   <||> (braces Nothing)
   <||> function
@@ -165,6 +166,7 @@ validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
        parens
   <||> array
+  <||> hashShorthand
   <||> hashTable
   -- <||> emptyHash
   <||> operation
@@ -227,6 +229,7 @@ validHashValue = debug "validHashValue" >> do
   <||> hashLookup
   <||> hashTable
   <||> array
+  <||> hashShorthand
   -- <||> emptyHash
   <||> saltyBool
   <||> saltyNull
@@ -270,11 +273,25 @@ arrayValue = debug "arrayValue" >> do
 
 array = debug "array" >> do
   char '['
-  optional $ char '\n'
+  optional $ char '\n' <||> char ' '
   salties <- many arrayValue
-  optional $ char '\n'
+  optional $ char '\n' <||> char ' '
   optional $ char ']'
   return $ Array salties
+
+hashValue = debug "hashValue" >> do
+  value <- simpleVar
+  char ',' <||> char '}'
+  optional space
+  return value
+
+hashShorthand = debug "hashShorthand" >> do
+  char '{'
+  optional $ char '\n' <||> char ' '
+  salties <- many hashValue
+  optional $ char '\n' <||> char ' '
+  optional $ char '}'
+  return $ HashTable (zip (map (SaltyString . getVarName) salties) (map (\s -> Variable s GlobalScope) salties))
 
 emptyHash = debug "emptyHash" >> do
   char '{'

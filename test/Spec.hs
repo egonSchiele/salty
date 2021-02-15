@@ -701,6 +701,10 @@ transpileTests = [
     "func(a.1, a.2)" `matches` "func($a[1], $a[2]);",
     "arr.1.count()" `matches` "count($arr[1]);",
 
+    -- hash shorthand
+    "{foo, bar, baz}" `matches` "[\n    \"foo\" => $foo,\n    \"bar\" => $bar,\n    \"baz\" => $baz\n];",
+
+
     -- new keyword
     "new self()" `matches` "new self();",
     "new self(1, foo)" `matches` "new self(1,$foo);"
