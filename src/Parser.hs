@@ -723,9 +723,8 @@ purePhp = do
 html = do
   char '<'
   tag <- many1 varNameChars
-  char '>'
   line <- readTill (wrapInSalt (string ("</" ++ tag ++ ">")))
-  return $ PurePhp $ "<" ++ tag ++ ">" ++ line ++ "</" ++ tag ++ ">"
+  return $ PurePhp $ "<" ++ tag ++ line ++ "</" ++ tag ++ ">"
 
 functionCall = debug "functionCall" >> do
        functionCallOnObject
