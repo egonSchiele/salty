@@ -415,12 +415,15 @@ otherwiseGuard = do
 --        Left err -> return $ [SaltyString (show err)]
 --        Right body -> return body
 
+toA x = [x]
+
 guard = debug "guard" >> do
   char '|'
   space
   condition <- otherwiseGuard <||> (many1 validFuncArgTypes) <?> "a guard condition"
   optional $ string " -> "
-  outcome <- parseTill saltyNewline <?> "a guard outcome"
+  outcome <- (toA <$> braces Nothing) <||> parseTill saltyNewline <?> "a guard outcome"
+  optional $ char '\n'
   return $ Guard condition outcome
 
 whereClause = debug "whereClause" >> do

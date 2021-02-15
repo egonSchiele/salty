@@ -179,8 +179,8 @@ instance ConvertToJs Salty where
   -- same as above but with parens
   toJs (FunctionCall (Just (Parens [obj])) (Right funcName) args) = print3 "(%).%(%)" (toJs obj) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
 
-  toJs (LambdaFunction [] body) =  toJs body
-  toJs (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toJs $ LambdaFunction args body)
+  toJs (LambdaFunction args body) = print2 "(%) => {\n%\n}" args_ (toJs body)
+    where args_ = join ", " args
 
   -- special case, each with a range
   toJs (HigherOrderFunctionCall (Range left right) Each (LambdaFunction loopVar body) _)  =
