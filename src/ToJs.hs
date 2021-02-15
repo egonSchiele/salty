@@ -192,12 +192,12 @@ instance ConvertToJs Salty where
 
   -- map
   toJs (HigherOrderFunctionCall obj Map (LambdaFunction loopVar (Braces body)) accVar) =
-                print5 "% = %.map((%) => {\n%\nreturn %\n})" accVar_ (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs (last body))
-                where accVar_ = if accVar == "$result" then "result" else accVar
+                print5 "%%.map((%) => {\n%\nreturn %\n})" accVar_ (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs (last body))
+                where accVar_ = if accVar == "$result" then "" else (accVar ++ " = ")
 
   toJs (HigherOrderFunctionCall obj Map (LambdaFunction loopVar body) accVar) =
-                print4 "% = %.map((%) => %)" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body)
-                where accVar_ = if accVar == "$result" then "result" else accVar
+                print4 "%%.map((%) => %)" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body)
+                where accVar_ = if accVar == "$result" then "" else (accVar ++ " = ")
 
   -- select
   toJs (HigherOrderFunctionCall obj Select (LambdaFunction loopVar (Braces body)) accVar) =
