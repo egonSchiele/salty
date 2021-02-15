@@ -8,6 +8,10 @@ initToJs body = join "\n" $ map toJs (init body)
 stripNewlineToJs (WithNewLine salty) = toJs salty
 stripNewlineToJs salty = toJs salty
 
+getAccVar var
+  | var == "$result" = ""
+  | otherwise = var ++ " = "
+
 simpleVarName :: VariableName -> String
 simpleVarName x = case x of
     InstanceVar s -> s
@@ -192,39 +196,30 @@ instance ConvertToJs Salty where
 
   -- map
   toJs (HigherOrderFunctionCall obj Map (LambdaFunction loopVar (Braces body)) accVar) =
-                print5 "%%.map((%) => {\n%\nreturn %\n})" accVar_ (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs (last body))
-                where accVar_ = if accVar == "$result" then "" else (accVar ++ " = ")
+                print5 "%%.map((%) => {\n%\nreturn %\n})" (getAccVar accVar) (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs (last body))
 
   toJs (HigherOrderFunctionCall obj Map (LambdaFunction loopVar body) accVar) =
-                print4 "%%.map((%) => %)" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body)
-                where accVar_ = if accVar == "$result" then "" else (accVar ++ " = ")
+                print4 "%%.map((%) => %)" (getAccVar accVar) (toJs obj) (formatLoopVars loopVar) (toJs body)
 
   -- select
   toJs (HigherOrderFunctionCall obj Select (LambdaFunction loopVar (Braces body)) accVar) =
-                accVar_ ++ " = [];\n" ++ (print6 "foreach (% as %) {\n%\nif(%) {\n% []= %;\n}\n}\n" (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs . last $ body) accVar_ (formatLoopVars loopVar))
-                where accVar_ = if accVar == "$result" then "result" else accVar
+                print5 "%%.filter((%) => {\n%\nreturn %\n})" (getAccVar accVar) (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs (last body))
 
   toJs (HigherOrderFunctionCall obj Select (LambdaFunction loopVar body) accVar) =
-                print6 "% = [];\nforeach (% as %) {\nif(%) {\n% []= %;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body) accVar_ (formatLoopVars loopVar)
-                where accVar_ = if accVar == "$result" then "result" else accVar
-
+                print4 "%%.filter((%) => %)" (getAccVar accVar) (toJs obj) (formatLoopVars loopVar) (toJs body)
   -- any
   toJs (HigherOrderFunctionCall obj Any (LambdaFunction loopVar (Braces body)) accVar) =
-                print6 "% = false;\nforeach (% as %) {\n%\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs . last $ body) accVar_
-                where accVar_ = if accVar == "$result" then "result" else accVar
+                print5 "%%.some((%) => {\n%\nreturn %\n})" (getAccVar accVar) (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs (last body))
 
   toJs (HigherOrderFunctionCall obj Any (LambdaFunction loopVar body) accVar) =
-                print5 "% = false;\nforeach (% as %) {\nif(%) {\n% = true;\nbreak;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body) accVar_
-                where accVar_ = if accVar == "$result" then "result" else accVar
+                print4 "%%.some((%) => %)" (getAccVar accVar) (toJs obj) (formatLoopVars loopVar) (toJs body)
 
   -- all
   toJs (HigherOrderFunctionCall obj All (LambdaFunction loopVar (Braces body)) accVar) =
-                print6 "% = true;\nforeach (% as %) {\n%\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs . last $ body) accVar_
-                where accVar_ = if accVar == "$result" then "result" else accVar
+                print5 "%%.every((%) => {\n%\nreturn %\n})" (getAccVar accVar) (toJs obj) (formatLoopVars loopVar) (initToJs body) (stripNewlineToJs (last body))
 
   toJs (HigherOrderFunctionCall obj All (LambdaFunction loopVar body) accVar) =
-                print5 "% = true;\nforeach (% as %) {\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar_ (toJs obj) (formatLoopVars loopVar) (toJs body) accVar_
-                where accVar_ = if accVar == "$result" then "result" else accVar
+                print4 "%%.every((%) => %)" (getAccVar accVar) (toJs obj) (formatLoopVars loopVar) (toJs body)
 
   toJs Salt = "I'm salty"
   toJs (ReturnStatement s) = "return " ++ (toJs s) ++ ";"
