@@ -1,4 +1,4 @@
-module Formatting where
+module FormattingJs where
 
 import Utils
 import Types
@@ -35,8 +35,8 @@ indent_ [] _ = []
 indent_ ("":lines_) indentAmt = "":(indent_ lines_ indentAmt)
 indent_ (l:lines_) indentAmt = newLine:(indent_ lines_ newAmt)
   where newLine = if (last l) == '}' || l == "};" || (head l) == '}'|| l == "];"
-                     then (replicate ((indentAmt-1)*4) ' ') ++ l
-                     else (replicate (indentAmt*4) ' ') ++ l
+                     then (replicate ((indentAmt-1)*2) ' ') ++ l
+                     else (replicate (indentAmt*2) ' ') ++ l
         newAmt = newAmt_ l indentAmt
 
 
@@ -59,8 +59,8 @@ indentDebug_ [] _ = []
 indentDebug_ ("":lines_) indentAmt = "":(indentDebug_ lines_ indentAmt)
 indentDebug_ (l:lines_) indentAmt = newLine:(indentDebug_ lines_ newAmt)
   where newLine = if (last l) `elem` ['}', ']'] || (last_ 2 l) `elem` ["},", "],", "})"] || (last_ 3 l) `elem` ["}),", "}))"]  || (last_ 4 l) `elem` ["})),"]
-                     then (replicate ((indentAmt-1)*4) ' ') ++ l
-                     else (replicate (indentAmt*4) ' ') ++ l
+                     then (replicate ((indentAmt-1)*2) ' ') ++ l
+                     else (replicate (indentAmt*2) ' ') ++ l
         newAmt = getNewAmt l indentAmt
 
 getNewAmt l indentAmt
@@ -110,8 +110,8 @@ checkBackTracksSingle (BackTrack s) = (checkBackTracksSingle s)
 checkBackTracksSingle (HashLookup h k) = HashLookup (checkBackTracksSingle h) (checkBackTracksSingle k)
 checkBackTracksSingle x = x
 
-saltyToPhp_ :: Int -> [Salty] -> String
-saltyToPhp_ indentAmt tree = rstrip . unlines . (indent indentAmt) . addSemicolons . (map addBlanks) . removeBlanks . lines . concat . (map toPhp) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
+saltyToJs_ :: Int -> [Salty] -> String
+saltyToJs_ indentAmt tree = rstrip . unlines . (indent indentAmt) . addSemicolons . (map addBlanks) . removeBlanks . lines . concat . (map toJs) . checkBackTracks . (filter (not . isSaltyComment)) $ tree
 
 removeBlanks list = filter (\item -> (not (item `elem` ["", "\n", ";"]))) list
 addBlanks line

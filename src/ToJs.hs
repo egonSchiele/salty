@@ -352,8 +352,9 @@ addReturn f@(FunctionCall o n a) = "return " ++ (toJs f)
 addReturn h@(HashTable kv) = "return " ++ (toJs h)
 addReturn a@(Array xs) = "return " ++ (toJs a)
 addReturn f@(HigherOrderFunctionCall _ Each _ _) = toJs f
-addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toJs f) ++ "\nreturn " ++ accVar_
-                where accVar_ = if accVar == "$result" then "result" else accVar
+addReturn f@(HigherOrderFunctionCall _ _ _ accVar)
+                | accVar == "$result" = "return " ++ (toJs f) -- result not assigned to anything, return
+                | otherwise = (toJs f) ++ "\nreturn " ++ accVar
 addReturn a@(AttrAccess _ _) = "return " ++ (toJs a)
 addReturn x@(SaltyNumber _) = "return " ++ (toJs x)
 addReturn x@(SaltyString _) = "return " ++ (toJs x)

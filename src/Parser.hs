@@ -3,6 +3,7 @@ module Parser where
 import Types
 import Utils
 import Formatting
+import qualified FormattingJs
 import Text.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
@@ -38,7 +39,7 @@ saltyToPhp indentAmt str = case (build str) of
 saltyToJs :: Int -> String -> String
 saltyToJs indentAmt str = case (build str) of
                    Left err -> printError str err
-                   Right xs -> saltyToJs_ indentAmt xs
+                   Right xs -> FormattingJs.saltyToJs_ indentAmt xs
                    -- Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
 
 
