@@ -438,7 +438,7 @@ saltyGuard = debug "saltyGuard" >> do
   <||> saltyGuardOnly
 
 saltyGuardSwitchStatement = debug "saltyGuardSwitchStatement" >> do
-  string "guard"
+  string "guard" <||> string "$$"
   char '('
   val <- validFuncArgTypes
   char ')'
@@ -447,7 +447,7 @@ saltyGuardSwitchStatement = debug "saltyGuardSwitchStatement" >> do
   return $ SaltyGuard (Just val) guards
 
 saltyGuardOnly = debug "saltyGuardOnly" >> do
-  string "guard\n"
+  string "guard\n" <||> string "$$\n"
   guards <- many1 guard
   return $ SaltyGuard Nothing guards
 
