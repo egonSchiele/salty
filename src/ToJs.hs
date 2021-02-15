@@ -8,17 +8,21 @@ initToJs body = join "\n" $ map toJs (init body)
 stripNewlineToJs (WithNewLine salty) = toJs salty
 stripNewlineToJs salty = toJs salty
 
+toReact :: Salty -> String
 toReact (WithNewLine s) = toReact s
 toReact (SaltyString str) = str
 toReact f@(Function (SimpleVar "tag") [Argument _ (ArgumentName name _) _] body _ _) = toJs f
 toReact x = "{" ++ (toJs x) ++ "}"
 
+toReactArg :: Salty -> String
 toReactArg x@(SaltyString str) = toJs x
 toReactArg x = "{" ++ (toJs x) ++ "}"
 
+isBody :: Salty -> Bool
 isBody (Guard [Variable (SimpleVar "body") _] _) = True
 isBody _ = False
 
+toReactArgs :: Salty -> String
 toReactArgs (SaltyGuard _ guards) =
   case argGuards of
        [] -> ""
@@ -26,6 +30,7 @@ toReactArgs (SaltyGuard _ guards) =
   where argGuards = filter (not . isBody) guards
         makeAttr (Guard cond outcome) = (concat . map toJs $ cond) ++ "=" ++ (concat . map toReactArg $ outcome)
 
+toReactBody :: Salty -> String
 toReactBody (SaltyGuard _ guards) = join "" . map makeBody $ bodyGuards
   where bodyGuards = filter isBody guards
         makeBody (Guard cond outcome) = concat . map toReact $ outcome
@@ -192,7 +197,14 @@ instance ConvertToJs Salty where
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toJs obj) ++ ")"
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
   toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace]) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args) = "(" ++ (toJs $ New vName args) ++ ")"
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs]) = print2 "<%% />" (simpleVarName vName) (pairsToReact kvPairs)
+    where pairsToReact pairs = case pairs of
+            [] -> ""
+            _ -> " " ++ (join " " . map toPair $ pairs)
+          toPair ((SaltyString s), (SaltyString v)) = print2 "%=\"%\"" s v
+          toPair ((SaltyString s), v) = print2 "%={%}" s (toJs v)
+          toPair (k, (SaltyString v)) = print2 "%=\"%\"" (toJs k) v
+          toPair (k, v) = print2 "%={%}" (toJs k) (toJs v)
 
   -- functions called on an obj
   toJs (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args) = print3 "%.%(%)" obj (simpleVarName funcName) (intercalate ", " . map toJs $ args)
