@@ -34,7 +34,7 @@ toReactArgs (SaltyGuard _ guards) =
 toReactBody :: Salty -> String
 toReactBody (SaltyGuard _ guards) = join "" . map makeBody $ bodyGuards
   where bodyGuards = filter isBody guards
-        makeBody (Guard cond outcome) = concat . map toReact $ outcome
+        makeBody (Guard cond outcome) = concat . map toJs $ outcome
 
 getAccVar var
   | var == "$result" = ""
@@ -200,6 +200,7 @@ instance ConvertToJs Salty where
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toJs obj) ++ ")"
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
   toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace]) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) []) = "\n<" ++ (simpleVarName vName) ++ " />"
   toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs]) = print2 "\n<%% />" (simpleVarName vName) (pairsToReact kvPairs)
     where pairsToReact pairs = case pairs of
             [] -> ""
@@ -337,9 +338,9 @@ instance ConvertToJs Salty where
 
   toJs (SaltyGuard (Just val) guards) = print2 "switch (%) {\n%\n}" (toJs val) guardsToJs
     where guardsToJs = concat . map jsFunc $ guards
-          jsFunc (Guard cond outcome) = print2 "case %:\n  %\n" (toJs_ cond) (join "\n" . map toJs $ outcome)
+          jsFunc (Guard cond outcome) = print2 "%:\n  %\n" (toJs_ cond) (join "\n" . map toJs $ outcome)
           toJs_ [(SaltyString "otherwise")] = "default"
-          toJs_ cond_ = (join "\n" . map toJs $ cond_)
+          toJs_ cond_ = (join "\n" . map (\c -> "case " ++ (toJs c)) $ cond_)
 
   toJs (SaltyBool TRUE) = "true"
   toJs (SaltyBool FALSE) = "false"

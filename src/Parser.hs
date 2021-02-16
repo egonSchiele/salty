@@ -235,6 +235,7 @@ validHashValue = debug "validHashValue" >> do
   <||> attrAccess
   <||> lambda
   <||> hashShorthand
+  <||> functionCall
   -- <||> emptyHash
   <||> saltyBool
   <||> saltyNull
