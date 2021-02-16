@@ -8,6 +8,9 @@ initToJs body = join "\n" $ map toJs (init body)
 stripNewlineToJs (WithNewLine salty) = toJs salty
 stripNewlineToJs salty = toJs salty
 
+_maybe f Nothing = ""
+_maybe f (Just x) = f x
+
 toReact :: Salty -> String
 toReact (WithNewLine s) = toReact s
 toReact (SaltyString str) = str
@@ -200,8 +203,9 @@ instance ConvertToJs Salty where
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toJs obj) ++ ")"
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
   toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] _) = "\n<" ++ (simpleVarName vName) ++ " />"
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] _) = print2 "\n<%% />" (simpleVarName vName) (pairsToReact kvPairs)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] Nothing) = "\n<" ++ (simpleVarName vName) ++ " />"
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] (Just block)) = print3 "\n<%>%</%>" (simpleVarName vName) (toJs block) (simpleVarName vName)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] block) = print4 "\n<%%>%</%>" (simpleVarName vName) (pairsToReact kvPairs) (_maybe toJs block) (simpleVarName vName)
     where pairsToReact pairs = case pairs of
             [] -> ""
             _ -> " " ++ (join " " . map toPair $ pairs)
