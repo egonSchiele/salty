@@ -137,6 +137,7 @@ saltyParserSingleWithoutNewline = do
   <||> indexIntoArray
   <||> saltyNumber
   <||> returnStatement
+  <||> shorthandBlock
   <||> functionCall
   <||> attrAccess
   <||> arraySlice
@@ -761,6 +762,11 @@ attrAccess = debug "attrAccess" >> do
   char '.'
   attrName <- many1 varNameChars
   return $ AttrAccess obj attrName
+
+shorthandBlock = debug "shorthandBlock" >> do
+  var <- variable
+  block <- functionBlock
+  return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just block)
 
 functionBlock = debug "functionBlock" >> do
   string " do\n"

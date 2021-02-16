@@ -205,7 +205,7 @@ instance ConvertToJs Salty where
   toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
   toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] Nothing) = "\n<" ++ (simpleVarName vName) ++ " />"
   toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] (Just block)) = print3 "\n<%>%</%>" (simpleVarName vName) (toJs block) (simpleVarName vName)
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] block) = print4 "\n<%%>%</%>" (simpleVarName vName) (pairsToReact kvPairs) (_maybe toJs block) (simpleVarName vName)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] block) = print4 "\n<%%>%</%>" (simpleVarName vName) (pairsToReact kvPairs) (_maybe toReact block) (simpleVarName vName)
     where pairsToReact pairs = case pairs of
             [] -> ""
             _ -> " " ++ (join " " . map toPair $ pairs)
