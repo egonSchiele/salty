@@ -1,8 +1,6 @@
 - indent html code for js
 - tests for js code
 - default function args
-- allow destructured hash as arg for js
 
 - let and var keywords
 - some way to specify body when elem is created w block
-- how to destructure params for a function?

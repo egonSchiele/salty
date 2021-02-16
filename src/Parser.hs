@@ -121,7 +121,7 @@ saltyParserSingleWithoutNewline = do
   <||> times
   <||> hashTable
   <||> array
-  <||> hashShorthand
+  <||> destructuredHash
   -- <||> emptyHash
   <||> (braces Nothing)
   <||> function
@@ -167,7 +167,7 @@ validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
        parens
   <||> array
-  <||> hashShorthand
+  <||> destructuredHash
   <||> hashTable
   -- <||> emptyHash
   <||> operation
@@ -234,7 +234,7 @@ validHashValue = debug "validHashValue" >> do
   <||> array
   <||> attrAccess
   <||> lambda
-  <||> hashShorthand
+  <||> destructuredHash
   <||> functionCall
   -- <||> emptyHash
   <||> saltyBool
@@ -292,7 +292,7 @@ hashValue = debug "hashValue" >> do
   optional $ oneOf "\n "
   return value
 
-hashShorthand = debug "hashShorthand" >> do
+destructuredHash = debug "destructuredHash" >> do
   string "{ "
   optional $ char '\n'
   vars <- (many1 varNameChars) `sepBy` (string ", ")
@@ -337,8 +337,12 @@ varArg = debug "varArg" >> do
   arg <- many1 functionArgsChars
   return $ "..." ++ arg
 
+destructuredArg = debug "destructuredArg" >> do
+  (DestructuredHash vars) <- destructuredHash
+  return $ "{ " ++ (join ", " vars) ++ " }"
+
 functionArgs = debug "functionArgs" >> many (do
-  arg <- varArg <||> many1 functionArgsChars
+  arg <- varArg <||> destructuredArg <||> many1 functionArgsChars
   space
   return arg)
 
@@ -1007,7 +1011,7 @@ saltyKeywordRequireOnce = debug "saltyKeywordRequireOnce" >> do
 saltyKeywordConst = debug "saltyKeywordConst" >> do
   string "const"
   space
-  name <- (PurePhp <$> many1 varNameChars) <||> hashShorthand
+  name <- (PurePhp <$> many1 varNameChars) <||> destructuredHash
   return $ KwConst name
 
 saltyKeywordPublic = debug "saltyKeywordPublic" >> do
