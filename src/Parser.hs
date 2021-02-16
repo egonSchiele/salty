@@ -153,6 +153,7 @@ saltyParserSingleWithoutNewline = do
   <||> emptyLine
   <||> ifStatement
   <||> whileStatement
+  <||> reactClassDefinition
   <||> classDefinition
   <||> objectCreation
   <||> saltyBool
@@ -915,6 +916,14 @@ classDefinition = debug "classDefinition" >> do
   optional space
   body <- (braces (Just ClassScope) <||> whereStatement)
   return $ Class name extendsName implementsName body
+
+reactClassDefinition = debug "reactClassDefinition" >> do
+  string "rclass"
+  space
+  name <- classVar
+  space
+  body <- (braces (Just ClassScope) <||> whereStatement)
+  return $ Class name (Just (SimpleVar "React.Component")) Nothing body
 
 classDefExtends = debug "classDefExtends" >> do
   string "extends"
