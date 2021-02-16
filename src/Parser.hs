@@ -14,6 +14,7 @@ import Print
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 lambdaVarNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_ "
 classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
+extendsNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\."
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
@@ -604,8 +605,7 @@ partialFunctionCall = debug "partialFunctionCall" >> do
   funcArgs <- findArgs
   char ')'
 
-  -- block <- optionMaybe functionBlock
-  let block = Nothing
+  block <- optionMaybe functionBlock
 
   return $ case leftHandSide of
              Operation l op r -> BackTrack $ Operation l op (FunctionCall (Just r) (Right (SimpleVar funcName)) funcArgs block)
@@ -763,9 +763,9 @@ attrAccess = debug "attrAccess" >> do
   return $ AttrAccess obj attrName
 
 functionBlock = debug "functionBlock" >> do
-  space
-  body <- braces Nothing
-  return body
+  string " do\n"
+  body <- parseTill (wrapInSalt $ string "end")
+  return $ Braces body
 
 functionCallOnObject = debug "functionCallOnObject" >> do
   obj <- saltyOptional <||> variable
@@ -774,8 +774,7 @@ functionCallOnObject = debug "functionCallOnObject" >> do
   char '('
   funcArgs <- findArgs
   char ')'
-  -- block <- optionMaybe functionBlock
-  let block = Nothing
+  block <- optionMaybe functionBlock
   return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) funcArgs block
 
 parseBuiltInFuncName :: VariableName -> Either BuiltInFunction VariableName
@@ -929,16 +928,16 @@ classDefinition = debug "classDefinition" >> do
 classDefExtends = debug "classDefExtends" >> do
   string "extends"
   space
-  extendsName <- classVar
+  extendsName <- many1 extendsNameChars
   space
-  return $ Just extendsName
+  return $ Just (ClassVar extendsName)
 
 classDefImplements = debug "classDefImplements" >> do
   string "implements"
   space
-  implementsName <- classVar
+  implementsName <- many1 extendsNameChars
   space
-  return $ Just implementsName
+  return $ Just (ClassVar implementsName)
 
 nothing = return Nothing
 
