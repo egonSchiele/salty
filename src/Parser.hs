@@ -776,8 +776,8 @@ htmlVar = debug "htmlVar" >> do
 shorthandHtml = debug "shorthandHtml" >> do
   var <- htmlVar
   space
-  str <- saltyString
-  return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just (Braces [str]))
+  (SaltyString str) <- saltyString
+  return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just (Braces [PurePhp str]))
 
 functionBlock = debug "functionBlock" >> do
   string " do\n"
