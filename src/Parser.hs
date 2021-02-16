@@ -13,7 +13,7 @@ import Print
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 lambdaVarNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_ "
-classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\."
+classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
@@ -153,7 +153,6 @@ saltyParserSingleWithoutNewline = do
   <||> emptyLine
   <||> ifStatement
   <||> whileStatement
-  <||> reactClassDefinition
   <||> classDefinition
   <||> objectCreation
   <||> saltyBool
@@ -605,9 +604,12 @@ partialFunctionCall = debug "partialFunctionCall" >> do
   funcArgs <- findArgs
   char ')'
 
+  -- block <- optionMaybe functionBlock
+  let block = Nothing
+
   return $ case leftHandSide of
-             Operation l op r -> BackTrack $ Operation l op (FunctionCall (Just r) (Right (SimpleVar funcName)) funcArgs)
-             _ -> BackTrack $ FunctionCall (Just leftHandSide) (Right (SimpleVar funcName)) funcArgs
+             Operation l op r -> BackTrack $ Operation l op (FunctionCall (Just r) (Right (SimpleVar funcName)) funcArgs block)
+             _ -> BackTrack $ FunctionCall (Just leftHandSide) (Right (SimpleVar funcName)) funcArgs block
 
 negateSalty = debug "negateSalty" >> do
   char '!'
@@ -760,6 +762,11 @@ attrAccess = debug "attrAccess" >> do
   attrName <- many1 varNameChars
   return $ AttrAccess obj attrName
 
+functionBlock = debug "functionBlock" >> do
+  space
+  body <- braces Nothing
+  return body
+
 functionCallOnObject = debug "functionCallOnObject" >> do
   obj <- saltyOptional <||> variable
   char '.'
@@ -767,7 +774,9 @@ functionCallOnObject = debug "functionCallOnObject" >> do
   char '('
   funcArgs <- findArgs
   char ')'
-  return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) funcArgs
+  -- block <- optionMaybe functionBlock
+  let block = Nothing
+  return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) funcArgs block
 
 parseBuiltInFuncName :: VariableName -> Either BuiltInFunction VariableName
 parseBuiltInFuncName (SimpleVar "p") = Left VarDumpShort
@@ -778,7 +787,7 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   char '('
   funcArgs <- findArgs
   char ')'
-  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs
+  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs Nothing
 
 functionCallOnObjectWithoutParens = debug "functionCallOnObjectWithoutParens" >> do
   obj <- saltyOptional <||> variable
@@ -786,13 +795,13 @@ functionCallOnObjectWithoutParens = debug "functionCallOnObjectWithoutParens" >>
   funcName <- many1 varNameChars
   string " . " <||> string " $ "
   funcArgs <- functionCallOnObjectWithoutParens <||> functionCallWithoutObjectWithoutParens <||> validFuncArgTypes
-  return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) [funcArgs]
+  return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) [funcArgs] Nothing
 
 functionCallWithoutObjectWithoutParens = debug "functionCallWithoutObjectWithoutParens" >> do
   funcName <- variableName
   string " . " <||> string " $ "
   funcArgs <- functionCallOnObjectWithoutParens <||> functionCallWithoutObjectWithoutParens <||> validFuncArgTypes
-  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) [funcArgs]
+  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) [funcArgs] Nothing
 
 arraySlice = debug "arraySlice" >> do
   array <- variable
@@ -916,14 +925,6 @@ classDefinition = debug "classDefinition" >> do
   optional space
   body <- (braces (Just ClassScope) <||> whereStatement)
   return $ Class name extendsName implementsName body
-
-reactClassDefinition = debug "reactClassDefinition" >> do
-  string "rclass"
-  space
-  name <- classVar
-  space
-  body <- (braces (Just ClassScope) <||> whereStatement)
-  return $ Class name (Just (SimpleVar "React.Component")) Nothing body
 
 classDefExtends = debug "classDefExtends" >> do
   string "extends"

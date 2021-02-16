@@ -30,7 +30,7 @@ varName x = "this shouldnt be in varName: " ++ (show x)
 
 varNameToFunc (InstanceVar s) = "$this->" ++ s
 varNameToFunc (StaticVar s) = "static::" ++ s
-varNameToFunc (ClassVar s) = "error classvar as funcname"
+varNameToFunc (ClassVar s) = "error classvar as funcname: " ++ s
 varNameToFunc (SimpleVar s) = s
 
 class ConvertToPhp a where
@@ -83,13 +83,13 @@ instance (ConvertToPhp a1, ConvertToPhp a2) => ConvertToPhp (Either a1 a2) where
 instance ConvertToPhp Salty where
   toPhp (Operation x op (WithNewLine y)) = (toPhp $ Operation x op y) ++ "\n"
   toPhp (Operation x@(Variable _ _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
-  toPhp (Operation x@(Variable _ _) Equals (FunctionCall (Just (HigherOrderFunctionCall obj callName func accVar)) fName args)) = toPhp $ FunctionCall (Just $ HigherOrderFunctionCall obj callName func (varName x)) fName args
+  toPhp (Operation x@(Variable _ _) Equals (FunctionCall (Just (HigherOrderFunctionCall obj callName func accVar)) fName args block)) = toPhp $ FunctionCall (Just $ HigherOrderFunctionCall obj callName func (varName x)) fName args block
 
   toPhp op@(Operation left operator (AttrAccess (SaltyOptional salty) attr)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
           where newOperation = Operation left operator (AttrAccess salty attr)
 
-  toPhp op@(Operation left operator (FunctionCall (Just (SaltyOptional salty)) callName args)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
-          where newOperation = Operation left operator (FunctionCall (Just salty) callName args)
+  toPhp op@(Operation left operator (FunctionCall (Just (SaltyOptional salty)) callName args block)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
+          where newOperation = Operation left operator (FunctionCall (Just salty) callName args block)
 
   toPhp op@(Operation left operator (SaltyOptional salty)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
           where newOperation = Operation left operator salty
@@ -157,40 +157,40 @@ instance ConvertToPhp Salty where
   toPhp (SaltyString s) = "\"" ++ s ++ "\""
 
   -- functions called without an object (bare)
-  toPhp (FunctionCall Nothing (Right var) args) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall Nothing (Right var) args _) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toPhp $ args)
 
   -- builtin bare functions
-  toPhp (FunctionCall Nothing (Left VarDumpShort) args) = "var_dump(" ++ (intercalate ", " . map toPhp $ args) ++ ")"
+  toPhp (FunctionCall Nothing (Left VarDumpShort) args _) = "var_dump(" ++ (intercalate ", " . map toPhp $ args) ++ ")"
 
   -- functions called on higher order functions
-  toPhp (FunctionCall (Just hof@(HigherOrderFunctionCall _ _ _ accVar)) (Right funcName) args) = print3 "%\n% = %" (toPhp hof) accVar (toPhp (FunctionCall (Just (PurePhp accVar)) (Right funcName) args))
+  toPhp (FunctionCall (Just hof@(HigherOrderFunctionCall _ _ _ accVar)) (Right funcName) args block) = print3 "%\n% = %" (toPhp hof) accVar (toPhp (FunctionCall (Just (PurePhp accVar)) (Right funcName) args block))
   -- builtin functions on an obj
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "split")) []) = print2 "explode('%', %)" " " (toPhp obj)
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "join")) []) = print2 "implode('%', %)" " " (toPhp obj)
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "split")) [SaltyString separator]) = print2 "explode('%', %)" separator (toPhp obj)
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "join")) [SaltyString separator]) = print2 "implode('%', %)" separator (toPhp obj)
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "uniq")) []) = "array_unique(" ++ (toPhp obj) ++ ")"
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "pop")) []) = "array_pop(" ++ (toPhp obj) ++ ")"
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "keys")) []) = "array_keys(" ++ (toPhp obj) ++ ")"
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "values")) []) = "array_values(" ++ (toPhp obj) ++ ")"
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "reverse")) []) = "array_reverse(" ++ (toPhp obj) ++ ")"
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "count")) []) = "count(" ++ (toPhp obj) ++ ")"
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toPhp obj) ++ ")"
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toPhp obj) ++ ")"
-  toPhp (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace]) = print3 "str_replace(%, %, %)" (toPhp search) (toPhp replace) (toPhp obj)
-  toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args) = "(" ++ (toPhp $ New vName args) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "split")) [] _) = print2 "explode('%', %)" " " (toPhp obj)
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "join")) [] _) = print2 "implode('%', %)" " " (toPhp obj)
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "split")) [SaltyString separator] _) = print2 "explode('%', %)" separator (toPhp obj)
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "join")) [SaltyString separator] _) = print2 "implode('%', %)" separator (toPhp obj)
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "uniq")) [] _) = "array_unique(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "pop")) [] _) = "array_pop(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "keys")) [] _) = "array_keys(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "values")) [] _) = "array_values(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "reverse")) [] _) = "array_reverse(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "count")) [] _) = "count(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "size")) [] _) = "count(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) [] _) = "shuffle(" ++ (toPhp obj) ++ ")"
+  toPhp (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "str_replace(%, %, %)" (toPhp search) (toPhp replace) (toPhp obj)
+  toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args _) = "(" ++ (toPhp $ New vName args) ++ ")"
 
   -- functions called on an obj
-  toPhp (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just var@(Variable _ _)) (Right funcName) args) = print3 "%->%(%)" (toPhp var) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args _) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just var@(Variable _ _)) (Right funcName) args _) = print3 "%->%(%)" (toPhp var) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   -- an optional containing whatever other salty
-  toPhp (FunctionCall (Just (SaltyOptional salty)) (Right funcName) args) = print4 "if (!is_null(%)) {\n%->%(%)\n}" (toPhp salty) (toPhp salty) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (SaltyOptional salty)) (Right funcName) args _) = print4 "if (!is_null(%)) {\n%->%(%)\n}" (toPhp salty) (toPhp salty) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
-  toPhp (FunctionCall (Just obj) (Right funcName) args) = print3 "%->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just obj) (Right funcName) args _) = print3 "%->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   -- same as above but with parens
-  toPhp (FunctionCall (Just (Parens [obj])) (Right funcName) args) = print3 "(%)->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Parens [obj])) (Right funcName) args _) = print3 "(%)->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   toPhp (LambdaFunction [] body) =  toPhp body
   toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)
@@ -308,7 +308,7 @@ instance ConvertToPhp Salty where
   toPhp (AttrAccess obj attrName) = print2 "%->%" (toPhp obj) attrName
   toPhp (MultiAssign vars (WithNewLine value)) = toPhp $ WithNewLine (MultiAssign vars value)
   toPhp (MultiAssign vars value@(Variable _ _)) = (intercalate "\n" . map (\(i,var) -> print3 "% = %[%]" (toPhp var) (toPhp value) (show i)) $ zip [0..] vars)
-  toPhp (MultiAssign vars value@(FunctionCall _ _ _)) = initResult ++ "\n" ++ multiAssign
+  toPhp (MultiAssign vars value@(FunctionCall _ _ _ _)) = initResult ++ "\n" ++ multiAssign
       where initResult = "$result = " ++ (toPhp value)
             multiAssign = (intercalate "\n" . map (\(i,var) -> print2 "% = $result[%]" (toPhp var) (show i)) $ zip [0..] vars)
   toPhp (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toPhp var) (toPhp value)) $ vars)
@@ -376,7 +376,7 @@ addReturn (Braces s) = (concat . map toPhp . init $ s) ++ "\n" ++ (addReturn . l
 addReturn (Variable name scope) = "return " ++ (toPhp name)
 addReturn (WithNewLine x) = (addReturn x) ++ "\n"
 addReturn p@(Parens x) = "return " ++ (toPhp p)
-addReturn f@(FunctionCall o n a) = "return " ++ (toPhp f)
+addReturn f@(FunctionCall o n a b) = "return " ++ (toPhp f)
 addReturn h@(HashTable kv) = "return " ++ (toPhp h)
 addReturn a@(Array xs) = "return " ++ (toPhp a)
 addReturn f@(HigherOrderFunctionCall _ Each _ _) = toPhp f

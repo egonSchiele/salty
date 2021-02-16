@@ -11,7 +11,7 @@ stripNewlineToJs salty = toJs salty
 toReact :: Salty -> String
 toReact (WithNewLine s) = toReact s
 toReact (SaltyString str) = str
-toReact f@(FunctionCall _ (Right (SimpleVar "new")) _) = toJs f
+toReact f@(FunctionCall _ (Right (SimpleVar "new")) _ _) = toJs f
 toReact f@(Function (SimpleVar "tag") [Argument _ (ArgumentName name _) _] body _ _) = toJs f
 toReact x = "{" ++ (toJs x) ++ "}"
 
@@ -106,13 +106,13 @@ instance (ConvertToJs a1, ConvertToJs a2) => ConvertToJs (Either a1 a2) where
 instance ConvertToJs Salty where
   toJs (Operation x op (WithNewLine y)) = (toJs $ Operation x op y) ++ "\n"
   toJs (Operation x@(Variable _ _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toJs $ HigherOrderFunctionCall obj callName func (varName x)
-  toJs (Operation x@(Variable _ _) Equals (FunctionCall (Just (HigherOrderFunctionCall obj callName func accVar)) fName args)) = toJs $ FunctionCall (Just $ HigherOrderFunctionCall obj callName func (varName x)) fName args
+  toJs (Operation x@(Variable _ _) Equals (FunctionCall (Just (HigherOrderFunctionCall obj callName func accVar)) fName args block)) = toJs $ FunctionCall (Just $ HigherOrderFunctionCall obj callName func (varName x)) fName args block
 
   toJs op@(Operation left operator (AttrAccess (SaltyOptional salty) attr)) = print2 "if (!is_null(%)) {\n%\n}" (toJs salty) (toJs newOperation)
           where newOperation = Operation left operator (AttrAccess salty attr)
 
-  toJs op@(Operation left operator (FunctionCall (Just (SaltyOptional salty)) callName args)) = print2 "if (!is_null(%)) {\n%\n}" (toJs salty) (toJs newOperation)
-          where newOperation = Operation left operator (FunctionCall (Just salty) callName args)
+  toJs op@(Operation left operator (FunctionCall (Just (SaltyOptional salty)) callName args block)) = print2 "if (!is_null(%)) {\n%\n}" (toJs salty) (toJs newOperation)
+          where newOperation = Operation left operator (FunctionCall (Just salty) callName args block)
 
   toJs op@(Operation left operator (SaltyOptional salty)) = print2 "if (!is_null(%)) {\n%\n}" (toJs salty) (toJs newOperation)
           where newOperation = Operation left operator salty
@@ -178,19 +178,19 @@ instance ConvertToJs Salty where
   toJs (SaltyString s) = "\"" ++ s ++ "\""
 
   -- functions called without an object (bare)
-  toJs (FunctionCall Nothing (Right var) args) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall Nothing (Right var) args _) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args)
 
   -- builtin bare functions
-  toJs (FunctionCall Nothing (Left VarDumpShort) args) = "console.log(" ++ (intercalate ", " . map toJs $ args) ++ ")"
+  toJs (FunctionCall Nothing (Left VarDumpShort) args _) = "console.log(" ++ (intercalate ", " . map toJs $ args) ++ ")"
 
   -- functions called on higher order functions
-  toJs (FunctionCall (Just hof@(HigherOrderFunctionCall _ _ _ accVar)) (Right funcName) args) = print3 "%\n% = %" (toJs hof) accVar (toJs (FunctionCall (Just (PurePhp accVar)) (Right funcName) args))
+  toJs (FunctionCall (Just hof@(HigherOrderFunctionCall _ _ _ accVar)) (Right funcName) args block) = print3 "%\n% = %" (toJs hof) accVar (toJs (FunctionCall (Just (PurePhp accVar)) (Right funcName) args block))
   -- builtin functions on an obj
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "split")) []) = print2 "%.split('%')" (toJs obj) " "
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "join")) []) = print2 "%.join('%')" (toJs obj) " "
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "split")) [SaltyString separator]) = print2 "%.split('%')" (toJs obj) separator
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "join")) [SaltyString separator]) = print2 "%.join('%')" (toJs obj) separator
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "uniq")) []) = print2 "let % = [...new Set(%)]" (toJs obj) (toJs obj)
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "split")) [] _) = print2 "%.split('%')" (toJs obj) " "
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "join")) [] _) = print2 "%.join('%')" (toJs obj) " "
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "split")) [SaltyString separator] _) = print2 "%.split('%')" (toJs obj) separator
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "join")) [SaltyString separator] _) = print2 "%.join('%')" (toJs obj) separator
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "uniq")) [] _) = print2 "let % = [...new Set(%)]" (toJs obj) (toJs obj)
    -- unnecessary
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "pop")) []) = (toJs obj) ++ ".pop()"
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "keys")) []) = "array_keys(" ++ (toJs obj) ++ ")"
@@ -199,9 +199,9 @@ instance ConvertToJs Salty where
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "count")) []) = "count(" ++ (toJs obj) ++ ")"
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toJs obj) ++ ")"
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace]) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) []) = "\n<" ++ (simpleVarName vName) ++ " />"
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs]) = print2 "\n<%% />" (simpleVarName vName) (pairsToReact kvPairs)
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] _) = "\n<" ++ (simpleVarName vName) ++ " />"
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] _) = print2 "\n<%% />" (simpleVarName vName) (pairsToReact kvPairs)
     where pairsToReact pairs = case pairs of
             [] -> ""
             _ -> " " ++ (join " " . map toPair $ pairs)
@@ -211,16 +211,16 @@ instance ConvertToJs Salty where
           toPair (k, v) = print2 "%={%}" (toJs k) (toJs v)
 
   -- functions called on an obj
-  toJs (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args) = print3 "%.%(%)" obj (simpleVarName funcName) (intercalate ", " . map toJs $ args)
-  toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args _) = print3 "%.%(%)" obj (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args _) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
 
   -- an optional containing whatever other salty
-  toJs (FunctionCall (Just (SaltyOptional salty)) (Right funcName) args) = print4 "if (!is_null(%)) {\n%->%(%)\n}" (toJs salty) (toJs salty) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall (Just (SaltyOptional salty)) (Right funcName) args _) = print4 "if (!is_null(%)) {\n%->%(%)\n}" (toJs salty) (toJs salty) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
 
-  toJs (FunctionCall (Just obj) (Right funcName) args) = print3 "%.%(%)" (toJs obj) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall (Just obj) (Right funcName) args _) = print3 "%.%(%)" (toJs obj) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
 
   -- same as above but with parens
-  toJs (FunctionCall (Just (Parens [obj])) (Right funcName) args) = print3 "(%).%(%)" (toJs obj) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall (Just (Parens [obj])) (Right funcName) args _) = print3 "(%).%(%)" (toJs obj) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
 
   toJs (LambdaFunction args body) = print2 "(%) => {\n%\n}" args_ (toJs body)
     where args_ = join ", " args
@@ -319,7 +319,7 @@ instance ConvertToJs Salty where
   toJs (AttrAccess obj attrName) = print2 "%.%" (toJs obj) attrName
   toJs (MultiAssign vars (WithNewLine value)) = toJs $ WithNewLine (MultiAssign vars value)
   toJs (MultiAssign vars value@(Variable _ _)) = (intercalate "\n" . map (\(i,var) -> print3 "% = %[%]" (toJs var) (toJs value) (show i)) $ zip [0..] vars)
-  toJs (MultiAssign vars value@(FunctionCall _ _ _)) = initResult ++ "\n" ++ multiAssign
+  toJs (MultiAssign vars value@(FunctionCall _ _ _ _)) = initResult ++ "\n" ++ multiAssign
       where initResult = "$result = " ++ (toJs value)
             multiAssign = (intercalate "\n" . map (\(i,var) -> print2 "% = $result[%]" (toJs var) (show i)) $ zip [0..] vars)
   toJs (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toJs var) (toJs value)) $ vars)
@@ -388,7 +388,7 @@ addReturn (Braces s) = (concat . map toJs . init $ s) ++ "\n" ++ (addReturn . la
 addReturn (Variable name scope) = "return " ++ (toJs name)
 addReturn (WithNewLine x) = (addReturn x) ++ "\n"
 addReturn p@(Parens x) = "return " ++ (toJs p)
-addReturn f@(FunctionCall o n a) = "return " ++ (toJs f)
+addReturn f@(FunctionCall o n a b) = "return " ++ (toJs f)
 addReturn h@(HashTable kv) = "return " ++ (toJs h)
 addReturn a@(Array xs) = "return " ++ (toJs a)
 addReturn f@(HigherOrderFunctionCall _ Each _ _) = toJs f
