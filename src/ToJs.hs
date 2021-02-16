@@ -169,10 +169,11 @@ instance ConvertToJs Salty where
                                               _ -> print3 "<%>%</%>" name (concat . map toReact $ body) name
 
   toJs (Function name args body visibility scope)
-    | scope == ClassScope = print3 "%(%) {\n%\n}\n" (simpleVarName name) funcArgs funcBody
-    | otherwise = print3 "const % = (%) => {\n%\n}\n" (simpleVarName name) funcArgs funcBody
+    | scope == ClassScope && ((simpleVarName name) == "render") = print3 "%(%) {\n%\n}\n" (simpleVarName name) funcArgs (funcBody [Parens body])
+    | scope == ClassScope = print3 "%(%) {\n%\n}\n" (simpleVarName name) funcArgs (funcBody body)
+    | otherwise = print3 "const % = (%) => {\n%\n}\n" (simpleVarName name) funcArgs (funcBody body)
     where funcArgs = intercalate ", " $ map toJs args
-          funcBody = case body of
+          funcBody b = case b of
                           [] -> ""
                           [Braces []] -> ""
                           [Braces salties] -> print2 "%\n%" ((join "\n") . map toJs . init $ salties) (addReturn . last $ salties)
@@ -204,9 +205,9 @@ instance ConvertToJs Salty where
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toJs obj) ++ ")"
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
   toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] Nothing) = "\n<" ++ (simpleVarName vName) ++ " />"
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] (Just block)) = print3 "\n<%>%</%>" (simpleVarName vName) (toJs block) (simpleVarName vName)
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] block) = print4 "\n<%%>%</%>" (simpleVarName vName) (pairsToReact kvPairs) (_maybe toReact block) (simpleVarName vName)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] Nothing) = "<" ++ (simpleVarName vName) ++ " />"
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] (Just block)) = print3 "<%>%</%>" (simpleVarName vName) (toJs block) (simpleVarName vName)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] block) = print4 "<%%>%</%>" (simpleVarName vName) (pairsToReact kvPairs) (_maybe toReact block) (simpleVarName vName)
     where pairsToReact pairs = case pairs of
             [] -> ""
             _ -> " " ++ (join " " . map toPair $ pairs)
