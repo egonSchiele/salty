@@ -302,6 +302,8 @@ instance ConvertToJs Salty where
     where kvtoJs (name, val) = print2 "%: %" (toJs name) (toJs val)
           hashBody = intercalate ",\n" $ map kvtoJs nameValuePairs
 
+  toJs (DestructuredHash vars) = "{ " ++ (join ", " vars) ++ " }"
+
   toJs (ArraySlice obj start Nothing) = print2 "%.slice(%)" (toJs obj) (toJs start)
   toJs (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "%.slice(%, %)" (toJs obj) start newEnd
     where newEnd = show $ (read end :: Integer) + 1

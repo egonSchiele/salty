@@ -105,6 +105,8 @@ instance ConvertToPhp Salty where
   toPhp (Operation (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) Equals arr) = print4 "array_splice(%, %, %, %)" (toPhp obj) start newEnd (toPhp arr)
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
   toPhp (Operation (ArraySlice obj start (Just end)) Equals arr) = print5 "array_splice(%, %, % - %, %)" (toPhp obj) (toPhp start) (toPhp end) (toPhp start) (toPhp arr)
+  toPhp (Operation (DestructuredHash vars) Equals right) = join "\n" $ map assignVars vars
+    where assignVars v = print3 "$% = %['%']" v (toPhp right) v
   toPhp (Operation left Equals right) = (toPhp left) ++ " = " ++ (toPhp right)
   toPhp (Operation left NotEquals right) = (toPhp left) ++ " != " ++ (toPhp right)
   toPhp (Operation left PlusEquals right) = print3 "% = % + %" (toPhp left) (toPhp left) (toPhp right)

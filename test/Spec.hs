@@ -703,6 +703,8 @@ transpileTests = [
 
     -- hash shorthand
     "{ foo, bar, baz }" `matches` "[\n    \"foo\" => $foo,\n    \"bar\" => $bar,\n    \"baz\" => $baz\n];",
+    "{ foo, bar, baz } = arr" `matches` "$foo = $arr['foo'];\n$bar = $arr['bar'];\n$baz = $arr['baz'];",
+    "{ foo }" `matches` "[\n    \"foo\" => $foo\n];",
 
 
     -- new keyword

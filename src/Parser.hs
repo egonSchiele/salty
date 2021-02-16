@@ -17,7 +17,7 @@ classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
-constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+-- constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 
 data SaltyState = SaltyState {
                       lastSalty :: Salty,
@@ -1003,8 +1003,8 @@ saltyKeywordRequireOnce = debug "saltyKeywordRequireOnce" >> do
 saltyKeywordConst = debug "saltyKeywordConst" >> do
   string "const"
   space
-  name <- many1 constChars
-  return $ KwConst (PurePhp name)
+  name <- (PurePhp <$> many1 varNameChars) <||> hashShorthand
+  return $ KwConst name
 
 saltyKeywordPublic = debug "saltyKeywordPublic" >> do
   string "public"
