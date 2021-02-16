@@ -18,6 +18,7 @@ toReact (SaltyString str) = str
 toReact f@(FunctionCall _ (Right (SimpleVar "new")) _ _) = toJs f
 toReact f@(Function (SimpleVar "tag") [Argument _ (ArgumentName name _) _] body _ _) = toJs f
 toReact EmptyLine = ""
+toReact x@(PurePhp _) = toJs x
 toReact x = "{" ++ (toJs x) ++ "}"
 
 toReactArg :: Salty -> String
@@ -39,7 +40,7 @@ toReactArgs (SaltyGuard _ guards) =
 toReactBody :: Salty -> String
 toReactBody (SaltyGuard _ guards) = join "" . map makeBody $ bodyGuards
   where bodyGuards = filter isBody guards
-        makeBody (Guard cond outcome) = concat . map toJs $ outcome
+        makeBody (Guard cond outcome) = concat . map toReact $ outcome
 
 getAccVar var
   | var == "$result" = ""
@@ -207,7 +208,7 @@ instance ConvertToJs Salty where
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
   toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
   toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] Nothing) = "<" ++ (simpleVarName vName) ++ " />"
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] (Just block)) = print3 "<%>%</%>" (simpleVarName vName) (toJs block) (simpleVarName vName)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] (Just block)) = print3 "<%>%</%>" (simpleVarName vName) (toReact block) (simpleVarName vName)
   toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] block) = print4 "<%%>%</%>" (simpleVarName vName) (pairsToReact kvPairs) (_maybe toReact block) (simpleVarName vName)
     where pairsToReact pairs = case pairs of
             [] -> ""
