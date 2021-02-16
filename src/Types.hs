@@ -15,7 +15,8 @@ data PhpKeyword =   KwUse VariableName (Maybe VariableName)
                   | KwThrow Salty
                   | KwRequire Salty
                   | KwRequireOnce Salty
-                  | KwConst Salty
+                  | KwImport Salty
+                  | KwVarDeclaration String Salty
                   | KwPublic Salty
                   | KwPrivate Salty
                   | KwProtected Salty

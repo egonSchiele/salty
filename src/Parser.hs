@@ -118,6 +118,9 @@ saveIt salty (SaltyState _ scopes) = SaltyState salty scopes
 saltyParserSingleWithoutNewline :: SaltyParser
 saltyParserSingleWithoutNewline = do
   parens
+  <||> saltyBool
+  <||> saltyNull
+  <||> saltyKeyword
   <||> higherOrderFunctionCall
   <||> times
   <||> hashTable
@@ -158,9 +161,6 @@ saltyParserSingleWithoutNewline = do
   <||> whileStatement
   <||> classDefinition
   <||> objectCreation
-  <||> saltyBool
-  <||> saltyNull
-  <||> saltyKeyword
   <||> saltyMagicConstant
   <||> phpVar
   <||> saltyOptional
@@ -770,7 +770,7 @@ shorthandBlock = debug "shorthandBlock" >> do
   return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just block)
 
 htmlVar = debug "htmlVar" >> do
-  str <- string "h1" <||> string "h2" <||> string "h3" <||> string "p" <||> string "a" <||> string "img" <||> string "div"
+  str <- string "h1" <||> string "h2" <||> string "h3" <||> string "p" <||> string "a" <||> string "img" <||> string "div" <||> string "span"
   return $ Variable (SimpleVar str) GlobalScope
 
 shorthandHtml = debug "shorthandHtml" >> do
@@ -986,7 +986,8 @@ saltyKeyword = debug "saltyKeyword" >> do
                 <||> saltyKeywordThrow
                 <||> saltyKeywordRequire
                 <||> saltyKeywordRequireOnce
-                <||> saltyKeywordConst
+                <||> saltyKeywordImport
+                <||> saltyKeywordVarDeclaration
                 <||> saltyKeywordPublic
                 <||> saltyKeywordPrivate
                 <||> saltyKeywordProtected
@@ -1034,11 +1035,17 @@ saltyKeywordRequireOnce = debug "saltyKeywordRequireOnce" >> do
   salty <- saltyParserSingle_
   return $ KwRequireOnce salty
 
-saltyKeywordConst = debug "saltyKeywordConst" >> do
-  string "const"
+saltyKeywordImport = debug "saltyKeywordImport" >> do
+  string "import"
+  space
+  salty <- many1 $ noneOf "\n"
+  return $ KwImport $ PurePhp salty
+
+saltyKeywordVarDeclaration = debug "saltyKeywordVarDeclaration" >> do
+  typ <- string "const" <||> string "var" <||> string "let"
   space
   name <- (PurePhp <$> many1 varNameChars) <||> destructuredHash
-  return $ KwConst name
+  return $ KwVarDeclaration typ name
 
 saltyKeywordPublic = debug "saltyKeywordPublic" >> do
   string "public"
