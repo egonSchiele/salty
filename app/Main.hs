@@ -90,7 +90,7 @@ main = do
        ["-e", inputFile] -> findErrorInFile inputFile
        ["-p", inputFile] -> convertToPhp inputFile
        ["-j"] -> convertToJs
-       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".js" inputFile)
+       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".jsx" inputFile)
        [inputFile] -> convert inputFile
        [] -> readFromStdin
        _ -> printHelp
