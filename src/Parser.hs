@@ -226,11 +226,14 @@ parens = debug "parens" >> do
   return $ Parens body
 
 validHashValue = debug "validHashValue" >> do
-       saltyString
+       parens
+  <||> saltyString
   <||> saltyNumber
   <||> hashLookup
   <||> hashTable
   <||> array
+  <||> attrAccess
+  <||> lambda
   <||> hashShorthand
   -- <||> emptyHash
   <||> saltyBool
