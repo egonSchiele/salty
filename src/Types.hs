@@ -150,6 +150,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                  hKey :: Salty
              }
              | HashTable [(Salty, Salty)]
+             | DestructuredHash [String]
              | ArraySlice {
                 arObj :: Salty,
                 arStart :: Salty,

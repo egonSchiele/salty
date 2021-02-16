@@ -283,18 +283,19 @@ array = debug "array" >> do
   return $ Array salties
 
 hashValue = debug "hashValue" >> do
-  value <- simpleVar
+  value <- many1 varNameChars
   char ',' <||> char '}'
-  optional space
+  optional $ oneOf "\n "
   return value
 
 hashShorthand = debug "hashShorthand" >> do
-  char '{'
-  optional $ char '\n' <||> char ' '
-  salties <- many hashValue
-  optional $ char '\n' <||> char ' '
-  optional $ char '}'
-  return $ HashTable (zip (map (SaltyString . getVarName) salties) (map (\s -> Variable s GlobalScope) salties))
+  string "{ "
+  optional $ char '\n'
+  vars <- (many1 varNameChars) `sepBy` (string ", ")
+  optional $ char '\n'
+  string " }"
+  return $ DestructuredHash vars
+  -- return $ HashTable (zip (map (SaltyString . getVarName) salties) (map (\s -> Variable s GlobalScope) salties))
 
 emptyHash = debug "emptyHash" >> do
   char '{'

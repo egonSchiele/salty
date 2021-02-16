@@ -702,7 +702,7 @@ transpileTests = [
     "arr.1.count()" `matches` "count($arr[1]);",
 
     -- hash shorthand
-    "{foo, bar, baz}" `matches` "[\n    \"foo\" => $foo,\n    \"bar\" => $bar,\n    \"baz\" => $baz\n];",
+    "{ foo, bar, baz }" `matches` "[\n    \"foo\" => $foo,\n    \"bar\" => $bar,\n    \"baz\" => $baz\n];",
 
 
     -- new keyword

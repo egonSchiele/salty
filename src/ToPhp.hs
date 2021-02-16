@@ -288,6 +288,7 @@ instance ConvertToPhp Salty where
     where kvtoPhp (name, val) = print2 "% => %" (toPhp name) (toPhp val)
           hashBody = intercalate ",\n" $ map kvtoPhp nameValuePairs
 
+  toPhp (DestructuredHash vars) = toPhp $ HashTable (zip (map SaltyString vars) (map (\s -> Variable (SimpleVar s) GlobalScope) vars))
   toPhp (ArraySlice obj start Nothing) = print2 "array_slice(%, %)" (toPhp obj) (toPhp start)
   toPhp (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) = print3 "array_slice(%, %, %)" (toPhp obj) start newEnd
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
