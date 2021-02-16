@@ -137,6 +137,7 @@ saltyParserSingleWithoutNewline = do
   <||> indexIntoArray
   <||> saltyNumber
   <||> returnStatement
+  <||> shorthandHtml
   <||> shorthandBlock
   <||> functionCall
   <||> attrAccess
@@ -767,6 +768,16 @@ shorthandBlock = debug "shorthandBlock" >> do
   var <- variable
   block <- functionBlock
   return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just block)
+
+htmlVar = debug "htmlVar" >> do
+  str <- string "h1" <||> string "h2" <||> string "h3" <||> string "p" <||> string "a" <||> string "img" <||> string "div"
+  return $ Variable (SimpleVar str) GlobalScope
+
+shorthandHtml = debug "shorthandHtml" >> do
+  var <- htmlVar
+  space
+  str <- saltyString
+  return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just (Braces [str]))
 
 functionBlock = debug "functionBlock" >> do
   string " do\n"

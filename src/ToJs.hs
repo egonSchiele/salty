@@ -13,6 +13,7 @@ _maybe f (Just x) = f x
 
 toReact :: Salty -> String
 toReact (WithNewLine s) = toReact s
+toReact (Braces s) = join "\n" . map toReact $ s
 toReact (SaltyString str) = str
 toReact f@(FunctionCall _ (Right (SimpleVar "new")) _ _) = toJs f
 toReact f@(Function (SimpleVar "tag") [Argument _ (ArgumentName name _) _] body _ _) = toJs f
