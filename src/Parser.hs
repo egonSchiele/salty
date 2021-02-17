@@ -748,15 +748,29 @@ phpComment = (do
   string "\n"
   return $ PhpComment line) <?> "a php comment"
 
-purePhp = do
+purePhp = debug "purePhp" >> do
   string "`"
   line <- many1 $ noneOf "`"
   string "`"
   return $ PurePhp line
 
-html = do
+html = debug "html" >> do
+  htmlNoChildren <||> htmlWithChildren
+
+htmlNoChildren = debug "htmlNoChildren" >> do
   char '<'
-  tag <- many1 varNameChars
+  start <- letter
+  _tag <- many1 varNameChars
+  let tag = start:_tag
+  optional space
+  string "/>"
+  return $ PurePhp $ "<" ++ tag ++ " />"
+
+htmlWithChildren = debug "htmlWithChildren" >> do
+  char '<'
+  start <- letter
+  _tag <- many1 varNameChars
+  let tag = start:_tag
   line <- readTill (wrapInSalt (string ("</" ++ tag ++ ">")))
   return $ PurePhp $ "<" ++ tag ++ line ++ "</" ++ tag ++ ">"
 
