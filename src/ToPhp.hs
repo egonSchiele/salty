@@ -387,6 +387,7 @@ addReturn x@(SaltyNumber _) = "return " ++ (toPhp x)
 addReturn x@(SaltyString _) = "return " ++ (toPhp x)
 addReturn x@(SaltyOptional salty) = "return " ++ (toPhp x)
 addReturn x@(SaltyBool _) = "return " ++ (toPhp x)
+addReturn x@(Negate _) = "return " ++ (toPhp x)
 addReturn x@(SaltyGuard (Just val) guards) = toPhp (SaltyGuard (Just val) newGuards)
   where newGuards = map addReturn_ guards
         addReturn_ (Guard cond outcome) = Guard cond ((init outcome) ++ [ReturnStatementForAddReturn (last outcome)])

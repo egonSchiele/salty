@@ -229,7 +229,7 @@ instance ConvertToJs Salty where
   -- same as above but with parens
   toJs (FunctionCall (Just (Parens [obj])) (Right funcName) args _) = print3 "(%).%(%)" (toJs obj) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
 
-  toJs (LambdaFunction args body) = print2 "(%) => {\n%\n}" args_ (toJs body)
+  toJs (LambdaFunction args body) = print2 "(%) => {\n%\n}" args_ (addReturn body)
     where args_ = join ", " args
 
   -- special case, each with a range
@@ -411,6 +411,7 @@ addReturn x@(SaltyString _) = "return " ++ (toJs x)
 addReturn x@(SaltyOptional salty) = "return " ++ (toJs x)
 addReturn x@(SaltyBool _) = "return " ++ (toJs x)
 addReturn x@(PurePhp _) = "return " ++ (toJs x)
+addReturn x@(Negate _) = "return " ++ (toJs x)
 addReturn x@(SaltyGuard (Just val) guards) = toJs (SaltyGuard (Just val) newGuards)
   where newGuards = map addReturn_ guards
         addReturn_ (Guard cond outcome) = Guard cond ((init outcome) ++ [ReturnStatementForAddReturn (last outcome)])
