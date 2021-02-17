@@ -67,7 +67,7 @@ varName (Variable name scope) = toJs name
 varName x = "this shouldnt be in varName: " ++ (show x)
 
 varNameToFunc (InstanceVar s) = "this." ++ s
-varNameToFunc (StaticVar s) = "static?::" ++ s
+varNameToFunc (StaticVar s) = "this.state." ++ s
 varNameToFunc (ClassVar s) = "error classvar as funcname"
 varNameToFunc (SimpleVar s) = s
 
@@ -76,7 +76,7 @@ class ConvertToJs a where
 
 instance ConvertToJs VariableName where
   toJs (InstanceVar s) = "this." ++ s
-  toJs (StaticVar s) = "static??::$" ++ s
+  toJs (StaticVar s) = "this.state." ++ s
   toJs (ClassVar s) = s
   toJs (SimpleVar s) = s
 
@@ -111,6 +111,22 @@ instance (ConvertToJs a1, ConvertToJs a2) => ConvertToJs (Either a1 a2) where
 
 instance ConvertToJs Salty where
   toJs (Operation x op (WithNewLine y)) = (toJs $ Operation x op y) ++ "\n"
+  toJs (Operation (Variable (StaticVar name) _) Equals right) = print2 "this.setState({\n  %: %\n})" name (toJs right)
+  toJs (Operation (HashLookup (Variable (StaticVar name) _) key) Equals right) = line1 ++ line2 ++ line3
+      where line1 = print2 "let % = this.state.%.slice()\n" name name
+            line2 = print3 "%[%] = %\n" name (toJs key) (toJs right)
+            line3 = print2 "this.setState({\n  %: %\n})" name name
+
+  toJs (Operation (AttrAccess (HashLookup (Variable (StaticVar name) _) key) attr) Equals right) = line1 ++ line2 ++ line3
+      where line1 = print2 "let % = this.state.%.slice()\n" name name
+            line2 = print4 "%[%].% = %\n" name (toJs key) attr (toJs right)
+            line3 = print2 "this.setState({\n  %: %\n})" name name
+
+  toJs (Operation (AttrAccess (Variable (StaticVar name) _) attr) Equals right) = line1 ++ line2 ++ line3
+      where line1 = print2 "let % = Object.assign({}, this.state.%)\n" name name
+            line2 = print3 "%.% = %\n" name attr (toJs right)
+            line3 = print2 "this.setState({\n  %: %\n})" name name
+
   toJs (Operation x@(Variable _ _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toJs $ HigherOrderFunctionCall obj callName func (varName x)
   toJs (Operation x@(Variable _ _) Equals (FunctionCall (Just (HigherOrderFunctionCall obj callName func accVar)) fName args block)) = toJs $ FunctionCall (Just $ HigherOrderFunctionCall obj callName func (varName x)) fName args block
 
