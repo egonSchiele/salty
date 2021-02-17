@@ -256,6 +256,12 @@ instance ConvertToJs Salty where
   toJs (LambdaFunction args body) = print2 "(%) => {\n%\n}" args_ (addReturn body)
     where args_ = join ", " args
 
+  -- static var == react state
+  toJs (HigherOrderFunctionCall var@(Variable (StaticVar name) scope) Each lambda@(LambdaFunction loopVar body) accVar)  = line1 ++ line2 ++ "\n" ++ line3
+      where line1 = print2 "let % = this.state.%.slice()\n" name name
+            line2 = toJs $ HigherOrderFunctionCall (Variable (SimpleVar name) scope) Each lambda accVar
+            line3 = print2 "this.setState({\n  %: %\n})" name name
+
   -- special case, each with a range
   toJs (HigherOrderFunctionCall (Range left right) Each (LambdaFunction loopVar body) _)  =
                 print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toJs left) (formatLoopVars loopVar) (toJs right) (formatLoopVars loopVar) (toJs body)
