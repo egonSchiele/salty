@@ -508,6 +508,8 @@ transpileTests = [
     "@shops().all(\\s -> s.user)" `matches` "$result = true;\nforeach ($this->shops() as $s) {\n    if(!$s->user) {\n        $result = false;\n        break;\n    }\n}",
     "@shops().select(\\s -> s.user)" `matches` "$result = [];\nforeach ($this->shops() as $s) {\n    if($s->user) {\n        $result []= $s;\n    }\n}",
 
+    "@state.todos.map(\\todo -> @makeTodo(todo))" `matches` "$result = [];\nforeach ($this->state->todos as $todo) {\n    $result []= $this->makeTodo($todo);\n}",
+
     -- chain a function onto the end of a HoF
     "count_alive = shops.select(\\s -> s.isAlive()).count()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = count($count_alive);",
     "count_alive = shops.select(\\s -> s.isAlive()).foo()" `matches` "$count_alive = [];\nforeach ($shops as $s) {\n    if($s->isAlive()) {\n        $count_alive []= $s;\n    }\n}\n$count_alive = $count_alive->foo();",

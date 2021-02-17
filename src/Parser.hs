@@ -16,7 +16,7 @@ lambdaVarNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
 extendsNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\."
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
-hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'\""
+hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-'\""
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
 -- constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 
@@ -122,6 +122,7 @@ saltyParserSingleWithoutNewline = do
   <||> saltyNull
   <||> saltyKeyword
   <||> higherOrderFunctionCall
+  <||> partialHigherOrderFunctionCall
   <||> times
   <||> hashTable
   <||> array
@@ -243,6 +244,7 @@ validHashValue = debug "validHashValue" >> do
   <||> saltyBool
   <||> saltyNull
   <||> saltyMagicConstant
+  <||> negateSalty
   <||> purePhp
   <||> html
   <||> variable
@@ -690,6 +692,21 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   func <- lambda
   char ')'
   return $ HigherOrderFunctionCall obj funcName func "$result"
+
+partialHigherOrderFunctionCall = debug "partialHigherOrderFunctionCall" >> do
+  obj <- lastSalty <$> getState
+
+  char '.'
+  funcName <-      (string "map" >> return Map)
+              <||> (string "each" >> return Each)
+              <||> (string "select" >> return Select)
+              <||> (string "filter" >> return Select)
+              <||> (string "any" >> return Any)
+              <||> (string "all" >> return All)
+  char '('
+  func <- lambda
+  char ')'
+  return $ BackTrack $ HigherOrderFunctionCall obj funcName func "$result"
 
 times = debug "times" >> do
   number <- integer

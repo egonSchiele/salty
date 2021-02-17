@@ -236,7 +236,7 @@ instance ConvertToPhp Salty where
                 print5 "% = true;\nforeach (% as %) {\nif(!%) {\n% = false;\nbreak;\n}\n}\n" accVar (toPhp obj) (formatLoopVars loopVar) (toPhp body) accVar
 
   toPhp Salt = "I'm salty"
-  toPhp (ReturnStatement s) = "return " ++ (toPhp s) ++ ";"
+  toPhp (ReturnStatement s) = "return " ++ (toPhp s)
   toPhp (ReturnStatementForAddReturn s) = addReturn s
   toPhp (Parens s) = "(" ++ (concat $ map toPhp s) ++ ")"
   toPhp (Braces s) = join "\n" $ map toPhp s

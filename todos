@@ -4,3 +4,11 @@
 
 - let and var keywords
 - some way to specify body when elem is created w block
+
+- why does salty say a newline is *required* after an array?
+
+- test a longer salty file converted to php and js
+
+can't write
+
+    var todos = @state.todos.slice()

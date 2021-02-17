@@ -55,7 +55,7 @@ simpleVarName x = case x of
 
 formatLoopVars [] = "x"
 formatLoopVars (x:[]) = x
-formatLoopVars (x:y:[]) = print2 "$% => $% <- to fix" x y
+formatLoopVars (x:y:[]) = print2 "%, %" x y
 
 addReturnToArray :: [Salty] -> String
 addReturnToArray [] = ""
@@ -171,7 +171,6 @@ instance ConvertToJs Salty where
                                               _ -> print3 "<%>%</%>" name (concat . map toReact $ body) name
 
   toJs (Function name args body visibility scope)
-    | scope == ClassScope && ((simpleVarName name) == "render") = print3 "%(%) {\n%\n}\n" (simpleVarName name) funcArgs (funcBody [Parens body])
     | scope == ClassScope = print3 "%(%) {\n%\n}\n" (simpleVarName name) funcArgs (funcBody body)
     | otherwise = print3 "const % = (%) => {\n%\n}\n" (simpleVarName name) funcArgs (funcBody body)
     where funcArgs = intercalate ", " $ map toJs args
@@ -273,7 +272,7 @@ instance ConvertToJs Salty where
                 print4 "%%.every((%) => %)" (getAccVar accVar) (toJs obj) (formatLoopVars loopVar) (toJs body)
 
   toJs Salt = "I'm salty"
-  toJs (ReturnStatement s) = "return " ++ (toJs s) ++ ";"
+  toJs (ReturnStatement s) = "return " ++ (toJs s)
   toJs (ReturnStatementForAddReturn s) = addReturn s
   toJs (Parens s) = "(" ++ (concat $ map toJs s) ++ ")"
   toJs (Braces s) = join "\n" $ map toJs s
@@ -397,6 +396,8 @@ addReturn (Braces s) = (concat . map toJs . init $ s) ++ "\n" ++ (addReturn . la
 addReturn (Variable name scope) = "return " ++ (toJs name)
 addReturn (WithNewLine x) = (addReturn x) ++ "\n"
 addReturn p@(Parens x) = "return " ++ (toJs p)
+-- this means html will be wrapped in parens automatically
+addReturn f@(FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) _ _) = "return (" ++ toJs f ++ ")"
 addReturn f@(FunctionCall o n a b) = "return " ++ (toJs f)
 addReturn h@(HashTable kv) = "return " ++ (toJs h)
 addReturn a@(Array xs) = "return " ++ (toJs a)
