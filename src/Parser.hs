@@ -689,9 +689,13 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
               <||> (string "any" >> return Any)
               <||> (string "all" >> return All)
   char '('
-  func <- lambda
+  func <- lambda <||> variableAsLambda
   char ')'
   return $ HigherOrderFunctionCall obj funcName func "$result"
+
+variableAsLambda = debug "variableAsLambda" >> do
+  var <- variableName
+  return $ LambdaFunction ["x"] (FunctionCall Nothing (Right var) [Variable (SimpleVar "x") GlobalScope] Nothing)
 
 partialHigherOrderFunctionCall = debug "partialHigherOrderFunctionCall" >> do
   obj <- lastSalty <$> getState
@@ -704,7 +708,7 @@ partialHigherOrderFunctionCall = debug "partialHigherOrderFunctionCall" >> do
               <||> (string "any" >> return Any)
               <||> (string "all" >> return All)
   char '('
-  func <- lambda
+  func <- lambda <||> variableAsLambda
   char ')'
   return $ BackTrack $ HigherOrderFunctionCall obj funcName func "$result"
 
@@ -713,7 +717,7 @@ times = debug "times" >> do
   char '.'
   string "times"
   char '('
-  func <- lambda <||> lambdaWithoutArgs
+  func <- lambda <||> lambdaWithoutArgs <||> variableAsLambda
   char ')'
   return $ HigherOrderFunctionCall (Range (SaltyNumber "1") number)  Each func "$result"
 
