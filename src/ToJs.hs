@@ -11,9 +11,12 @@ stripNewlineToJs salty = toJs salty
 _maybe f Nothing = ""
 _maybe f (Just x) = f x
 
+isEmptyLine EmptyLine = True
+isEmptyLine _ = False
+
 toReact :: Salty -> String
 toReact (WithNewLine s) = toReact s
-toReact (Braces s) = join "\n" . map toReact $ s
+toReact (Braces s) = join "\n" . map toReact . filter (not . isEmptyLine) $ s
 toReact (SaltyString str) = str
 toReact f@(FunctionCall _ (Right (SimpleVar "new")) _ _) = toJs f
 toReact f@(Function (SimpleVar "tag") [Argument _ (ArgumentName name _) _] body _ _) = toJs f
@@ -157,6 +160,10 @@ instance ConvertToJs Salty where
   toJs (Operation left MultiplyEquals right) = print3 "% = % * %" (toJs left) (toJs left) (toJs right)
   toJs (Operation left DivideEquals right) = print3 "% = % / %" (toJs left) (toJs left) (toJs right)
   toJs (Operation left OrEquals right) = print3 "% = % ?? %" (toJs left) (toJs left) (toJs right)
+  toJs (Operation (Variable (StaticVar name) _) ArrayPush right) = line1 ++ line2 ++ line3
+      where line1 = print2 "let % = this.state.%.slice()\n" name name
+            line2 = print2 "%.push(%)\n" name (toJs right)
+            line3 = print2 "this.setState({\n  %: %\n})" name name
   toJs (Operation left ArrayPush right) = print2 "%.push(%)" (toJs left) (toJs right)
   toJs (Operation left Add right) = print2 "% + %" (toJs left) (toJs right)
   toJs (Operation left Subtract right) = print2 "% - %" (toJs left) (toJs right)
