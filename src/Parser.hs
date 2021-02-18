@@ -818,9 +818,19 @@ shorthandHtml = debug "shorthandHtml" >> do
   return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just (Braces [PurePhp str]))
 
 functionBlock = debug "functionBlock" >> do
+  bracesBlock <||> lambdaBlock
+
+bracesBlock = debug "bracesBlock" >> do
   string " do\n"
   body <- parseTill (wrapInSalt $ string "end")
   return $ Braces body
+
+lambdaBlock = debug "lambdaBlock" >> do
+  string " do \\"
+  args <-  many1 lambdaVarNameChars
+  string "->\n"
+  body <- parseTill (wrapInSalt $ string "end")
+  return $ LambdaFunction (words args) (Braces body)
 
 functionCallOnObject = debug "functionCallOnObject" >> do
   obj <- saltyOptional <||> variable
@@ -841,7 +851,8 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   char '('
   funcArgs <- findArgs
   char ')'
-  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs Nothing
+  block <- optionMaybe functionBlock
+  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs block
 
 functionCallOnObjectWithoutParens = debug "functionCallOnObjectWithoutParens" >> do
   obj <- saltyOptional <||> variable

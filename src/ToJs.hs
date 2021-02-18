@@ -207,7 +207,12 @@ instance ConvertToJs Salty where
   toJs (SaltyString s) = "\"" ++ s ++ "\""
 
   -- functions called without an object (bare)
-  toJs (FunctionCall Nothing (Right var) args _) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall Nothing (Right var) args Nothing) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall Nothing (Right var) args (Just block@(Braces _))) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args_)
+    where args_ = args ++ [LambdaFunction [] block]
+
+  toJs (FunctionCall Nothing (Right var) args (Just block@(LambdaFunction _ _))) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args_)
+    where args_ = args ++ [block]
 
   -- builtin bare functions
   toJs (FunctionCall Nothing (Left VarDumpShort) args _) = "console.log(" ++ (intercalate ", " . map toJs $ args) ++ ")"
