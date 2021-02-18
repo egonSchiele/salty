@@ -689,7 +689,7 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
               <||> (string "any" >> return Any)
               <||> (string "all" >> return All)
   char '('
-  func <- lambda <||> variableAsLambda
+  func <- lambda
   char ')'
   return $ HigherOrderFunctionCall obj funcName func "$result"
 
@@ -708,7 +708,7 @@ partialHigherOrderFunctionCall = debug "partialHigherOrderFunctionCall" >> do
               <||> (string "any" >> return Any)
               <||> (string "all" >> return All)
   char '('
-  func <- lambda <||> variableAsLambda
+  func <- lambda
   char ')'
   return $ BackTrack $ HigherOrderFunctionCall obj funcName func "$result"
 
@@ -717,7 +717,7 @@ times = debug "times" >> do
   char '.'
   string "times"
   char '('
-  func <- lambda <||> lambdaWithoutArgs <||> variableAsLambda
+  func <- lambda <||> lambdaWithoutArgs
   char ')'
   return $ HigherOrderFunctionCall (Range (SaltyNumber "1") number)  Each func "$result"
 
