@@ -286,9 +286,9 @@ arrayValue = debug "arrayValue" >> do
 array = debug "array" >> do
   char '['
   optional $ char '\n' <||> char ' '
-  salties <- many arrayValue
+  salties <- validHashValue `sepBy` (string ", ")
   optional $ char '\n' <||> char ' '
-  optional $ char ']'
+  char ']'
   return $ Array salties
 
 hashValue = debug "hashValue" >> do
