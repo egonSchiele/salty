@@ -75,8 +75,16 @@ checkBackTracks :: [Salty] -> [Salty]
 checkBackTracks [] = []
 checkBackTracks ((Operation left op right):(BackTrack s):xs) = checkBackTracks ((Operation left op s):xs)
 checkBackTracks ((MultiAssign vars right):(BackTrack s):xs) = checkBackTracks ((MultiAssign vars s):xs)
+
+-- these are to make this statement work:
+-- var todos = @state.todos.slice()
+-- it was failing earlier b/c there are two backtracks in a row and it doesn't know what to do with that.
+-- my solution here is just throw the first backtrack out since it's replaced by the second one.
+checkBackTracks (a:(BackTrack s):(BackTrack s2):xs) = checkBackTracks (s2:xs)
+checkBackTracks (a:(BackTrack s):(WithNewLine (BackTrack s2)):xs) = checkBackTracks (s2:xs)
 checkBackTracks (a:(BackTrack s):xs) = checkBackTracks (s:xs)
 checkBackTracks ((Operation left op right):(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine (Operation left op s)):xs)
+
 checkBackTracks ((MultiAssign vars right):(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine (MultiAssign vars s)):xs)
 checkBackTracks (a:(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine s):xs)
 
