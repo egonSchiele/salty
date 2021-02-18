@@ -165,7 +165,7 @@ class Foo implements Bar where
 foo := {
     [
         ["", "en", "US", "USD", false, false, false],
-        ["", "en", "US", "USD", false, false, false],
+        ["", "en", "US", "USD", false, false, false]
     ]
 }
 |]
@@ -554,7 +554,6 @@ transpileTests = [
     "break" `matches` "break;",
 
     -- arrays
-    "foo = [1, 2, 3,]" `matches` "$foo = [1, 2, 3];",
     "foo = [1, 2, 3]" `matches` "$foo = [1, 2, 3];",
     "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches` "$a = [\n    \"foo\" => 1,\n    \"bar\" => 2,\n    \"cat\" => \"hello\"\n];",
     "a = {\n foo: 1,\n bar: 2,\n cat: 'hello'\n }" `matches` "$a = [\n    \"foo\" => 1,\n    \"bar\" => 2,\n    \"cat\" => \"hello\"\n];",
