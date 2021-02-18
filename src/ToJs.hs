@@ -394,6 +394,8 @@ instance ConvertToJs Salty where
   toJs (Keyword (KwPrivate salty)) = "private " ++ (toJs salty)
   toJs (Keyword (KwProtected salty)) = "protected " ++ (toJs salty)
   toJs (Keyword (KwStatic salty)) = "static " ++ (toJs salty)
+  toJs (Keyword (KwExport salty)) = "export " ++ (toJs salty)
+  toJs (Keyword (KwDefault salty)) = "default " ++ (toJs salty)
   toJs (Keyword (KwEcho salty)) = "echo " ++ (toJs salty)
   toJs (Keyword KwBreak) = "break"
   toJs (Keyword (KwNamespace salty)) = "namespace " ++ (toJs salty)

@@ -120,6 +120,7 @@ saltyParserSingleWithoutNewline = do
   parens
   <||> saltyBool
   <||> saltyNull
+  <||> emptyObject
   <||> saltyKeyword
   <||> higherOrderFunctionCall
   <||> partialHigherOrderFunctionCall
@@ -170,6 +171,7 @@ saltyParserSingleWithoutNewline = do
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
        parens
+  <||> emptyObject
   <||> array
   <||> destructuredHash
   <||> hashTable
@@ -231,6 +233,7 @@ parens = debug "parens" >> do
 
 validHashValue = debug "validHashValue" >> do
        parens
+  <||> emptyObject
   <||> saltyString
   <||> saltyNumber
   <||> hashLookup
@@ -1012,6 +1015,10 @@ saltyFalse = debug "saltyFalse" >> do
   s <- string "false"
   return $ SaltyBool FALSE
 
+emptyObject = debug "emptyObject" >> do
+  string "{}" <||> string "{ }"
+  return $ HashTable []
+
 saltyNull = debug "saltyNull" >> do
   s <- string "null"
   return SaltyNull
@@ -1027,6 +1034,8 @@ saltyKeyword = debug "saltyKeyword" >> do
                 <||> saltyKeywordPrivate
                 <||> saltyKeywordProtected
                 <||> saltyKeywordStatic
+                <||> saltyKeywordExport
+                <||> saltyKeywordDefault
                 <||> saltyKeywordNamespace
                 <||> saltyKeywordEcho
                 <||> saltyKeywordBreak
@@ -1105,6 +1114,18 @@ saltyKeywordStatic = debug "saltyKeywordStatic" >> do
   space
   salty <- saltyParserSingle_
   return $ KwStatic salty
+
+saltyKeywordExport = debug "saltyKeywordExport" >> do
+  string "export"
+  space
+  salty <- saltyParserSingle_
+  return $ KwExport salty
+
+saltyKeywordDefault = debug "saltyKeywordDefault" >> do
+  string "default"
+  space
+  salty <- saltyParserSingle_
+  return $ KwDefault salty
 
 saltyKeywordNamespace = debug "saltyKeywordNamespace" >> do
   string "namespace"

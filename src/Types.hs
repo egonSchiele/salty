@@ -21,6 +21,8 @@ data PhpKeyword =   KwUse VariableName (Maybe VariableName)
                   | KwPrivate Salty
                   | KwProtected Salty
                   | KwStatic Salty
+                  | KwExport Salty
+                  | KwDefault Salty
                   | KwEcho Salty
                   | KwBreak
                   | KwUndefined
