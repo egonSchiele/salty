@@ -27,3 +27,6 @@ ReactDOM.render(element, rootElement)
 
 
 React for creating elements, REactDOM for rendering to the page
+
+
+- passing callbacks down a react tree is painful, one solution would be to use a state monad
