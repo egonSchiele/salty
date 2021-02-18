@@ -381,7 +381,7 @@ wrapInSalt parser = debug "wrapInSalt" >> do
   return Salt
 
 parseTill endParser = debug "parseTill" >> do
-  body <- manyTill saltyParserSingle_ (try (endParser <||> saltyEOF))
+  body <- manyTill saltyParserSingle (try (endParser <||> saltyEOF))
   return body
 
 readTill endParser = debug "readTill" >> do
@@ -851,8 +851,11 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   char '('
   funcArgs <- findArgs
   char ')'
-  block <- optionMaybe functionBlock
-  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs block
+  -- TO FIX: adding the ability to have a block here causes some tests to fail.
+  -- fix and then uncomment
+  -- block <- optionMaybe functionBlock
+  -- return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs block
+  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs Nothing
 
 functionCallOnObjectWithoutParens = debug "functionCallOnObjectWithoutParens" >> do
   obj <- saltyOptional <||> variable

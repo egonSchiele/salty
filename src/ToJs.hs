@@ -208,11 +208,11 @@ instance ConvertToJs Salty where
 
   -- functions called without an object (bare)
   toJs (FunctionCall Nothing (Right var) args Nothing) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args)
-  toJs (FunctionCall Nothing (Right var) args (Just block@(Braces _))) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args_)
-    where args_ = args ++ [LambdaFunction [] block]
+  toJs (FunctionCall Nothing (Right var) args (Just block@(Braces _))) = print2 "%(%)" (varNameToFunc var) args_
+    where args_ = join ", " $ (map toJs args) ++ [(addReturn $ LambdaFunction [] block)]
 
-  toJs (FunctionCall Nothing (Right var) args (Just block@(LambdaFunction _ _))) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args_)
-    where args_ = args ++ [block]
+  toJs (FunctionCall Nothing (Right var) args (Just block@(LambdaFunction _ _))) = print2 "%(%)" (varNameToFunc var) args_
+    where args_ = join ", " $ (map toJs args) ++ [(addReturn block)]
 
   -- builtin bare functions
   toJs (FunctionCall Nothing (Left VarDumpShort) args _) = "console.log(" ++ (intercalate ", " . map toJs $ args) ++ ")"
@@ -246,8 +246,13 @@ instance ConvertToJs Salty where
           toPair (k, v) = print2 "%={%}" (toJs k) (toJs v)
 
   -- functions called on an obj
-  toJs (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args _) = print3 "%.%(%)" obj (simpleVarName funcName) (intercalate ", " . map toJs $ args)
-  toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args _) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+  -- toJs (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args Nothing) = print3 "%.%(%)" obj (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args Nothing) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
+  toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args (Just block@(Braces _))) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) args_
+    where args_ = join ", " $ (map toJs args) ++ [(addReturn $ LambdaFunction [] block)]
+
+  toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args (Just block@(LambdaFunction _ _))) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) args_
+    where args_ = join ", " $ (map toJs args) ++ [(addReturn block)]
 
   -- an optional containing whatever other salty
   toJs (FunctionCall (Just (SaltyOptional salty)) (Right funcName) args _) = print4 "if (!is_null(%)) {\n%->%(%)\n}" (toJs salty) (toJs salty) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
