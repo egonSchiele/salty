@@ -384,6 +384,10 @@ parseTill endParser = debug "parseTill" >> do
   body <- manyTill saltyParserSingle (try (endParser <||> saltyEOF))
   return body
 
+parseWithoutNewlineTill endParser = debug "parseTill" >> do
+  body <- manyTill saltyParserSingle_ (try (endParser <||> saltyEOF))
+  return body
+
 readTill endParser = debug "readTill" >> do
   body <- manyTill anyChar (try (endParser <||> saltyEOF))
   return body
@@ -398,7 +402,7 @@ onelineFunction = debug "onelineFunction" >> do
   string ":="
   space
   modifyState (addScope FunctionScope)
-  body <- parseTill saltyNewline
+  body <- parseWithoutNewlineTill saltyNewline
   wheres <- many whereClause
   modifyState popScope
   case prevSalty of
@@ -439,7 +443,7 @@ guard = debug "guard" >> do
   space
   condition <- otherwiseGuard <||> (many1 validFuncArgTypes) <?> "a guard condition"
   optional $ string " -> "
-  outcome <- (toA <$> braces Nothing) <||> parseTill saltyNewline <?> "a guard outcome"
+  outcome <- (toA <$> braces Nothing) <||> parseWithoutNewlineTill saltyNewline <?> "a guard outcome"
   optional $ char '\n'
   return $ Guard condition outcome
 
