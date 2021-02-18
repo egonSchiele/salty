@@ -12,3 +12,26 @@
 can't write
 
     var todos = @state.todos.slice()
+
+
+const elem = React.createElement("div", {
+    children: "Hello World",
+    className: "container"
+    });
+
+ReactDOM.render(element, rootElement)
+
+
+OR
+
+const elem = React.createElement("div", {
+    className: "container"
+    },
+    "Hello World", // add as many args as you want for the children
+    "Goodbye World"
+    );
+
+ReactDOM.render(element, rootElement)
+
+
+React for creating elements, REactDOM for rendering to the page
