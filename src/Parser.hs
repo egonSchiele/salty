@@ -10,6 +10,8 @@ import Text.Parsec.Combinator
 import Debug.Trace (trace)
 import ToPhp
 import Print
+import System.IO.Unsafe (unsafePerformIO)
+import System.Environment (lookupEnv)
 
 tryString :: String -> (Parsec String SaltyState String)
 tryString str = try . string $ str
@@ -31,8 +33,14 @@ data SaltyState = SaltyState {
 type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
-debug str = return (SaltyString str)
--- debug str = parserTrace str >> return (SaltyString str)
+debug str
+  | flag = parserTrace str >> return (SaltyString str)
+  | otherwise = return (SaltyString str)
+  where flag = unsafePerformIO $ do
+          result <- lookupEnv "DEBUG"
+          case result of
+               Nothing -> return False
+               Just _ -> return True
 
 saltyToPhp :: Int -> String -> String
 saltyToPhp indentAmt str = case (build str) of
