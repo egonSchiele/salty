@@ -273,9 +273,8 @@ variableName = debug "variableName" >> do
 parens = debug "parens" >> do
   char '('
   indentDebugger
-  body <- many1 saltyParserSingleWithoutNewline
+  body <- parseWithoutNewlineTill (wrapInSalt (char ')'))
   unindentDebugger
-  char ')'
   modifyState (saveIt (Parens body))
   debug $ "parens done with: " ++ (show body)
   return $ Parens body
