@@ -5,7 +5,7 @@ import qualified JsSpec
 
 allTests = TestList $
                  PhpSpec.phpTests
-              -- ++ JsSpec.jsTests
+              ++ JsSpec.jsTests
 
 main :: IO ()
 main = runTestTT allTests >> return ()
