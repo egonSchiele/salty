@@ -35,6 +35,11 @@ simpleVarName x = case x of
     ClassVar s -> s
     SimpleVar s -> s
 
+tagName :: VariableName -> String
+tagName x
+  | simpleVarName x == "fragment" = ""
+  | otherwise = simpleVarName x
+
 formatLoopVars [] = "x"
 formatLoopVars (x:[]) = x
 formatLoopVars (x:y:[]) = print2 "%, %" x y
@@ -196,9 +201,9 @@ instance ConvertToJs Salty where
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toJs obj) ++ ")"
   -- toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
   toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] Nothing) = "<" ++ (simpleVarName vName) ++ " />"
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] (Just block)) = print3 "<%>%</%>" (simpleVarName vName) (toReact block) (simpleVarName vName)
-  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] block) = print4 "<%%>%</%>" (simpleVarName vName) (pairsToReact kvPairs) (_maybe toReact block) (simpleVarName vName)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] Nothing) = "<" ++ (tagName vName) ++ " />"
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] (Just block)) = print3 "<%>%</%>" (tagName vName) (toReact block) (tagName vName)
+  toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] block) = print4 "<%%>%</%>" (tagName vName) (pairsToReact kvPairs) (_maybe toReact block) (tagName vName)
     where pairsToReact pairs = case pairs of
             [] -> ""
             _ -> " " ++ (join " " . map toPair $ pairs)

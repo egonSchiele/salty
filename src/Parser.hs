@@ -810,7 +810,7 @@ shorthandBlock = debug "shorthandBlock" >> do
   return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just block)
 
 htmlVar = debug "htmlVar" >> do
-  str <- string "h1" <||> string "h2" <||> string "h3" <||> string "h4" <||> string "h5" <||> string "h6" <||> string "p" <||> string "a" <||> string "img" <||> string "div" <||> string "span" <||> string "html" <||> string "title" <||> string "body" <||> string "b" <||> string "blockquote" <||> string "code" <||> string "em" <||> string "pre" <||> string "small" <||> string "strong" <||> string "sub" <||> string "sup" <||> string "input" <||> string "ul" <||> string "ol" <||> string "li" <||> string "form" <||> string "label" <||> string "button" <||> string "select" <||> string "option"
+  str <- string "h1" <||> string "h2" <||> string "h3" <||> string "h4" <||> string "h5" <||> string "h6" <||> string "p" <||> string "a" <||> string "img" <||> string "div" <||> string "span" <||> string "html" <||> string "title" <||> string "body" <||> string "b" <||> string "blockquote" <||> string "code" <||> string "em" <||> string "pre" <||> string "small" <||> string "strong" <||> string "sub" <||> string "sup" <||> string "input" <||> string "ul" <||> string "ol" <||> string "li" <||> string "form" <||> string "label" <||> string "button" <||> string "select" <||> string "option" <||> string "fragment"
   return $ Variable (SimpleVar str) GlobalScope
 
 shorthandHtml = debug "shorthandHtml" >> do
