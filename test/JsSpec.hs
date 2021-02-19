@@ -61,11 +61,11 @@ multiLineEach = [r|foo.each(\x -> {
   })
 |]
 
-multiLineEachResult = [r|foreach (foo as x) {
-    x + 1;
-    y + 2;
-    hello("hi");
-}|]
+multiLineEachResult = [r|foo.forEach((x) => {
+  x + 1;
+  y + 2;
+  hello("hi");
+});|]
 
 multiLineEachTest = multiLineEach `matches` multiLineEachResult
 
@@ -76,12 +76,11 @@ multiLineMap = [r|foo.map(\x -> {
   })
 |]
 
-multiLineMapResult = [r|result = [];
-foreach (foo as x) {
-    x + 1;
-    y + 2;
-    result []= hello("hi");
-}|]
+multiLineMapResult = [r|foo.map((x) => {
+  x + 1;
+  y + 2;
+  return hello("hi");
+});|]
 
 multiLineMapTest = multiLineMap `matches` multiLineMapResult
 
@@ -92,12 +91,11 @@ multiLineMapAssign = [r|myVar = foo.map(\x -> {
   })
 |]
 
-multiLineMapAssignResult = [r|myVar = [];
-foreach (foo as x) {
-    x + 1;
-    y + 2;
-    myVar []= hello("hi");
-}|]
+multiLineMapAssignResult = [r|myVar = foo.map((x) => {
+  x + 1;
+  y + 2;
+  return hello("hi");
+});|]
 
 multiLineMapAssignTest = multiLineMapAssign `matches` multiLineMapAssignResult
 
@@ -108,14 +106,11 @@ multiLineSelect = [r|foo.select(\x -> {
   })
 |]
 
-multiLineSelectResult = [r|result = [];
-foreach (foo as x) {
-    x + 1;
-    y + 2;
-    if(hello("hi")) {
-        result []= x;
-    }
-}|]
+multiLineSelectResult = [r|foo.filter((x) => {
+  x + 1;
+  y + 2;
+  return hello("hi");
+});|]
 
 multiLineSelectTest = multiLineSelect `matches` multiLineSelectResult
 
@@ -126,15 +121,11 @@ multiLineAny = [r|foo.any(\x -> {
   })
 |]
 
-multiLineAnyResult = [r|result = false;
-foreach (foo as x) {
-    x + 1;
-    y + 2;
-    if(hello("hi")) {
-        result = true;
-        break;
-    }
-}|]
+multiLineAnyResult = [r|foo.some((x) => {
+  x + 1;
+  y + 2;
+  return hello("hi");
+});|]
 
 multiLineAnyTest = multiLineAny `matches` multiLineAnyResult
 
@@ -145,15 +136,11 @@ multiLineAll = [r|foo.all(\x -> {
   })
 |]
 
-multiLineAllResult = [r|result = true;
-foreach (foo as x) {
-    x + 1;
-    y + 2;
-    if(!hello("hi")) {
-        result = false;
-        break;
-    }
-}|]
+multiLineAllResult = [r|foo.every((x) => {
+  x + 1;
+  y + 2;
+  return hello("hi");
+});|]
 
 multiLineAllTest = multiLineAll `matches` multiLineAllResult
 
@@ -169,12 +156,12 @@ foo := {
 |]
 
 multiLineArraysTest = [r|class Foo implements Bar {
-    public function foo() {
-        return [
-            ["", "en", "US", "USD", false, false, false],
-            ["", "en", "US", "USD", false, false, false],
-        ];
-    }
+  foo() {
+    return [
+      ["", "en", "US", "USD", false, false, false],
+      ["", "en", "US", "USD", false, false, false],
+    ];
+  }
 }|]
 
 guardTest = [r|foo := guard
@@ -182,29 +169,25 @@ guardTest = [r|foo := guard
   | y == 2 -> x.map(\y -> y + 1)
 |]
 
-guardResult = [r|function foo() {
-    if (x == 1) {
-        return x->foo();
-    } elseif (y == 2) {
-        result = [];
-        foreach (x as y) {
-            result []= y + 1;
-        }
-        return result;
-    }
+guardResult = [r|const foo = () => {
+  if (x === 1) {
+    return x.foo();
+  } elseif (y === 2) {
+    return x.map((y) => y + 1)
+  }
 }|]
 
 guardTestWithArgs = [r|foo a bar := guard
   | x == 1 -> x.foo()
-  | otherwise -> Foo.new().bar()
+  | otherwise -> (new Foo()).bar()
 |]
 
-guardResultWithArgs = [r|function foo(a, bar) {
-    if (x == 1) {
-        return x->foo();
-    } else {
-        return (new Foo())->bar();
-    }
+guardResultWithArgs = [r|const foo = (a, bar) => {
+  if (x === 1) {
+    return x.foo();
+  } else {
+    return (new Foo()).bar();
+  }
 }|]
 
 guardTestWithWhere = [r|foo a bar := guard
@@ -214,18 +197,14 @@ guardTestWithWhere = [r|foo a bar := guard
   and blossom = Foo.new()
 |]
 
-guardResultWithWhere = [r|function foo(a, bar) {
-    awesome = 1 + 1;
-    blossom = (new Foo());
-    if (awesome) {
-        return x->foo();
-    } else {
-        result = [];
-        foreach (x as y) {
-            result []= y + 1;
-        }
-        return result;
-    }
+guardResultWithWhere = [r|const foo = (a, bar) => {
+  awesome = 1 + 1;
+  blossom = <Foo />
+  if (awesome) {
+    return x.foo();
+  } else {
+    return x.map((y) => y + 1)
+  }
 }|]
 
 guardTestComplex = [r|foo :: bool
@@ -236,20 +215,16 @@ foo := guard
   | otherwise -> false
 |]
 
-guardTestComplexResult = [r|
-/**
- * @return bool
- */
-function foo() {
-    if ((in_array(bar, ["aa", "bb"])) && (in_array(baz, ["cc", "dd"]))) {
-        return true;
-    } elseif (bar == "fr" && baz == "fr") {
-        return true;
-    } elseif (bar == "de" && baz == "de") {
-        return true;
-    } else {
-        return false;
-    }
+guardTestComplexResult = [r|const foo = () => {
+  if ((bar.includes(["aa", "bb"])) && (baz.includes(["cc", "dd"]))) {
+    return true;
+  } elseif (bar === "fr" && baz === "fr") {
+    return true;
+  } elseif (bar === "de" && baz === "de") {
+    return true;
+  } else {
+    return false;
+  }
 }|]
 
 guardTestAsSwitch = [r|todos state action := guard(hi)
@@ -289,8 +264,8 @@ jsTests = [
     -- operations
     "foo = 1" `matches` "foo = 1;",
     "bar = 'adit'" `matches` "bar = \"adit\";",
-    "@foo = 1" `matches` "this->foo = 1;",
-    "@@foo = 1" `matches` "static::foo = 1;",
+    "@foo = 1" `matches` "this.foo = 1;",
+    "@@foo = 1" `matches` "this.state.foo = 1;",
 
     "a = a - 1" `matches` "a = a - 1;",
     "a -= 1" `matches` "a = a - 1;",
@@ -317,7 +292,7 @@ jsTests = [
     "foo = hello_there(hi(2) <> 1)" `matches` "foo = hello_there(array_merge(hi(2), 1));",
     "foo = hello_there(hi(2) + 1)" `matches` "foo = hello_there(hi(2) + 1);",
     "foo, bar, baz = []" `matches` "foo = [];\nbar = [];\nbaz = [];",
-    "key = @@KEY ++ preg_replace('/[^a-z\\d_]/i', '_', str).join(\"_\") ++ last" `matches` "key = static::KEY . implode('_', preg_replace(\"/[^a-z\\d_]/i\", \"_\", str)) . last;",
+    "key = @@KEY ++ preg_replace('/[^a-z\\d_]/i', '_', str).join(\"_\") ++ last" `matches` "key = this.state.KEY . implode('_', preg_replace(\"/[^a-z\\d_]/i\", \"_\", str)) . last;",
 
     -- function definitions
     "build a b := return 2" `matches` "function build(a, b) {\n    return 2;\n}",
@@ -328,13 +303,13 @@ jsTests = [
     "foo a b := (a + 1) + (b - 2)" `matches` "function foo(a, b) {\n    return (a + 1) + (b - 2);\n}",
     "foo a b := { a + b }" `matches` "function foo(a, b) {\n    return a + b;\n}",
     -- no visibility (public/private) for functions in global scope:
-    "_foo a := @a = a" `matches` "function foo(a) {\n    this->a = a;\n}",
-    "@@_foo a := @a = a" `matches` "static function foo(a) {\n    this->a = a;\n}",
+    "_foo a := @a = a" `matches` "function foo(a) {\n    this.a = a;\n}",
+    "@@_foo a := @a = a" `matches` "static function foo(a) {\n    this.a = a;\n}",
     -- but do add visibility in class scope:
-    "class Foo {\n_foo a := @a = a\n}" `matches` "class Foo {\n    private function foo(a) {\n        this->a = a;\n    }\n}",
-    "class Foo {\n@@_foo a := @a = a\n}" `matches` "class Foo {\n    private static function foo(a) {\n        this->a = a;\n    }\n}",
+    "class Foo {\n_foo a := @a = a\n}" `matches` "class Foo {\n    private function foo(a) {\n        this.a = a;\n    }\n}",
+    "class Foo {\n@@_foo a := @a = a\n}" `matches` "class Foo {\n    private static function foo(a) {\n        this.a = a;\n    }\n}",
     "foo2 := 2 + 2" `matches` "function foo2() {\n    return 2 + 2;\n}",
-    "__construct a := @a = a" `matches` "function __construct(a) {\n    this->a = a;\n}",
+    "__construct a := @a = a" `matches` "function __construct(a) {\n    this.a = a;\n}",
     "foo ...a := a" `matches` "function foo(...a) {\n    return a;\n}",
 
     -- pass by reference
@@ -378,8 +353,8 @@ jsTests = [
     ":foo.bar.baz" `matches` "foo[\"bar\"][\"baz\"];",
     ":foo.bar.baz.1" `matches` "foo[\"bar\"][\"baz\"][1];",
     ":argv.1.2" `matches` "argv[1][2];",
-    ":@foo.bar" `matches` "this->foo[\"bar\"];",
-    ":@@foo.bar" `matches` "static::foo[\"bar\"];",
+    ":@foo.bar" `matches` "this.foo[\"bar\"];",
+    ":@@foo.bar" `matches` "this.state.foo[\"bar\"];",
     ":bar.baz ?? 1" `matches` "bar[\"baz\"] ?? 1;",
 
     -- if statement
@@ -397,34 +372,34 @@ jsTests = [
     -- function calls
     "Blocklist.foo()" `matches` "Blocklist::foo();",
     "a.foo()" `matches` "a->foo();",
-    "@a.foo()" `matches` "this->a->foo();",
-    "@foo()" `matches` "this->foo();",
-    "@@foo()" `matches` "static::foo();",
+    "@a.foo()" `matches` "this.a->foo();",
+    "@foo()" `matches` "this.foo();",
+    "@@foo()" `matches` "this.state.foo();",
 
     "Blocklist.foo(1, 2)" `matches` "Blocklist::foo(1, 2);",
     "a.foo(1, 2)" `matches` "a->foo(1, 2);",
-    "@a.foo(1, 2)" `matches` "this->a->foo(1, 2);",
-    "@foo(1, 2)" `matches` "this->foo(1, 2);",
-    "@@foo(1, 2)" `matches` "static::foo(1, 2);",
+    "@a.foo(1, 2)" `matches` "this.a->foo(1, 2);",
+    "@foo(1, 2)" `matches` "this.foo(1, 2);",
+    "@@foo(1, 2)" `matches` "this.state.foo(1, 2);",
 
     "Blocklist.foo(b)" `matches` "Blocklist::foo(b);",
     "a.foo(b)" `matches` "a->foo(b);",
-    "@a.foo(b)" `matches` "this->a->foo(b);",
-    "@foo(b)" `matches` "this->foo(b);",
-    "@@foo(b)" `matches` "static::foo(b);",
+    "@a.foo(b)" `matches` "this.a->foo(b);",
+    "@foo(b)" `matches` "this.foo(b);",
+    "@@foo(b)" `matches` "this.state.foo(b);",
 
     "Blocklist.foo(b.bar())" `matches` "Blocklist::foo(b->bar());",
     "a.foo(b.bar())" `matches` "a->foo(b->bar());",
-    "@a.foo(@bar())" `matches` "this->a->foo(this->bar());",
-    "@foo(@@bar())" `matches` "this->foo(static::bar());",
-    "@@foo(@b.bar())" `matches` "static::foo(this->b->bar());",
+    "@a.foo(@bar())" `matches` "this.a->foo(this.bar());",
+    "@foo(@@bar())" `matches` "this.foo(this.state.bar());",
+    "@@foo(@b.bar())" `matches` "this.state.foo(this.b->bar());",
     "a.foo().bar().baz().func().func2()" `matches` "a->foo()->bar()->baz()->func()->func2();",
     "foo . bar . baz  myVar" `matches` "foo(bar(baz(myVar)));",
 
     -- attr access
     "foo.bar" `matches` "foo->bar;",
-    "@foo.bar" `matches` "this->foo->bar;",
-    "@@foo.bar" `matches` "static::foo->bar;",
+    "@foo.bar" `matches` "this.foo->bar;",
+    "@@foo.bar" `matches` "this.state.foo->bar;",
     "Blocklist.foo" `matches` "Blocklist::foo;",
     "Blocklist.FOO" `matches` "Blocklist::FOO;",
     "foo.bar = 1" `matches` "foo->bar = 1;",
@@ -441,7 +416,7 @@ jsTests = [
     "class Blocklist extends Foo implements Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist extends Foo implements Bar {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}",
 
     -- class creation with where
-    "class Foo implements Bar where\n\nattr1 = 'hi'\n__construct name := @attr1 = name" `matches` "class Foo implements Bar {\n    public attr1 = \"hi\";\n    public function __construct(name) {\n        this->attr1 = name;\n    }\n}",
+    "class Foo implements Bar where\n\nattr1 = 'hi'\n__construct name := @attr1 = name" `matches` "class Foo implements Bar {\n    public attr1 = \"hi\";\n    public function __construct(name) {\n        this.attr1 = name;\n    }\n}",
 
     -- object creation
     "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n    public function foo() {\n        return var_dump(\"hi!\");\n    }\n}\nb = new Blocklist();\nb->foo();",
@@ -488,25 +463,25 @@ jsTests = [
     "arr.all(\\x -> x.isEven())" `matches`"result = true;\nforeach (arr as x) {\n    if(!x->isEven()) {\n        result = false;\n        break;\n    }\n}",
     "arr.select(\\x -> x.isEven())" `matches`"result = [];\nforeach (arr as x) {\n    if(x->isEven()) {\n        result []= x;\n    }\n}",
     "arr.each(\\x -> print(x))" `matches`"foreach (arr as x) {\n    print(x);\n}",
-    "@adit.map(\\x -> x + 1)" `matches` "result = [];\nforeach (this->adit as x) {\n    result []= x + 1;\n}",
+    "@adit.map(\\x -> x + 1)" `matches` "result = [];\nforeach (this.adit as x) {\n    result []= x + 1;\n}",
     "10.times(p('hello'))" `matches` "for (x = 1; x <= 10; x++) {\n    var_dump(\"hello\");\n}",
     "10.times(\\i -> Hello.new(i))" `matches` "for (i = 1; i <= 10; i++) {\n    (new Hello(i));\n}",
     -- same but w parens
-    "(@adit).map(\\x -> x + 1)" `matches` "result = [];\nforeach (this->adit as x) {\n    result []= x + 1;\n}",
+    "(@adit).map(\\x -> x + 1)" `matches` "result = [];\nforeach (this.adit as x) {\n    result []= x + 1;\n}",
     "users = shops.map(\\s -> s.user)" `matches`"users = [];\nforeach (shops as s) {\n    users []= s->user;\n}",
     "users = shops.map(\\s x -> s.user)" `matches` "users = [];\nforeach (shops as s => x) {\n    users []= s->user;\n}",
     "shops.each(\\s x -> s.user)" `matches` "foreach (shops as s => x) {\n    s->user;\n}",
-    "@shops().each(\\s -> s.user)" `matches` "foreach (this->shops() as s) {\n    s->user;\n}",
+    "@shops().each(\\s -> s.user)" `matches` "foreach (this.shops() as s) {\n    s->user;\n}",
     "[foo, bar, baz].map(\\shop -> shop.listings)" `matches` "result = [];\nforeach ([foo, bar, baz] as shop) {\n    result []= shop->listings;\n}",
     "foo[:5].map(\\shop -> shop.listings)" `matches` "result = [];\nforeach (array_slice(foo, 0, 5) as shop) {\n    result []= shop->listings;\n}",
-    "@shops().find(1).each(\\s -> s.user)" `matches` "foreach (this->shops()->find(1) as s) {\n    s->user;\n}",
+    "@shops().find(1).each(\\s -> s.user)" `matches` "foreach (this.shops()->find(1) as s) {\n    s->user;\n}",
     "Foo.shops(arg1).each(\\s -> s.user)" `matches` "foreach (Foo::shops(arg1) as s) {\n    s->user;\n}",
-    "@@shops().map(\\s -> s.user)" `matches` "result = [];\nforeach (static::shops() as s) {\n    result []= s->user;\n}",
+    "@@shops().map(\\s -> s.user)" `matches` "result = [];\nforeach (this.state.shops() as s) {\n    result []= s->user;\n}",
     "Foo.shops().any(\\s -> s.user)" `matches`"result = false;\nforeach (Foo::shops() as s) {\n    if(s->user) {\n        result = true;\n        break;\n    }\n}",
-    "@shops().all(\\s -> s.user)" `matches` "result = true;\nforeach (this->shops() as s) {\n    if(!s->user) {\n        result = false;\n        break;\n    }\n}",
-    "@shops().select(\\s -> s.user)" `matches` "result = [];\nforeach (this->shops() as s) {\n    if(s->user) {\n        result []= s;\n    }\n}",
+    "@shops().all(\\s -> s.user)" `matches` "result = true;\nforeach (this.shops() as s) {\n    if(!s->user) {\n        result = false;\n        break;\n    }\n}",
+    "@shops().select(\\s -> s.user)" `matches` "result = [];\nforeach (this.shops() as s) {\n    if(s->user) {\n        result []= s;\n    }\n}",
 
-    "@state.todos.map(\\todo -> @makeTodo(todo))" `matches` "result = [];\nforeach (this->state->todos as todo) {\n    result []= this->makeTodo(todo);\n}",
+    "@state.todos.map(\\todo -> @makeTodo(todo))" `matches` "result = [];\nforeach (this.state->todos as todo) {\n    result []= this.makeTodo(todo);\n}",
 
     -- chain a function onto the end of a HoF
     "count_alive = shops.select(\\s -> s.isAlive()).count()" `matches` "count_alive = [];\nforeach (shops as s) {\n    if(s->isAlive()) {\n        count_alive []= s;\n    }\n}\ncount_alive = count(count_alive);",
@@ -519,14 +494,14 @@ jsTests = [
 
     -- assigning accVar manually
     "myAcc = foo.each(\\x -> print(x))" `matches` "foreach (foo as x) {\n    print(x);\n}",
-    "@myAcc = foo.map(\\x -> x + 1)" `matches` "this->myAcc = [];\nforeach (foo as x) {\n    this->myAcc []= x + 1;\n}",
-    "@@myAcc = foo.any(\\x -> x.isEven())" `matches` "static::myAcc = false;\nforeach (foo as x) {\n    if(x->isEven()) {\n        static::myAcc = true;\n        break;\n    }\n}",
+    "@myAcc = foo.map(\\x -> x + 1)" `matches` "this.myAcc = [];\nforeach (foo as x) {\n    this.myAcc []= x + 1;\n}",
+    "@@myAcc = foo.any(\\x -> x.isEven())" `matches` "this.state.myAcc = false;\nforeach (foo as x) {\n    if(x->isEven()) {\n        this.state.myAcc = true;\n        break;\n    }\n}",
     "myAcc = foo.all(\\x -> x.isEven())" `matches` "myAcc = true;\nforeach (foo as x) {\n    if(!x->isEven()) {\n        myAcc = false;\n        break;\n    }\n}",
 
     -- assigning accVar manually plus implicit return
     "bar := myAcc = foo.each(\\x -> print(x))" `matches` "function bar() {\n    foreach (foo as x) {\n        print(x);\n    }\n}",
-    "bar := @myAcc = foo.map(\\x -> x + 1)" `matches` "function bar() {\n    this->myAcc = [];\n    foreach (foo as x) {\n        this->myAcc []= x + 1;\n    }\n    return this->myAcc;\n}",
-    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "function bar() {\n    static::myAcc = false;\n    foreach (foo as x) {\n        if(x->isEven()) {\n            static::myAcc = true;\n            break;\n        }\n    }\n    return static::myAcc;\n}",
+    "bar := @myAcc = foo.map(\\x -> x + 1)" `matches` "function bar() {\n    this.myAcc = [];\n    foreach (foo as x) {\n        this.myAcc []= x + 1;\n    }\n    return this.myAcc;\n}",
+    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "function bar() {\n    this.state.myAcc = false;\n    foreach (foo as x) {\n        if(x->isEven()) {\n            this.state.myAcc = true;\n            break;\n        }\n    }\n    return this.state.myAcc;\n}",
     "bar := myAcc = foo.all(\\x -> x.isEven())" `matches` "function bar() {\n    myAcc = true;\n    foreach (foo as x) {\n        if(!x->isEven()) {\n            myAcc = false;\n            break;\n        }\n    }\n    return myAcc;\n}",
 
     -- implicit returns for higher order functions
@@ -635,11 +610,11 @@ jsTests = [
     "var2 = if var == 0 then 0" `matches` "var2 = null;\nif (var == 0) {\n    var2 = 0;\n}",
 
     -- backticks for php
-    "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" . 'bar' . 'baz';",
+    "'foo' ++ `'bar' . 'baz'`" `matches` "\"foo\" + 'bar' . 'baz';",
 
     -- hash table
-    "{a: 1, [b]: 2, [@c]: 3}" `matches` "[\n    \"a\" => 1,\n    b => 2,\n    this->c => 3\n];",
-    "{ stemmed: stemmed, unstemmed: unstemmed }" `matches` "[\n    \"stemmed\" => stemmed,\n    \"unstemmed\" => unstemmed\n];",
+    "{a: 1, [b]: 2, [@c]: 3}" `matches` "{\n    \"a\" => 1,\n    b => 2,\n    this.c => 3\n};",
+    "{ stemmed: stemmed, unstemmed: unstemmed }" `matches` "{\n    \"stemmed\" => stemmed,\n    \"unstemmed\" => unstemmed\n};",
 
     -- string
     "\"foo\"" `matches` "\"foo\";",
@@ -649,20 +624,8 @@ jsTests = [
     "\"<div class='foo bar'>\"" `matches` "\"<div class='foo bar'>\";",
 
     -- built in functions
-    "foo.split(',')" `matches` "explode(',', foo);",
-    "foo.join(',')" `matches` "implode(',', foo);",
     "foo.uniq()" `matches` "array_unique(foo);",
-    "foo.pop()" `matches` "array_pop(foo);",
-    "foo.keys()" `matches` "array_keys(foo);",
-    "foo.values()" `matches` "array_values(foo);",
-    "foo.reverse()" `matches` "array_reverse(foo);",
-    "foo.count()" `matches` "count(foo);",
-    "foo.size()" `matches` "count(foo);",
-    "foo.shuffle()" `matches` "shuffle(foo);",
-    "foo.split(',').uniq()" `matches` "array_unique(explode(',', foo));",
     "foo.sub(\"foo\", 'bar')" `matches` "str_replace(\"foo\", \"bar\", foo);",
-    "foo.sub(\"foo\", bar)" `matches` "str_replace(\"foo\", bar, foo);",
-    "Array.new(3, true)" `matches` "(new Array(3,true));",
 
     -- multi-assign
     "foo, bar = baz" `matches` "foo = baz[0];\nbar = baz[1];",
@@ -678,9 +641,9 @@ jsTests = [
     "arr.1.count()" `matches` "count(arr[1]);",
 
     -- hash shorthand
-    "{ foo, bar, baz }" `matches` "[\n    \"foo\" => foo,\n    \"bar\" => bar,\n    \"baz\" => baz\n];",
-    "{ foo, bar, baz } = arr" `matches` "foo = arr['foo'];\nbar = arr['bar'];\nbaz = arr['baz'];",
-    "{ foo }" `matches` "[\n    \"foo\" => foo\n];",
+    "{ foo, bar, baz }" `matches` "{ foo, bar, baz }",
+    "{ foo, bar, baz } = arr" `matches` "{ foo, bar, baz } = arr;",
+    "{ foo }" `matches` "{ foo }",
 
 
     -- new keyword

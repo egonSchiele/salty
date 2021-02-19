@@ -187,20 +187,8 @@ instance ConvertToJs Salty where
   -- functions called on higher order functions
   toJs (FunctionCall (Just hof@(HigherOrderFunctionCall _ _ _ accVar)) (Right funcName) args block) = print3 "%\n% = %" (toJs hof) accVar (toJs (FunctionCall (Just (PurePhp accVar)) (Right funcName) args block))
   -- builtin functions on an obj
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "split")) [] _) = print2 "%.split('%')" (toJs obj) " "
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "join")) [] _) = print2 "%.join('%')" (toJs obj) " "
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "split")) [SaltyString separator] _) = print2 "%.split('%')" (toJs obj) separator
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "join")) [SaltyString separator] _) = print2 "%.join('%')" (toJs obj) separator
   toJs (FunctionCall (Just obj) (Right (SimpleVar "uniq")) [] _) = print2 "let % = [...new Set(%)]" (toJs obj) (toJs obj)
-   -- unnecessary
-  -- toJs (FunctionCall (Just obj) (Right (SimpleVar "pop")) []) = (toJs obj) ++ ".pop()"
-  -- toJs (FunctionCall (Just obj) (Right (SimpleVar "keys")) []) = "array_keys(" ++ (toJs obj) ++ ")"
-  -- toJs (FunctionCall (Just obj) (Right (SimpleVar "values")) []) = "array_values(" ++ (toJs obj) ++ ")"
-  -- toJs (FunctionCall (Just obj) (Right (SimpleVar "reverse")) []) = "array_reverse(" ++ (toJs obj) ++ ")"
-  -- toJs (FunctionCall (Just obj) (Right (SimpleVar "count")) []) = "count(" ++ (toJs obj) ++ ")"
-  -- toJs (FunctionCall (Just obj) (Right (SimpleVar "size")) []) = "count(" ++ (toJs obj) ++ ")"
-  -- toJs (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) []) = "shuffle(" ++ (toJs obj) ++ ")"
-  toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "%.replace(%, %)" (toJs search) (toJs replace) (toJs obj)
+  toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "%.replace(%, %)" (toJs obj) (toJs search) (toJs replace)
   toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] Nothing) = "<" ++ (tagName vName) ++ " />"
   toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [] (Just block)) = print3 "<%>%</%>" (tagName vName) (toReact block) (tagName vName)
   toJs (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) [HashTable kvPairs] block) = print4 "<%%>%</%>" (tagName vName) (pairsToReact kvPairs) (_maybe toReact block) (tagName vName)
@@ -295,12 +283,7 @@ instance ConvertToJs Salty where
   toJs (Variable x _) = toJs x
   toJs (WithNewLine s) = (toJs s) ++ "\n"
   toJs (HashLookup h k) = print2 "%[%]" (toJs h) (toJs k)
-  toJs (FunctionTypeSignature var types)
-      | simpleVarName var == "var" = "<EMPTYLINE>\n/** @var " ++ (showVar . head $ types) ++ " */"
-      | otherwise = "<EMPTYLINE>\n/**\n" ++ (concat $ map showType types) ++ " */\n"
-    where showType t = " * " ++ (toJs t) ++ "\n"
-          showVar (ArgumentType False n _) = n
-          showVar (ArgumentType True n _) = n ++ "|null"
+  toJs (FunctionTypeSignature var types) = ""
 
   toJs (Constant var@(Variable name _)) = simpleVarName name
   toJs (Constant _) = "not sure what this constant is"
@@ -325,8 +308,8 @@ instance ConvertToJs Salty where
   toJs (MultiAssign vars (WithNewLine value)) = toJs $ WithNewLine (MultiAssign vars value)
   toJs (MultiAssign vars value@(Variable _ _)) = (intercalate "\n" . map (\(i,var) -> print3 "% = %[%]" (toJs var) (toJs value) (show i)) $ zip [0..] vars)
   toJs (MultiAssign vars value@(FunctionCall _ _ _ _)) = initResult ++ "\n" ++ multiAssign
-      where initResult = "$result = " ++ (toJs value)
-            multiAssign = (intercalate "\n" . map (\(i,var) -> print2 "% = $result[%]" (toJs var) (show i)) $ zip [0..] vars)
+      where initResult = "result = " ++ (toJs value)
+            multiAssign = (intercalate "\n" . map (\(i,var) -> print2 "% = result[%]" (toJs var) (show i)) $ zip [0..] vars)
   toJs (MultiAssign vars value) = (intercalate "\n" . map (\var -> print2 "% = %" (toJs var) (toJs value)) $ vars)
   -- toJs (AttrAccess (Variable (InstanceVar obj) _) attrName) = print2 "$this->%->%" obj attrName
   -- toJs (AttrAccess (Variable (StaticVar obj) _) attrName) = print2 "static::$%->%" obj attrName
