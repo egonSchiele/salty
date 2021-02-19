@@ -176,6 +176,11 @@ saltyParserSingleWithoutNewline = do
   <|> (    times
       <||> range
       <||> saltyNumber
+      -- minusminusStart is here because it begins with a '-',
+      -- just like negative saltyNumbers. So if saltyNumber fails
+      -- on "--bar" for example we want to make sure it doesn't eat
+      -- a minus sign on the way.
+      <||> minusminusStart
       )
   -- things that begin with braces
   <|> (    hashTable
@@ -298,16 +303,22 @@ stringKey = debug "stringKey" >> do
 
 saltyKey = debug "saltyKey" >> do
   char '['
+  indentDebugger
   value <- hashLookup <||> saltyBool <||> saltyNull <||> purePhp <||> variable
+  unindentDebugger
   char ']' <?> "a closing bracket for a salty key"
   return value
 
 keyValuePair = debug "keyValuePair" >> do
+  indentDebugger
   key <- saltyKey <||> stringKey
+  unindentDebugger
   optional space
   char ':'
   space
+  indentDebugger
   value <- validHashValue
+  unindentDebugger
   char ',' <||> char '}' <||> char '\n' <||> char ' '
   optional (oneOf " \n")
   return (key, value)
@@ -320,7 +331,9 @@ hashTable = debug "hashTable" >> do
   return $ HashTable kvPairs
 
 arrayValue = debug "arrayValue" >> do
+  indentDebugger
   value <- validHashValue
+  unindentDebugger
   char ',' <||> (char ']' <?> "a closing bracket.")
   optional space
   return value
@@ -330,7 +343,6 @@ array = debug "array" >> do
   optional $ char '\n' <||> char ' '
   indentDebugger
   salties <- validHashValue `sepBy` ((string ", ") <||> (string ",\n"))
-  unindentDebugger
   optional $ char '\n' <||> char ' '
   char ']' <?> "a closing bracket"
   return $ Array salties
@@ -363,7 +375,9 @@ braces scope_ = debug "braces" >> do
   case scope_ of
        Just scope -> modifyState (addScope scope)
        Nothing -> return ()
+  indentDebugger
   body <- saltyParser
+  unindentDebugger
   optional space
   case scope_ of
        Just scope -> modifyState popScope
@@ -399,10 +413,6 @@ makeArgNames (arg:rest)
 getOrDefaultScope (Just x) = x
 getOrDefaultScope Nothing = GlobalScope
 
-bar = debug "foo" >> do
-  body <- saltyParser
-  return body
-
 saltyNewline = debug "saltyNewline" >> do
   char '\n'
   return Salt
@@ -432,13 +442,17 @@ onelineFunction = debug "onelineFunction" >> do
   scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
   (name, visibility) <- getVisibility <$> variableName
   space
+  indentDebugger
   _args <- functionArgs
+  unindentDebugger
   let args = makeArgNames _args
   string ":="
   space
   modifyState (addScope FunctionScope)
+  indentDebugger
   body <- parseWithoutNewlineTill saltyNewline
   wheres <- many whereClause
+  unindentDebugger
   modifyState popScope
   case prevSalty of
        FunctionTypeSignature _ types ->
@@ -451,11 +465,15 @@ multilineFunction = debug "multilineFunction" >> do
   scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
   (name, visibility) <- getVisibility <$> variableName
   space
+  indentDebugger
   _args <- functionArgs
+  unindentDebugger
   let args = makeArgNames _args
   string ":="
   space
+  indentDebugger
   body <- braces (Just FunctionScope)
+  unindentDebugger
   case prevSalty of
      FunctionTypeSignature _ types -> return $ Function name (argWithTypes args types) [body] visibility scope
      _ -> return $ Function name (map argWithDefaults args) [body] visibility scope
@@ -478,14 +496,18 @@ guard = debug "guard" >> do
   space
   condition <- otherwiseGuard <||> (many1 validFuncArgTypes) <?> "a guard condition"
   optional $ string " -> "
+  indentDebugger
   outcome <- (toA <$> braces Nothing) <||> parseWithoutNewlineTill saltyNewline <?> "a guard outcome"
+  unindentDebugger
   optional $ char '\n'
   return $ Guard condition outcome
 
 whereClause = debug "whereClause" >> do
   string "where" <||> string "and"
   space
+  indentDebugger
   op <- operation <||> multiAssign
+  unindentDebugger
   optional $ char '\n'
   return op
 
@@ -496,15 +518,21 @@ saltyGuard = debug "saltyGuard" >> do
 saltyGuardSwitchStatement = debug "saltyGuardSwitchStatement" >> do
   string "guard" <||> string "$$"
   char '('
+  indentDebugger
   val <- validFuncArgTypes
+  unindentDebugger
   char ')'
   char '\n'
+  indentDebugger
   guards <- many1 guard
+  unindentDebugger
   return $ SaltyGuard (Just val) guards
 
 saltyGuardOnly = debug "saltyGuardOnly" >> do
   string "guard\n" <||> string "$$\n"
+  indentDebugger
   guards <- many1 guard
+  unindentDebugger
   return $ SaltyGuard Nothing guards
 
 guardFunction = debug "guardFunction" >> do
@@ -515,8 +543,10 @@ guardFunction = debug "guardFunction" >> do
   args <- makeArgNames <$> functionArgs
   string ":= "
   modifyState (addScope FunctionScope)
+  indentDebugger
   guards <- saltyGuard
   wheres <- many whereClause
+  unindentDebugger
   let body = wheres ++ [guards]
   modifyState popScope
   case prevSalty of
@@ -568,7 +598,9 @@ functionTypeSignature = debug "functionTypeSignature" >> do
   space
   string "::"
   space
+  indentDebugger
   argTypes <- findArgTypes
+  unindentDebugger
   return $ FunctionTypeSignature name argTypes
 
 operator = debug "operator" >> do
@@ -621,11 +653,15 @@ atom = debug "atom" >> do
   <?> "an atom"
 
 operation = debug "operation" >> do
+  indentDebugger
   left <- atom
+  unindentDebugger
   space
   op <- operator
   space
+  indentDebugger
   right <- saltyParserSingle_
+  unindentDebugger
   return $ Operation left op right
 
 partialOperation = debug "partialOperation" >> do
@@ -633,7 +669,9 @@ partialOperation = debug "partialOperation" >> do
   space
   op <- operator
   space
+  indentDebugger
   right <- saltyParserSingle_
+  unindentDebugger
   return $ BackTrack (Operation leftHandSide op right)
 
 partialAttrAccess = debug "partialAttrAccess" >> do
@@ -648,10 +686,14 @@ partialFunctionCall = debug "partialFunctionCall" >> do
   char '.'
   funcName <- many1 varNameChars
   char '('
+  indentDebugger
   funcArgs <- findArgs
+  unindentDebugger
   char ')'
 
+  indentDebugger
   block <- optionMaybe functionBlock
+  unindentDebugger
 
   return $ case leftHandSide of
              Operation l op r -> BackTrack $ Operation l op (FunctionCall (Just r) (Right (SimpleVar funcName)) funcArgs block)
@@ -659,7 +701,9 @@ partialFunctionCall = debug "partialFunctionCall" >> do
 
 negateSalty = debug "negateSalty" >> do
   char '!'
+  indentDebugger
   s <- saltyParserSingle_
+  unindentDebugger
   return $ Negate s
 
 emptyLine = debug "emptyLine" >> do
@@ -673,21 +717,31 @@ saltyString = debug "saltyString" >> do
   return $ SaltyString str
 
 saltyNumber = debug "saltyNumber" >> do
-       decimal
-  <||> integer
+       decimal <||> negativeDecimal
+  <||> integer <||> negativeInteger
   <?> "a decimal or integer"
 
-integer = debug "integer" >> do
-  head <- oneOf "1234567890-"
-  number <- many (oneOf "1234567890")
-  return $ SaltyNumber (head:number)
+negativeInteger = debug "negativeInteger" >> do
+  char '-'
+  number <- many1 (oneOf "1234567890")
+  return $ SaltyNumber ('-':number)
 
-decimal = debug "decimal" >> do
-  head <- oneOf "1234567890-"
-  number <- many (oneOf "1234567890")
+integer = debug "integer" >> do
+  number <- many1 (oneOf "1234567890")
+  return $ SaltyNumber number
+
+negativeDecimal = debug "negativeDecimal" >> do
+  char '-'
+  number <- many1 (oneOf "1234567890")
   char '.'
   decimal <- many1 (oneOf "1234567890")
-  return $ SaltyNumber ((head:number) ++ "." ++ decimal)
+  return $ SaltyNumber (('-':number) ++ "." ++ decimal)
+
+decimal = debug "decimal" >> do
+  number <- many1 (oneOf "1234567890")
+  char '.'
+  decimal <- many1 (oneOf "1234567890")
+  return $ SaltyNumber (number ++ "." ++ decimal)
 
 -- @foo
 instanceVar = debug "instanceVar" >> do
@@ -721,7 +775,9 @@ classicClassVar = debug "classicClassVar" >> do
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   optional $ char '('
+  indentDebugger
   obj <- range <||> indexIntoArray <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> stringSlice <||> variable
+  unindentDebugger
   optional $ char ')'
   char '.'
   funcName <-      (string "map" >> return Map)
@@ -731,7 +787,9 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
               <||> (string "any" >> return Any)
               <||> (string "all" >> return All)
   char '('
+  indentDebugger
   func <- lambda
+  unindentDebugger
   char ')'
   return $ HigherOrderFunctionCall obj funcName func "$result"
 
@@ -750,7 +808,9 @@ partialHigherOrderFunctionCall = debug "partialHigherOrderFunctionCall" >> do
               <||> (string "any" >> return Any)
               <||> (string "all" >> return All)
   char '('
+  indentDebugger
   func <- lambda
+  unindentDebugger
   char ')'
   return $ BackTrack $ HigherOrderFunctionCall obj funcName func "$result"
 
@@ -759,7 +819,9 @@ times = debug "times" >> do
   char '.'
   string "times"
   char '('
+  indentDebugger
   func <- lambda <||> lambdaWithoutArgs
+  unindentDebugger
   char ')'
   return $ HigherOrderFunctionCall (Range (SaltyNumber "1") number)  Each func "$result"
 
@@ -767,16 +829,22 @@ lambda = debug "lambda" >> do
   char '\\'
   args <-  many1 lambdaVarNameChars
   string "-> "
+  indentDebugger
   body <- (braces Nothing) <||> saltyParserSingle_ <?> "a lambda function body"
+  unindentDebugger
   return $ LambdaFunction (words args) body
 
 lambdaWithoutArgs = debug "lambdaWithoutArgs" >> do
+  indentDebugger
   body <- (braces Nothing) <||> saltyParserSingle_ <?> "a lambda function (without args) body"
+  unindentDebugger
   return $ LambdaFunction [] body
 
 returnStatement = debug "returnStatement" >> do
   tryString "return "
+  indentDebugger
   salty <- many1 saltyParserSingle_
+  unindentDebugger
   optional $ char '\n'
   return $ ReturnStatement (Braces salty)
 
@@ -841,7 +909,9 @@ attrAccess = debug "attrAccess" >> do
 
 shorthandBlock = debug "shorthandBlock" >> do
   var <- variable
+  indentDebugger
   block <- functionBlock
+  unindentDebugger
   return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just block)
 
 htmlVar = debug "htmlVar" >> do
@@ -859,14 +929,18 @@ functionBlock = debug "functionBlock" >> do
 
 bracesBlock = debug "bracesBlock" >> do
   string " do\n"
+  indentDebugger
   body <- parseTill (wrapInSalt $ string "end")
+  unindentDebugger
   return $ Braces body
 
 lambdaBlock = debug "lambdaBlock" >> do
   string " do \\"
   args <-  many1 lambdaVarNameChars
   string "->\n"
+  indentDebugger
   body <- parseTill (wrapInSalt $ string "end")
+  unindentDebugger
   return $ LambdaFunction (words args) (Braces body)
 
 functionCallOnObject = debug "functionCallOnObject" >> do
@@ -874,9 +948,13 @@ functionCallOnObject = debug "functionCallOnObject" >> do
   char '.'
   funcName <- many1 varNameChars
   char '('
+  indentDebugger
   funcArgs <- findArgs
+  unindentDebugger
   char ')'
+  indentDebugger
   block <- optionMaybe functionBlock
+  unindentDebugger
   return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) funcArgs block
 
 parseBuiltInFuncName :: VariableName -> Either BuiltInFunction VariableName
@@ -886,7 +964,9 @@ parseBuiltInFuncName s = Right s
 functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   funcName <- variableName
   char '('
+  indentDebugger
   funcArgs <- findArgs
+  unindentDebugger
   char ')'
   -- TO FIX: adding the ability to have a block here causes some tests to fail.
   -- fix and then uncomment
@@ -899,21 +979,29 @@ functionCallOnObjectWithoutParens = debug "functionCallOnObjectWithoutParens" >>
   char '.'
   funcName <- many1 varNameChars
   string " . " <||> string " $ "
+  indentDebugger
   funcArgs <- functionCallOnObjectWithoutParens <||> functionCallWithoutObjectWithoutParens <||> validFuncArgTypes
+  unindentDebugger
   return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) [funcArgs] Nothing
 
 functionCallWithoutObjectWithoutParens = debug "functionCallWithoutObjectWithoutParens" >> do
   funcName <- variableName
   string " . " <||> string " $ "
+  indentDebugger
   funcArgs <- functionCallOnObjectWithoutParens <||> functionCallWithoutObjectWithoutParens <||> validFuncArgTypes
+  unindentDebugger
   return $ FunctionCall Nothing (parseBuiltInFuncName funcName) [funcArgs] Nothing
 
 arraySlice = debug "arraySlice" >> do
   array <- variable
   char '['
+  indentDebugger
   start_ <- (Just <$> saltyParserSingle_) <||> nothing
+  unindentDebugger
   char ':'
+  indentDebugger
   end <- (Just <$> saltyParserSingle_) <||> nothing
+  unindentDebugger
   char ']' <?> "a closing bracket for an array slice"
   let start = case start_ of
                 Just salty -> salty
@@ -923,9 +1011,13 @@ arraySlice = debug "arraySlice" >> do
 stringSlice = debug "stringSlice" >> do
   string <- variable
   char '<'
+  indentDebugger
   start_ <- (Just <$> saltyParserSingle_) <||> nothing
+  unindentDebugger
   char ':'
+  indentDebugger
   end <- (Just <$> saltyParserSingle_) <||> nothing
+  unindentDebugger
   char '>'
   let start = case start_ of
                 Just salty -> salty
@@ -935,7 +1027,9 @@ stringSlice = debug "stringSlice" >> do
 stringIndex = debug "stringIndex" >> do
   string <- variable
   char '<'
+  indentDebugger
   index <- saltyParserSingle_
+  unindentDebugger
   char '>'
   return $ StringIndex string index
 
@@ -962,14 +1056,18 @@ hashKeyString = debug "hashKeyString" >> do
 standardHashLookup = debug "standardHashLookup" >> do
   hash <- variable
   char '['
+  indentDebugger
   key <- validFuncArgTypes
+  unindentDebugger
   char ']' <?> "a closing bracket for a hash lookup"
   return $ HashLookup hash key
 
 partialHashLookup = debug "partialHashLookup" >> do
   hash <- lastSalty <$> getState
   char '['
+  indentDebugger
   key <- validFuncArgTypes
+  unindentDebugger
   char ']' <?> "a closing bracket for a partial hash lookup"
   return $ BackTrack (HashLookup hash key)
 
@@ -981,34 +1079,48 @@ ifStatement = debug "ifStatement" >> do
 ifWithElse = debug "ifWithElse" >> do
   tryString "if"
   space
+  indentDebugger
   condition <- parseTill (wrapInSalt $ string " then ")
+  unindentDebugger
+  indentDebugger
   thenFork <- saltyParserSingle_
+  unindentDebugger
   space
   string "else"
   space
+  indentDebugger
   elseFork <- saltyParserSingle_
+  unindentDebugger
   return $ If condition thenFork (Just elseFork)
 
 ifWithoutElse = debug "ifWithoutElse" >> do
   tryString "if"
   space
+  indentDebugger
   condition <- parseTill (wrapInSalt $ string " then ")
   thenFork <- saltyParserSingle_
+  unindentDebugger
   return $ If condition thenFork Nothing
 
 whileStatement = debug "whileStatement" >> do
   tryString "while"
   space
+  indentDebugger
   condition <- saltyParserSingle_
+  unindentDebugger
   space
+  indentDebugger
   body <- braces Nothing
+  unindentDebugger
   return $ While condition body
 
 whereStatement = debug "whereStatement" >> do
   string "where"
   optional space
   modifyState (addScope ClassScope)
+  indentDebugger
   body <- saltyParser
+  unindentDebugger
   optional space
   modifyState popScope
   debug $ "whereStatement done with: " ++ (show body)
@@ -1022,7 +1134,9 @@ classDefinition = debug "classDefinition" >> do
   extendsName <- classDefExtends <||> nothing
   implementsName <- classDefImplements <||> nothing
   optional space
+  indentDebugger
   body <- (braces (Just ClassScope) <||> whereStatement) <?> "a class body"
+  unindentDebugger
   return $ Class name extendsName implementsName body
 
 classDefExtends = debug "classDefExtends" >> do
@@ -1046,7 +1160,9 @@ objectCreation = debug "objectCreation" >> do
   space
   className <- classVar
   char '('
+  indentDebugger
   constructorArgs <- findArgs
+  unindentDebugger
   char ')'
   return $ New className constructorArgs
 
@@ -1115,13 +1231,17 @@ saltyKeywordThrow = debug "saltyKeywordThrow" >> do
 saltyKeywordRequire = debug "saltyKeywordRequire" >> do
   string "require"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwRequire salty
 
 saltyKeywordRequireOnce = debug "saltyKeywordRequireOnce" >> do
   string "require_once"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwRequireOnce salty
 
 saltyKeywordImport = debug "saltyKeywordImport" >> do
@@ -1133,55 +1253,73 @@ saltyKeywordImport = debug "saltyKeywordImport" >> do
 saltyKeywordVarDeclaration = debug "saltyKeywordVarDeclaration" >> do
   typ <- string "const" <||> string "var" <||> string "let"
   space
+  indentDebugger
   name <- (PurePhp <$> many1 varNameChars) <||> destructuredHash
+  unindentDebugger
   return $ KwVarDeclaration typ name
 
 saltyKeywordPublic = debug "saltyKeywordPublic" >> do
   string "public"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwPublic salty
 
 saltyKeywordPrivate = debug "saltyKeywordPrivate" >> do
   string "private"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwPrivate salty
 
 saltyKeywordProtected = debug "saltyKeywordProtected" >> do
   string "protected"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwProtected salty
 
 saltyKeywordStatic = debug "saltyKeywordStatic" >> do
   string "static"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwStatic salty
 
 saltyKeywordExport = debug "saltyKeywordExport" >> do
   string "export"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwExport salty
 
 saltyKeywordDefault = debug "saltyKeywordDefault" >> do
   string "default"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwDefault salty
 
 saltyKeywordNamespace = debug "saltyKeywordNamespace" >> do
   string "namespace"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwNamespace salty
 
 saltyKeywordEcho = debug "saltyKeywordEcho" >> do
   string "echo"
   space
+  indentDebugger
   salty <- saltyParserSingle_
+  unindentDebugger
   return $ KwEcho salty
 
 saltyKeywordBreak = debug "saltyKeywordBreak" >> do
@@ -1201,7 +1339,9 @@ multiAssign = debug "multiAssign" >> do
   firstVar <- multiAssignVar
   restVars <- many1 multiAssignVar
   space
+  indentDebugger
   right <- saltyParserSingle_
+  unindentDebugger
   return $ MultiAssign (firstVar:restVars) right
 
 plusplusAll = debug "plusplusAll" >> do
@@ -1261,9 +1401,13 @@ validRangeArgTypes = debug "validRangeArgTypes" >> do
   <?> "a valid range argument type"
 
 range = debug "range" >> do
+  indentDebugger
   left <- validRangeArgTypes
+  unindentDebugger
   string ".."
+  indentDebugger
   right <- validRangeArgTypes
+  unindentDebugger
   return $ Range left right
 
 parseError = debug "parseError" >> do
