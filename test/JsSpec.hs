@@ -1,18 +1,18 @@
 {-# LANGUAGE QuasiQuotes #-}
-module PhpSpec where
+module JsSpec where
 import Text.RawString.QQ
 
 
 import Test.HUnit
 import Parser
 import Types
-import ToPhp
+import ToJs
 
 -- so it prints multi-line strings on multiple lines for gods sake
 -- assertEqual_ expected actual = assertBool (expected == actual) failureMsg
 --   where failureMsg = "expected:\n" ++ expected ++"\nbut got actual:\n" ++ actual ++ "\n"
 
-matches str1 str2 = TestCase $ assertEqual "" str2 (saltyToPhp 0 str1)
+matches str1 str2 = TestCase $ assertEqual "" str2 (saltyToJs 0 str1)
 
 saltyBlob = [r|
   isSafe str lists := lists.any(l -> l.isBlocked(str))
@@ -273,7 +273,7 @@ guardTestAsSwitchResult = [r|function todos($state, $action) {
     }
 }|]
 
-phpTests = [
+jsTests = [
     multiLineEachTest,
     multiLineMapTest,
     multiLineMapAssignTest,
