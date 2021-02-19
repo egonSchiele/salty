@@ -629,29 +629,6 @@ transpileTests = [
     -- don't fail on dollar signs
     "$foo = 1;\n$bar = 2;" `matches` "$foo = 1;\n$bar = 2;",
 
-    -- optional
-    "foo?" `matches` "!is_null($foo);",
-    "foo?.bar" `matches` "if (!is_null($foo)) {\n    $foo->bar;\n}",
-    "@foo?.bar" `matches` "if (!is_null($this->foo)) {\n    $this->foo->bar;\n}",
-    "@@foo?.bar" `matches` "if (!is_null(static::$foo)) {\n    static::$foo->bar;\n}",
-    "foo?.bar()" `matches` "if (!is_null($foo)) {\n    $foo->bar();\n}",
-    "@foo?.bar()" `matches` "if (!is_null($this->foo)) {\n    $this->foo->bar();\n}",
-    "@@foo?.bar()" `matches` "if (!is_null(static::$foo)) {\n    static::$foo->bar();\n}",
-    "var = foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $foo->bar;\n}",
-    "var = foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $foo->bar();\n}",
-    "var += foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $var + $foo->bar;\n}",
-    "var *= foo?.bar()" `matches` "if (!is_null($foo)) {\n    $var = $var * $foo->bar();\n}",
-    "foo?.map(\\x -> x + 1)" `matches` "if (!is_null($foo)) {\n    $result = [];\n    foreach ($foo as $x) {\n        $result []= $x + 1;\n    }\n}",
-    "var = foo?.map(\\x -> x + 1)" `matches` "if (!is_null($foo)) {\n    $var = [];\n    foreach ($foo as $x) {\n        $var []= $x + 1;\n    }\n}",
-    "foo := bar?" `matches` "function foo() {\n    return !is_null($bar);\n}",
-    "foo := bar?.map(\\x -> x + 1)" `matches` "function foo() {\n    if (!is_null($bar)) {\n        $result = [];\n        foreach ($bar as $x) {\n            $result []= $x + 1;\n        }\n    }\n    return $result;\n}",
-    "var = :foo?.bar" `matches` "if (!is_null($foo)) {\n    $var = $foo[\"bar\"];\n}",
-
-    -- TODO
-    -- "foo?.bar?.baz" `matches` "",
-    -- "foo?.bar()?.baz" `matches` "",
-    -- "foo?.bar()?.baz?" `matches` "",
-
     -- ternary
     "func := if var == 0 then 0 else 1" `matches` "function func() {\n    if ($var == 0) {\n        return 0;\n    } else {\n        return 1;\n    }\n}",
     "var2 = if var == 0 then 0 else 1" `matches` "$var2 = $var == 0 ? 0 : 1;",

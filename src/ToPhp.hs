@@ -85,18 +85,6 @@ instance ConvertToPhp Salty where
   toPhp (Operation x@(Variable _ _) Equals (HigherOrderFunctionCall obj callName func accVar)) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
   toPhp (Operation x@(Variable _ _) Equals (FunctionCall (Just (HigherOrderFunctionCall obj callName func accVar)) fName args block)) = toPhp $ FunctionCall (Just $ HigherOrderFunctionCall obj callName func (varName x)) fName args block
 
-  toPhp op@(Operation left operator (AttrAccess (SaltyOptional salty) attr)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
-          where newOperation = Operation left operator (AttrAccess salty attr)
-
-  toPhp op@(Operation left operator (FunctionCall (Just (SaltyOptional salty)) callName args block)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
-          where newOperation = Operation left operator (FunctionCall (Just salty) callName args block)
-
-  toPhp op@(Operation left operator (SaltyOptional salty)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
-          where newOperation = Operation left operator salty
-
-  toPhp op@(Operation left operator (HashLookup (SaltyOptional salty) k)) = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newOperation)
-          where newOperation = Operation left operator (HashLookup salty k)
-
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
   -- toPhp (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toPhp $ HigherOrderFunctionCall obj callName func (varName x)
   toPhp (Operation left Equals (If cond thenPath_ (Just elsePath_))) = print4 "% = % ? % : %" (toPhp left) (concat . map toPhp $ cond) (toPhp thenPath_) (toPhp elsePath_)
@@ -184,8 +172,6 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args _) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
   toPhp (FunctionCall (Just var@(Variable _ _)) (Right funcName) args _) = print3 "%->%(%)" (toPhp var) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
-  -- an optional containing whatever other salty
-  toPhp (FunctionCall (Just (SaltyOptional salty)) (Right funcName) args _) = print4 "if (!is_null(%)) {\n%->%(%)\n}" (toPhp salty) (toPhp salty) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
   toPhp (FunctionCall (Just obj) (Right funcName) args _) = print3 "%->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
@@ -198,10 +184,6 @@ instance ConvertToPhp Salty where
   -- special case, each with a range
   toPhp (HigherOrderFunctionCall (Range left right) Each (LambdaFunction loopVar body) _)  =
                 print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toPhp left) (formatLoopVars loopVar) (toPhp right) (formatLoopVars loopVar) (toPhp body)
-
-  -- optionals
-  toPhp (HigherOrderFunctionCall (SaltyOptional salty) func lambda accVar)  = print2 "if (!is_null(%)) {\n%\n}" (toPhp salty) (toPhp newHoF)
-    where newHoF = HigherOrderFunctionCall salty func lambda accVar
 
   -- each
   toPhp (HigherOrderFunctionCall obj Each (LambdaFunction loopVar body) _)  =
@@ -264,7 +246,6 @@ instance ConvertToPhp Salty where
   toPhp (Variable (SimpleVar s) ClassScope) = "public $" ++ s
   toPhp (Variable x _) = toPhp x
   toPhp (WithNewLine s) = (toPhp s) ++ "\n"
-  toPhp (HashLookup (SaltyOptional h) k) = print3 "if (!is_null(%)) {\n%[%]\n}" (toPhp h) (toPhp h) (toPhp k)
   toPhp (HashLookup h k) = print2 "%[%]" (toPhp h) (toPhp k)
   toPhp (FunctionTypeSignature var types)
       | simpleVarName var == "var" = "<EMPTYLINE>\n/** @var " ++ (showVar . head $ types) ++ " */"
@@ -300,7 +281,6 @@ instance ConvertToPhp Salty where
     where newEnd = show $ (read end :: Integer) - (read start :: Integer)
   toPhp (StringSlice obj start (Just end)) = print4 "substr(%, %, % - %)" (toPhp obj) (toPhp start) (toPhp end) (toPhp start)
   toPhp (StringIndex obj index) = print2 "substr(%, %, 1)" (toPhp obj) (toPhp index)
-  toPhp (AttrAccess (SaltyOptional salty) attrName) = print3 "if (!is_null(%)) {\n%->%\n}" (toPhp salty) (toPhp salty) attrName
   toPhp (AttrAccess (Variable (ClassVar obj) _) attrName)
       | isConstant attrName = print2 "%::%" obj attrName
       | otherwise = print2 "%::$%" obj attrName
@@ -348,7 +328,6 @@ instance ConvertToPhp Salty where
   toPhp (Keyword (KwEcho salty)) = "echo " ++ (toPhp salty)
   toPhp (Keyword KwBreak) = "break"
   toPhp (Keyword (KwNamespace salty)) = "namespace " ++ (toPhp salty)
-  toPhp (SaltyOptional salty) = "!is_null(" ++ (toPhp salty) ++ ")"
   toPhp (Range (SaltyNumber l) (SaltyNumber r)) = show $ [left..right]
       where left = read l :: Integer
             right = read r :: Integer
@@ -385,7 +364,6 @@ addReturn f@(HigherOrderFunctionCall _ _ _ accVar) = (toPhp f) ++ "\nreturn " ++
 addReturn a@(AttrAccess _ _) = "return " ++ (toPhp a)
 addReturn x@(SaltyNumber _) = "return " ++ (toPhp x)
 addReturn x@(SaltyString _) = "return " ++ (toPhp x)
-addReturn x@(SaltyOptional salty) = "return " ++ (toPhp x)
 addReturn x@(SaltyBool _) = "return " ++ (toPhp x)
 addReturn x@(Negate _) = "return " ++ (toPhp x)
 addReturn x@(SaltyGuard (Just val) guards) = toPhp (SaltyGuard (Just val) newGuards)

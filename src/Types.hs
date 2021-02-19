@@ -203,7 +203,6 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | SaltyMagicConstant MagicConstant
              | Keyword PhpKeyword
              | ParseError String
-             | SaltyOptional Salty
              deriving (Show)
 
 isSaltyComment :: Salty -> Bool

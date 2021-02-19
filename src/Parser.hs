@@ -165,7 +165,6 @@ saltyParserSingleWithoutNewline = do
   <||> objectCreation
   <||> saltyMagicConstant
   <||> phpVar
-  <||> saltyOptional
   <||> variable
 
 validFuncArgTypes :: SaltyParser
@@ -199,7 +198,6 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> phpVar
   <||> purePhp
   <||> html
-  <||> saltyOptional
   <||> variable
   <?> "a valid function argument type"
 
@@ -686,7 +684,7 @@ classicClassVar = debug "classicClassVar" >> do
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   optional $ char '('
-  obj <- range <||> indexIntoArray <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> stringSlice <||> saltyOptional <||> variable
+  obj <- range <||> indexIntoArray <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> stringSlice <||> variable
   optional $ char ')'
   char '.'
   funcName <-      (string "map" >> return Map)
@@ -801,7 +799,7 @@ findArgs = debug "findArgs" >> do
   return args
 
 attrAccess = debug "attrAccess" >> do
-  obj <- saltyOptional <||> variable
+  obj <- variable
   char '.'
   attrName <- many1 varNameChars
   return $ AttrAccess obj attrName
@@ -812,7 +810,7 @@ shorthandBlock = debug "shorthandBlock" >> do
   return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just block)
 
 htmlVar = debug "htmlVar" >> do
-  str <- string "h1" <||> string "h2" <||> string "h3" <||> string "h4" <||> string "p" <||> string "a" <||> string "img" <||> string "div" <||> string "span" <||> string "html" <||> string "title" <||> string "body" <||> string "b" <||> string "blockquote" <||> string "code" <||> string "em" <||> string "pre" <||> string "small" <||> string "strong" <||> string "sub" <||> string "sup" <||> string "input" <||> string "ul" <||> string "ol" <||> string "li" <||> string "form" <||> string "label" <||> string "button" <||> string "select" <||> string "option"
+  str <- string "h1" <||> string "h2" <||> string "h3" <||> string "h4" <||> string "h5" <||> string "h6" <||> string "p" <||> string "a" <||> string "img" <||> string "div" <||> string "span" <||> string "html" <||> string "title" <||> string "body" <||> string "b" <||> string "blockquote" <||> string "code" <||> string "em" <||> string "pre" <||> string "small" <||> string "strong" <||> string "sub" <||> string "sup" <||> string "input" <||> string "ul" <||> string "ol" <||> string "li" <||> string "form" <||> string "label" <||> string "button" <||> string "select" <||> string "option"
   return $ Variable (SimpleVar str) GlobalScope
 
 shorthandHtml = debug "shorthandHtml" >> do
@@ -837,7 +835,7 @@ lambdaBlock = debug "lambdaBlock" >> do
   return $ LambdaFunction (words args) (Braces body)
 
 functionCallOnObject = debug "functionCallOnObject" >> do
-  obj <- saltyOptional <||> variable
+  obj <- variable
   char '.'
   funcName <- many1 varNameChars
   char '('
@@ -862,7 +860,7 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs Nothing
 
 functionCallOnObjectWithoutParens = debug "functionCallOnObjectWithoutParens" >> do
-  obj <- saltyOptional <||> variable
+  obj <- variable
   char '.'
   funcName <- many1 varNameChars
   string " . " <||> string " $ "
@@ -912,20 +910,14 @@ hashLookup = debug "hashLookup" >> do
 
 shortHashLookup = debug "shortHashLookup" >> do
   char ':'
-  hash <- saltyOptional <||> variable
-  keys <- many1 $ hashKeyNumber <||> hashKeyOptional <||> hashKeyString
+  hash <- variable
+  keys <- many1 $ hashKeyNumber <||> hashKeyString
   return $ foldl (\acc key -> HashLookup acc key) (HashLookup hash (head keys)) (tail keys)
 
 hashKeyNumber = debug "hashKeyString" >> do
   char '.'
   key <- many1 digit
   return $ SaltyNumber key
-
-hashKeyOptional = debug "hashKeyOptional" >> do
-  char '.'
-  key <- many1 varNameChars
-  char '?'
-  return $ SaltyOptional $ SaltyString key
 
 hashKeyString = debug "hashKeyString" >> do
   char '.'
@@ -1248,11 +1240,6 @@ phpVar = debug "phpVar" >> do
   char '$'
   name <- many1 varNameChars
   return $ PurePhp ('$':name)
-
-saltyOptional = debug "saltyOptional" >> do
-  var <- variable
-  char '?'
-  return $ SaltyOptional var
 
 indexIntoArray = debug "indexIntoArray" >> do
   var <- variable
