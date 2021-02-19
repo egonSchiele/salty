@@ -27,20 +27,27 @@ typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
 
 data SaltyState = SaltyState {
                       lastSalty :: Salty,
-                      stateScopes :: [Scope]
+                      stateScopes :: [Scope],
+                      debugIndent :: Int
                   }
 
 type SaltyParser = Parsec String SaltyState Salty
 
 debug :: String -> SaltyParser
 debug str
-  | flag = parserTrace str >> return (SaltyString str)
+  | flag = printDebug str
   | otherwise = return (SaltyString str)
   where flag = unsafePerformIO $ do
           result <- lookupEnv "DEBUG"
           case result of
                Nothing -> return False
                Just _ -> return True
+
+printDebug :: String -> SaltyParser
+printDebug str = do
+  indent <- debugIndent <$> getState
+  parserTrace ((replicate (indent*4) ' ') ++ str)
+  return $ SaltyString str
 
 saltyToPhp :: Int -> String -> String
 saltyToPhp indentAmt str = case (build str) of
@@ -89,7 +96,7 @@ saltyToDebugTreeCheckBackTracks str = case (build str) of
                    Right xs -> formatDebugStripBackTracks xs
 
 
-startingState = SaltyState EmptyLine []
+startingState = SaltyState EmptyLine [] 0
 
 -- <* eof operator will return what saltyParser parsed ... otherwise build would return `()`
 -- which is what eof returns.
@@ -124,7 +131,23 @@ saltyParserSingle_ = do
   return salty
 
 saveIt :: Salty -> SaltyState -> SaltyState
-saveIt salty (SaltyState _ scopes) = SaltyState salty scopes
+saveIt salty (SaltyState _ scopes i) = SaltyState salty scopes i
+
+indentDebugger :: SaltyParser
+indentDebugger = do
+  modifyState indentD_
+  return Salt
+
+unindentDebugger :: SaltyParser
+unindentDebugger = do
+  modifyState unindentD_
+  return Salt
+
+indentD_ :: SaltyState -> SaltyState
+indentD_ (SaltyState prev scope i) = SaltyState prev scope (i+1)
+
+unindentD_ :: SaltyState -> SaltyState
+unindentD_ (SaltyState prev scope i) = SaltyState prev scope (i-1)
 
 saltyParserSingleWithoutNewline :: SaltyParser
 saltyParserSingleWithoutNewline = do
@@ -305,7 +328,9 @@ arrayValue = debug "arrayValue" >> do
 array = debug "array" >> do
   char '['
   optional $ char '\n' <||> char ' '
+  indentDebugger
   salties <- validHashValue `sepBy` ((string ", ") <||> (string ",\n"))
+  unindentDebugger
   optional $ char '\n' <||> char ' '
   char ']' <?> "a closing bracket"
   return $ Array salties
@@ -326,10 +351,10 @@ destructuredHash = debug "destructuredHash" >> do
   -- return $ HashTable (zip (map (SaltyString . getVarName) salties) (map (\s -> Variable s GlobalScope) salties))
 
 addScope :: Scope -> SaltyState -> SaltyState
-addScope scope (SaltyState prev scopes) = SaltyState prev (scope:scopes)
+addScope scope (SaltyState prev scopes i) = SaltyState prev (scope:scopes) i
 
 popScope :: SaltyState -> SaltyState
-popScope (SaltyState prev (s:scopes)) = SaltyState prev scopes
+popScope (SaltyState prev (s:scopes) i) = SaltyState prev scopes i
 
 braces :: Maybe Scope -> SaltyParser
 braces scope_ = debug "braces" >> do
