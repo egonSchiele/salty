@@ -152,6 +152,7 @@ unindentD_ (SaltyState prev scope i) = SaltyState prev scope (i-1)
 saltyParserSingleWithoutNewline :: SaltyParser
 saltyParserSingleWithoutNewline = do
   parens
+  <|> (try operation)
   <|> saltyBool
   <|> saltyNull
   <|> emptyObject
@@ -194,7 +195,6 @@ saltyParserSingleWithoutNewline = do
       <||> function
       <||> functionTypeSignature
       <||> multiAssign
-      <||> operation
       <||> indexIntoArray
       <||> shorthandBlock
       <||> functionCall
@@ -270,7 +270,9 @@ variableName = debug "variableName" >> do
 
 parens = debug "parens" >> do
   char '('
+  indentDebugger
   body <- many1 saltyParserSingleWithoutNewline
+  unindentDebugger
   char ')'
   modifyState (saveIt (Parens body))
   debug $ "parens done with: " ++ (show body)
