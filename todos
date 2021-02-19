@@ -31,4 +31,8 @@ React for creating elements, REactDOM for rendering to the page
 
 - passing callbacks down a react tree is painful, one solution would be to use a state monad
 
-- optional (foo?.bar) stuff is useless, delete
+this doesn't work:
+
+    const [name, setName] = React.useState("")
+
+const and let both have this issue.

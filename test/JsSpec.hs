@@ -248,6 +248,18 @@ guardTestAsSwitchResult = [r|function todos(state, action) {
     }
 }|]
 
+longClass = [r|constructor props := {
+  super(props)
+  this.state = {
+    activeItem: (window.localStorage.getItem('step') || 0)
+  };
+  React.useEffect(\_ -> window.localStorage.setItem('step', @@activeItem))
+}|]
+
+longClassResult = [r|
+
+|]
+
 jsTests = [
     multiLineEachTest,
     multiLineMapTest,
@@ -261,6 +273,7 @@ jsTests = [
     guardTestWithWhere `matches` guardResultWithWhere,
     guardTestComplex `matches` guardTestComplexResult,
     guardTestAsSwitch `matches` guardTestAsSwitchResult,
+    longClass `matches` longClassResult,
     -- operations
     "foo = 1" `matches` "foo = 1;",
     "bar = 'adit'" `matches` "bar = \"adit\";",
@@ -648,7 +661,10 @@ jsTests = [
 
     -- new keyword
     "new self()" `matches` "new self();",
-    "new self(1, foo)" `matches` "new self(1,foo);"
+    "new self(1, foo)" `matches` "new self(1,foo);",
+
+    "const [name, setName] = React.useState('')" `matches` "const [name, setName] = React.useState('');",
+    "(window.localStorage.getItem('step') || 0)" `matches` "(window.localStorage.getItem('step') || 0)"
 
     -- empty hash
     -- disabling this feature since the syntax becomes ambiguous
