@@ -128,7 +128,6 @@ saltyParserSingleWithoutNewline = do
   <||> hashTable
   <||> array
   <||> destructuredHash
-  -- <||> emptyHash
   <||> (braces Nothing)
   <||> function
   <||> functionTypeSignature
@@ -174,7 +173,6 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> array
   <||> destructuredHash
   <||> hashTable
-  -- <||> emptyHash
   <||> operation
   <||> partialOperation
   <||> saltyString
@@ -241,7 +239,6 @@ validHashValue = debug "validHashValue" >> do
   <||> attrAccess
   <||> lambda
   <||> destructuredHash
-  -- <||> emptyHash
   <||> saltyBool
   <||> saltyNull
   <||> saltyMagicConstant
@@ -258,7 +255,7 @@ stringKey = debug "stringKey" >> do
 saltyKey = debug "saltyKey" >> do
   char '['
   value <- hashLookup <||> saltyBool <||> saltyNull <||> purePhp <||> variable
-  char ']'
+  char ']' <?> "a closing bracket for a salty key"
   return value
 
 keyValuePair = debug "keyValuePair" >> do
@@ -280,7 +277,7 @@ hashTable = debug "hashTable" >> do
 
 arrayValue = debug "arrayValue" >> do
   value <- validHashValue
-  char ',' <||> char ']'
+  char ',' <||> (char ']' <?> "a closing bracket.")
   optional space
   return value
 
@@ -289,7 +286,7 @@ array = debug "array" >> do
   optional $ char '\n' <||> char ' '
   salties <- validHashValue `sepBy` ((string ", ") <||> (string ",\n"))
   optional $ char '\n' <||> char ' '
-  char ']'
+  char ']' <?> "a closing bracket"
   return $ Array salties
 
 hashValue = debug "hashValue" >> do
@@ -306,12 +303,6 @@ destructuredHash = debug "destructuredHash" >> do
   string " }"
   return $ DestructuredHash vars
   -- return $ HashTable (zip (map (SaltyString . getVarName) salties) (map (\s -> Variable s GlobalScope) salties))
-
-emptyHash = debug "emptyHash" >> do
-  char '{'
-  many $ char ' '
-  char '}'
-  return $ Array []
 
 addScope :: Scope -> SaltyState -> SaltyState
 addScope scope (SaltyState prev scopes) = SaltyState prev (scope:scopes)
@@ -331,7 +322,7 @@ braces scope_ = debug "braces" >> do
   case scope_ of
        Just scope -> modifyState popScope
        Nothing -> return ()
-  char '}'
+  char '}' <?> "a closing brace"
   debug $ "braces done with: " ++ (show body)
   return $ Braces body
 
@@ -745,7 +736,7 @@ returnStatement = debug "returnStatement" >> do
 
 saltyComment = do
   optional space
-  char '#'
+  char '#' <?> "a salty comment"
   line <- many1 $ noneOf "\n"
   string "\n"
   return $ SaltyComment line
@@ -879,7 +870,7 @@ arraySlice = debug "arraySlice" >> do
   start_ <- (Just <$> saltyParserSingle_) <||> nothing
   char ':'
   end <- (Just <$> saltyParserSingle_) <||> nothing
-  char ']'
+  char ']' <?> "a closing bracket for an array slice"
   let start = case start_ of
                 Just salty -> salty
                 Nothing -> SaltyNumber "0"
@@ -928,14 +919,14 @@ standardHashLookup = debug "standardHashLookup" >> do
   hash <- variable
   char '['
   key <- validFuncArgTypes
-  char ']'
+  char ']' <?> "a closing bracket for a hash lookup"
   return $ HashLookup hash key
 
 partialHashLookup = debug "partialHashLookup" >> do
   hash <- lastSalty <$> getState
   char '['
   key <- validFuncArgTypes
-  char ']'
+  char ']' <?> "a closing bracket for a partial hash lookup"
   return $ BackTrack (HashLookup hash key)
 
 ifStatement = debug "ifStatement" >> do
@@ -987,7 +978,7 @@ classDefinition = debug "classDefinition" >> do
   extendsName <- classDefExtends <||> nothing
   implementsName <- classDefImplements <||> nothing
   optional space
-  body <- (braces (Just ClassScope) <||> whereStatement)
+  body <- (braces (Just ClassScope) <||> whereStatement) <?> "a class body"
   return $ Class name extendsName implementsName body
 
 classDefExtends = debug "classDefExtends" >> do
