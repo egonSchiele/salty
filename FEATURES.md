@@ -215,7 +215,7 @@ becomes:
 a = {
   foo: 1,
   bar: 2,
-  baz: 'hi',
+  baz: 'hi'
 }
 ```
 
@@ -229,7 +229,7 @@ $a = [
 ]
 ```
 
-Trailing comma is optional.
+Trailing comma is not allowed.
 
 If you need keys that are php code, not strings, use the ES6 syntax:
 
@@ -523,40 +523,6 @@ and
 becomes
 
     $foo >= 1 && $foo <= 10
-
-## Optionals
-
-    foo?.bar
-    foo?.bar()
-    myVar = foo?
-    myVar = foo?.bar
-    myVar = foo?.bar()
-    myVar = :foo?.bar
-
-becomes
-
-    if (!is_null($foo)) {
-        $foo->bar;
-    }
-    if (!is_null($foo)) {
-        $foo->bar();
-    }
-    if (!is_null($foo)) {
-        $myVar = $foo;
-    }
-    if (!is_null($foo)) {
-        $myVar = $foo->bar;
-    }
-    if (!is_null($foo)) {
-        $myVar = $foo->bar();
-    }
-    if (!is_null($foo)) {
-        $myVar = $foo["bar"];
-    }
-
-Chaining doesn't work right now, so you can't do `foo?.bar?.baz`
-
-`foo.bar?` doesn't work either.
 
 ## Ternary
 I don't like the ternary operator so don't support it.
