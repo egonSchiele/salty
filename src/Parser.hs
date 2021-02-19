@@ -51,13 +51,15 @@ printDebug str = do
 
 saltyToPhp :: Int -> String -> String
 saltyToPhp indentAmt str = case (build str) of
-                   Left err -> printError str err
+                   Left err -> show err
+                   -- Left err -> printError str err
                    Right xs -> saltyToPhp_ indentAmt xs
                    -- Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
 
 saltyToJs :: Int -> String -> String
 saltyToJs indentAmt str = case (build str) of
-                   Left err -> printError str err
+                   Left err -> show err
+                   -- Left err -> printError str err
                    Right xs -> FormattingJs.saltyToJs_ indentAmt xs
                    -- Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
 
