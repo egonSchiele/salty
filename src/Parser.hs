@@ -777,11 +777,9 @@ classicClassVar = debug "classicClassVar" >> do
   return $ ClassVar (start:variable)
 
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
-  optional $ char '('
   indentDebugger
   obj <- range <||> indexIntoArray <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> stringSlice <||> variable
   unindentDebugger
-  optional $ char ')'
   char '.'
   funcName <-      (string "map" >> return Map)
               <||> (string "each" >> return Each)
