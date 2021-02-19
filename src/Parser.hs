@@ -345,7 +345,7 @@ array = debug "array" >> do
   char '['
   optional $ char '\n' <||> char ' '
   indentDebugger
-  salties <- validHashValue `sepBy` ((string ", ") <||> (string ",\n"))
+  salties <- validHashValue `sepBy` ((string ", ") <||> (string ",\n") <||> (string ","))
   optional $ char '\n' <||> char ' '
   char ']' <?> "a closing bracket"
   return $ Array salties
@@ -359,7 +359,7 @@ hashValue = debug "hashValue" >> do
 destructuredHash = debug "destructuredHash" >> do
   string "{ "
   optional $ char '\n'
-  vars <- (many1 varNameChars) `sepBy` (string ", ")
+  vars <- (many1 varNameChars) `sepBy` (string ", " <||> string ",")
   optional $ char '\n'
   string " }"
   return $ DestructuredHash vars
@@ -895,12 +895,7 @@ functionCall = debug "functionCall" >> do
   <?> "a function call"
 
 findArgs = debug "findArgs" >> do
-  args <- many $ do
-            s <- validFuncArgTypes
-            optional $ char ','
-            many space
-            return s
-  return args
+  validFuncArgTypes `sepBy` ((string ", ") <||> (string ","))
 
 attrAccess = debug "attrAccess" >> do
   obj <- variable
