@@ -184,6 +184,8 @@ instance ConvertToPhp Salty where
   -- special case, each with a range
   toPhp (HigherOrderFunctionCall (Range left right) Each (LambdaFunction loopVar body) _)  =
                 print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toPhp left) (formatLoopVars loopVar) (toPhp right) (formatLoopVars loopVar) (toPhp body)
+  toPhp (HigherOrderFunctionCall (Parens [Range left right]) Each (LambdaFunction loopVar body) _)  =
+                print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toPhp left) (formatLoopVars loopVar) (toPhp right) (formatLoopVars loopVar) (toPhp body)
 
   -- each
   toPhp (HigherOrderFunctionCall obj Each (LambdaFunction loopVar body) _)  =
