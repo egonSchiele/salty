@@ -11,6 +11,9 @@ import Debug.Trace (trace)
 import ToPhp
 import Print
 
+tryString :: String -> (Parsec String SaltyState String)
+tryString str = try . string $ str
+
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
 lambdaVarNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_ "
 classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
@@ -122,18 +125,18 @@ saltyParserSingleWithoutNewline = do
   <|> saltyNull
   <|> emptyObject
   <|> saltyKeyword
-  <|> saltyString
+  -- these have a double bar b/c saltyKeyword just has too many keywords
+  -- to replace them all with `tryString`.
+  <||> saltyString
   <|> lambda
   <|> saltyMagicConstant
-  <|> phpVar
+  <||> phpVar
   <|> returnStatement
   <|> negateSalty
   <|> saltyComment
   <|> phpComment
   <|> classDefinition
   <|> array
-  <|> plusplusAll
-  <|> shorthandHtml
   <|> objectCreation
   <|> purePhp
   <|> ifStatement
@@ -149,6 +152,7 @@ saltyParserSingleWithoutNewline = do
       <||> (braces Nothing)
       <||> partialHashLookup
       )
+  <|> (try shorthandHtml)
   -- things that begin with a variable name
   <|> (    higherOrderFunctionCall
       <||> function
@@ -163,6 +167,7 @@ saltyParserSingleWithoutNewline = do
       <||> stringIndex
       <||> stringSlice
       <||> hashLookup
+      <||> plusplusAll
       <||> variable
       )
   -- things that begin with a period (.)
@@ -171,8 +176,8 @@ saltyParserSingleWithoutNewline = do
       <||> partialAttrAccess
       )
   <|> partialOperation
-  <|> html
-  <|> emptyLine
+  <||> html
+  <||> emptyLine
 
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
@@ -737,7 +742,7 @@ lambdaWithoutArgs = debug "lambdaWithoutArgs" >> do
   return $ LambdaFunction [] body
 
 returnStatement = debug "returnStatement" >> do
-  string "return "
+  tryString "return "
   salty <- many1 saltyParserSingle_
   optional $ char '\n'
   return $ ReturnStatement (Braces salty)
@@ -750,8 +755,7 @@ saltyComment = do
   return $ SaltyComment line
 
 phpComment = (do
-  optional space
-  string "//" <?> "a php comment"
+  tryString "//" <?> "a php comment"
   line <- many1 $ noneOf "\n"
   string "\n"
   return $ PhpComment line) <?> "a php comment"
@@ -943,7 +947,7 @@ ifStatement = debug "ifStatement" >> do
   <?> "an if statement"
 
 ifWithElse = debug "ifWithElse" >> do
-  string "if"
+  tryString "if"
   space
   condition <- parseTill (wrapInSalt $ string " then ")
   thenFork <- saltyParserSingle_
@@ -954,14 +958,14 @@ ifWithElse = debug "ifWithElse" >> do
   return $ If condition thenFork (Just elseFork)
 
 ifWithoutElse = debug "ifWithoutElse" >> do
-  string "if"
+  tryString "if"
   space
   condition <- parseTill (wrapInSalt $ string " then ")
   thenFork <- saltyParserSingle_
   return $ If condition thenFork Nothing
 
 whileStatement = debug "whileStatement" >> do
-  string "while"
+  tryString "while"
   space
   condition <- saltyParserSingle_
   space
@@ -979,7 +983,7 @@ whereStatement = debug "whereStatement" >> do
   return $ Braces body
 
 classDefinition = debug "classDefinition" >> do
-  string "class"
+  tryString "class"
   space
   name <- classVar
   space
@@ -1006,7 +1010,7 @@ classDefImplements = debug "classDefImplements" >> do
 nothing = return Nothing
 
 objectCreation = debug "objectCreation" >> do
-  string "new"
+  tryString "new"
   space
   className <- classVar
   char '('
@@ -1017,19 +1021,19 @@ objectCreation = debug "objectCreation" >> do
 saltyBool = debug "saltyBool" >> (saltyTrue <|> saltyFalse)
 
 saltyTrue = debug "saltyTrue" >> do
-  s <- string "true"
+  s <- tryString "true"
   return $ SaltyBool TRUE
 
 saltyFalse = debug "saltyFalse" >> do
-  s <- string "false"
+  s <- tryString "false"
   return $ SaltyBool FALSE
 
 emptyObject = debug "emptyObject" >> do
-  string "{}" <||> string "{ }"
+  tryString "{}" <||> tryString "{ }"
   return $ HashTable []
 
 saltyNull = debug "saltyNull" >> do
-  s <- string "null"
+  s <- tryString "null"
   return SaltyNull
 
 saltyKeyword = debug "saltyKeyword" >> do
