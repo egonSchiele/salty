@@ -118,53 +118,61 @@ saveIt salty (SaltyState _ scopes) = SaltyState salty scopes
 saltyParserSingleWithoutNewline :: SaltyParser
 saltyParserSingleWithoutNewline = do
   parens
-  <||> saltyBool
-  <||> saltyNull
-  <||> emptyObject
-  <||> saltyKeyword
-  <||> higherOrderFunctionCall
-  <||> partialHigherOrderFunctionCall
-  <||> times
-  <||> hashTable
-  <||> array
-  <||> destructuredHash
-  <||> (braces Nothing)
-  <||> function
-  <||> functionTypeSignature
-  <||> lambda
-  <||> multiAssign
-  <||> plusplusAll
-  <||> operation
-  <||> partialOperation
-  <||> saltyString
-  <||> range
-  <||> indexIntoArray
-  <||> saltyNumber
-  <||> returnStatement
-  <||> shorthandHtml
-  <||> shorthandBlock
-  <||> functionCall
-  <||> attrAccess
-  <||> arraySlice
-  <||> stringIndex
-  <||> stringSlice
-  <||> hashLookup
-  <||> partialHashLookup
-  <||> partialFunctionCall
-  <||> partialAttrAccess
-  <||> negateSalty
-  <||> saltyComment
-  <||> phpComment
-  <||> purePhp
-  <||> html
-  <||> emptyLine
-  <||> ifStatement
-  <||> whileStatement
-  <||> classDefinition
-  <||> objectCreation
-  <||> saltyMagicConstant
-  <||> phpVar
-  <||> variable
+  <|> saltyBool
+  <|> saltyNull
+  <|> emptyObject
+  <|> saltyKeyword
+  <|> saltyString
+  <|> lambda
+  <|> saltyMagicConstant
+  <|> phpVar
+  <|> returnStatement
+  <|> negateSalty
+  <|> saltyComment
+  <|> phpComment
+  <|> classDefinition
+  <|> array
+  <|> plusplusAll
+  <|> shorthandHtml
+  <|> objectCreation
+  <|> purePhp
+  <|> ifStatement
+  <|> whileStatement
+  -- all the number ones
+  <|> (    times
+      <||> range
+      <||> saltyNumber
+      )
+  -- things that begin with braces
+  <|> (    hashTable
+      <||> destructuredHash
+      <||> (braces Nothing)
+      <||> partialHashLookup
+      )
+  -- things that begin with a variable name
+  <|> (    higherOrderFunctionCall
+      <||> function
+      <||> functionTypeSignature
+      <||> multiAssign
+      <||> operation
+      <||> indexIntoArray
+      <||> shorthandBlock
+      <||> functionCall
+      <||> attrAccess
+      <||> arraySlice
+      <||> stringIndex
+      <||> stringSlice
+      <||> hashLookup
+      <||> variable
+      )
+  -- things that begin with a period (.)
+  <|> (    partialHigherOrderFunctionCall
+      <||> partialFunctionCall
+      <||> partialAttrAccess
+      )
+  <|> partialOperation
+  <|> html
+  <|> emptyLine
 
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
@@ -1006,7 +1014,7 @@ objectCreation = debug "objectCreation" >> do
   char ')'
   return $ New className constructorArgs
 
-saltyBool = debug "saltyBool" >> (saltyTrue <||> saltyFalse)
+saltyBool = debug "saltyBool" >> (saltyTrue <|> saltyFalse)
 
 saltyTrue = debug "saltyTrue" >> do
   s <- string "true"
