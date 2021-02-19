@@ -748,7 +748,6 @@ returnStatement = debug "returnStatement" >> do
   return $ ReturnStatement (Braces salty)
 
 saltyComment = do
-  optional space
   char '#' <?> "a salty comment"
   line <- many1 $ noneOf "\n"
   string "\n"
