@@ -665,9 +665,9 @@ jsTests = [
     "foo := <div className='foo' val={@myVar}>hi</div>" `matches` "const foo = () => {\n  return <div className='foo' val={@myVar}>hi</div>\n}",
 
     "<div />" `matches` "<div />",
-    "<div className='foo' val={@myVar} />" `matches`"<div className='foo' val={@myVar} />\n</div>",
-    "foo = <div className='foo' val={@myVar} />" `matches` "foo = <div className='foo' val={@myVar} />\n</div>",
-    "foo := <div className='foo' val={@myVar} />" `matches` "const foo = () => {\n  return <div className='foo' val={@myVar} />\n  </div>\n}"
+    "<div className='foo' val={@myVar} />" `matches`"<div className='foo' val={@myVar} />",
+    "foo = <div className='foo' val={@myVar} />" `matches` "foo = <div className='foo' val={@myVar} />",
+    "foo := <div className='foo' val={@myVar} />" `matches` "const foo = () => {\n  return <div className='foo' val={@myVar} />\n}"
 
     -- empty hash
     -- disabling this feature since the syntax becomes ambiguous

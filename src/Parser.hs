@@ -880,7 +880,7 @@ purePhp = debug "purePhp" >> do
   return $ PurePhp line
 
 html = debug "html" >> do
-  htmlNoChildren <||> htmlWithChildren
+  htmlNoChildren <||> htmlNoChildrenWithAttrs <||> htmlWithChildren
 
 htmlNoChildren = debug "htmlNoChildren" >> do
   char '<'
@@ -890,6 +890,16 @@ htmlNoChildren = debug "htmlNoChildren" >> do
   optional space
   string "/>"
   return $ PurePhp $ "<" ++ tag ++ " />"
+
+htmlNoChildrenWithAttrs = debug "htmlNoChildrenWithAttrs" >> do
+  char '<'
+  start <- letter
+  _tag <- many1 varNameChars
+  let tag = start:_tag
+  space
+  attrs <- many1 (noneOf "/")
+  string "/>"
+  return $ PurePhp $ "<" ++ tag ++ " " ++ attrs ++ "/>"
 
 htmlWithChildren = debug "htmlWithChildren" >> do
   char '<'
