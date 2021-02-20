@@ -653,7 +653,21 @@ jsTests = [
     "new self(1, foo)" `matches` "new self(1,foo);",
 
     "const [name, setName] = React.useState('')" `matches` "const [name, setName] = React.useState(\"\");",
-    "(window.localStorage.getItem('step') || 0)" `matches` "(window.localStorage.getItem(\"step\") || 0);"
+    "(window.localStorage.getItem('step') || 0)" `matches` "(window.localStorage.getItem(\"step\") || 0);",
+
+    -- jsx tests
+    "<div>hi</div>" `matches` "<div>hi</div>",
+    "foo = <div>hi</div>" `matches` "foo = <div>hi</div>",
+    "foo := <div>hi</div>" `matches` "const foo = () => {\n  return <div>hi</div>\n}",
+
+    "<div className='foo' val={@myVar}>hi</div>" `matches` "<div className='foo' val={@myVar}>hi</div>",
+    "foo = <div className='foo' val={@myVar}>hi</div>" `matches` "foo = <div className='foo' val={@myVar}>hi</div>",
+    "foo := <div className='foo' val={@myVar}>hi</div>" `matches` "const foo = () => {\n  return <div className='foo' val={@myVar}>hi</div>\n}",
+
+    "<div />" `matches` "<div />",
+    "<div className='foo' val={@myVar} />" `matches`"<div className='foo' val={@myVar} />\n</div>",
+    "foo = <div className='foo' val={@myVar} />" `matches` "foo = <div className='foo' val={@myVar} />\n</div>",
+    "foo := <div className='foo' val={@myVar} />" `matches` "const foo = () => {\n  return <div className='foo' val={@myVar} />\n  </div>\n}"
 
     -- empty hash
     -- disabling this feature since the syntax becomes ambiguous
