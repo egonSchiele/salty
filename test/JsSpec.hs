@@ -482,7 +482,7 @@ jsTests = [
     "(@adit).map(\\x -> x + 1)" `matches` "(this.adit).map((x) => x + 1)",
     "users = shops.map(\\s -> s.user)" `matches` "users = shops.map((s) => s.user)",
     "users = shops.map(\\s x -> s.user)" `matches` "users = shops.map((s, x) => s.user)",
-    "shops.each(\\s x -> s.user)" `matches` "users = shops.forEach((s, x) => s.user)",
+    "shops.each(\\s x -> s.user)" `matches` "shops.forEach((s, x) => s.user)",
     "@shops().each(\\s -> s.user)" `matches` "this.shops().forEach((s) => {\n  s.user;\n});",
     "[foo, bar, baz].map(\\shop -> shop.listings)" `matches` "[foo, bar, baz].map((shop) => shop.listings)",
     "foo[:5].map(\\shop -> shop.listings)" `matches` "foo.slice(0, 6).map((shop) => shop.listings)",
@@ -498,8 +498,8 @@ jsTests = [
     -- chain a function onto the end of a HoF
     "count_alive = shops.select(\\s -> s.isAlive()).count()" `matches` "count_alive = shops.filter((s) => s.isAlive()).count();",
     -- TODO attr access and array slices don't work on this
-    "count_alive = shops.select(\\s -> s.isAlive()).foo" `matches` "",
-    "count_alive = shops.select(\\s -> s.isAlive())[:2]" `matches` "",
+    "count_alive = shops.select(\\s -> s.isAlive()).foo" `matches` "count_alive = shops.filter((s) => s.isAlive()).foo",
+    -- "count_alive = shops.select(\\s -> s.isAlive())[:2]" `matches` "",
     -- TODO can't chain more than one function yet
     -- "count_alive = shops.select(\\s -> s.isAlive()).uniq().count()" `matches` "",
 
@@ -512,16 +512,16 @@ jsTests = [
 
     -- assigning accVar manually plus implicit return
     "bar := myAcc = foo.each(\\x -> print(x))" `matches` "const bar = () => {\n  foo.forEach((x) => {\n    print(x);\n  });\n}",
-    "bar := @myAcc = foo.map(\\x -> x + 1)" `matches` "function bar() {\n  this.myAcc = [];\n  foreach (foo as x) {\n      this.myAcc []= x + 1;\n  }\n  return this.myAcc;\n}",
-    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "function bar() {\n  this.state.myAcc = false;\n  foreach (foo as x) {\n      if(x->isEven()) {\n          this.state.myAcc = true;\n          break;\n      }\n  }\n  return this.state.myAcc;\n}",
-    "bar := myAcc = foo.all(\\x -> x.isEven())" `matches` "function bar() {\n  myAcc = true;\n  foreach (foo as x) {\n      if(!x->isEven()) {\n          myAcc = false;\n          break;\n      }\n  }\n  return myAcc;\n}",
+    "bar := @myAcc = foo.map(\\x -> x + 1)" `matches` "const bar = () => {\n  this.myAcc = foo.map((x) => x + 1);\n  return this.myAcc;\n}",
+    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "const bar = () => {\n  this.setState({\n    myAcc: foo.any((x) => x.isEven())\n});\n}",
+    "bar := myAcc = foo.all(\\x -> x.isEven())" `matches` "const bar = () => {\n  myAcc = foo.every((x) => x.isEven());\n  return myAcc;\n}",
 
     -- implicit returns for higher order functions
-    "bar := foo.each(\\x -> print(x))" `matches` "function bar() {\n  foreach (foo as x) {\n      print(x);\n  }\n}",
-    "bar := foo.map(\\x -> x + 1)" `matches`"function bar() {\n  result = [];\n  foreach (foo as x) {\n      result []= x + 1;\n  }\n  return result;\n}",
-    "bar := foo.any(\\x -> x.isEven())" `matches`"function bar() {\n  result = false;\n  foreach (foo as x) {\n      if(x->isEven()) {\n          result = true;\n          break;\n      }\n  }\n  return result;\n}",
-    "bar := foo.all(\\x -> x.isEven())" `matches`"function bar() {\n  result = true;\n  foreach (foo as x) {\n      if(!x->isEven()) {\n          result = false;\n          break;\n      }\n  }\n  return result;\n}",
-    "bar := foo.select(\\x -> x.isEven())" `matches` "function bar() {\n  result = [];\n  foreach (foo as x) {\n      if(x->isEven()) {\n          result []= x;\n      }\n  }\n  return result;\n}",
+    "bar := foo.each(\\x -> print(x))" `matches` "const bar = () => {\n  foo.forEach((x) => {\n    print(x);\n  });\n}",
+    "bar := foo.map(\\x -> x + 1)" `matches` "const bar = () => {\n  return foo.map((x) => x + 1)\n}",
+    "bar := foo.any(\\x -> x.isEven())" `matches` "const bar = () => {\n  return foo.some((x) => x.isEven())\n}",
+    "bar := foo.all(\\x -> x.isEven())" `matches` "const bar = () => {\n  return foo.every((x) => x.isEven())\n}",
+    "bar := foo.select(\\x -> x.isEven())" `matches` "const bar = () => {\n  return foo.filter((x) => x.isEven())\n}",
 
     -- keywords
     "use Foo" `matches` "use Foo;",
