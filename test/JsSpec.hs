@@ -233,19 +233,15 @@ guardTestAsSwitch = [r|todos state action := guard(hi)
   | otherwise -> state
 |]
 
-guardTestAsSwitchResult = [r|function todos(state, action) {
-    switch (hi) {
-        case "ADD":
-            return todo(null, action);
-        case "TOGGLE":
-            result = [];
-        foreach (state as t) {
-            result []= todo(t, action);
-        }
-        return result;
-        case default:
-            return state;
-    }
+guardTestAsSwitchResult = [r|const todos = (state, action) => {
+  switch (hi) {
+    case "ADD":
+      return todo(null, action);
+    case "TOGGLE":
+      return state.map((t) => todo(t, action))
+    default:
+      return state;
+  }
 }|]
 
 longClass = [r|constructor props := {
@@ -256,9 +252,15 @@ longClass = [r|constructor props := {
   React.useEffect(\_ -> window.localStorage.setItem('step', @@activeItem))
 }|]
 
-longClassResult = [r|
-
-|]
+longClassResult = [r|const constructor = (props) => {
+  super(props);
+  this.state = {
+    "activeItem": (window.localStorage.getItem("step") || 0)
+  }
+  React.useEffect(() => {
+    return window.localStorage.setItem("step", this.state.activeItem);
+  }
+}|]
 
 jsTests = [
     multiLineEachTest,
@@ -299,13 +301,13 @@ jsTests = [
     "foo <> bar" `matches` "Object.assign(foo, bar);",
     "foo <-> bar" `matches` "array_diff(foo, bar);",
     "foo in bar" `matches` "bar.includes(foo);",
-    "'foo' in bar" `matches` "bar.includes(\"foo\")",
-    "foo keyin bar" `matches` "array_key_exists(foo, bar);",
+    "'foo' in bar" `matches` "bar.includes(\"foo\");",
+    "foo keyin bar" `matches` "bar.hasOwnProperty(foo);",
     "foo <=> bar" `matches` "foo <=> bar;",
-    "foo = hello_there(hi(2) <> 1)" `matches` "foo = hello_there(array_merge(hi(2), 1));",
+    "foo = hello_there(hi(2) <> 1)" `matches` "foo = hello_there(Object.assign(hi(2), 1));",
     "foo = hello_there(hi(2) + 1)" `matches` "foo = hello_there(hi(2) + 1);",
     "foo, bar, baz = []" `matches` "foo = [];\nbar = [];\nbaz = [];",
-    "key = @@KEY ++ preg_replace('/[^a-z\\d_]/i', '_', str).join(\"_\") ++ last" `matches` "key = this.state.KEY . implode('_', preg_replace(\"/[^a-z\\d_]/i\", \"_\", str)) . last;",
+    "key = @@KEY ++ preg_replace('/[^a-z\\d_]/i', '_', str).join(\"_\") ++ last" `matches` "key = KEY + preg_replace(\"/[^a-z\\d_]/i\", \"_\", str).join(\"_\") + last;",
 
     -- function definitions
     "build a b := return 2" `matches` "const build = (a, b) => {\n  return 2;\n}",
@@ -319,15 +321,15 @@ jsTests = [
     "_foo a := @a = a" `matches` "const foo = (a) => {\n  this.a = a;\n}",
     "@@_foo a := @a = a" `matches` "const foo = (a) => {\n  this.a = a;\n}",
     -- but do add visibility in class scope:
-    "class Foo {\n_foo a := @a = a\n}" `matches` "class Foo {\n  function _foo(a) {\n  this.a = a;\n  }\n}",
-    "class Foo {\n@@_foo a := @a = a\n}" `matches` "class Foo {\n  function _foo(a) {\n  this.a = a;\n  }\n}",
-    "foo2 := 2 + 2" `matches` "function foo2() {\n  return 2 + 2;\n}",
-    "__construct a := @a = a" `matches` "function __construct(a) {\n  this.a = a;\n}",
-    "foo ...a := a" `matches` "function foo(...a) {\n  return a;\n}",
+    "class Foo {\n_foo a := @a = a\n}" `matches` "class Foo {\n  foo(a) {\n    this.a = a;\n  }\n}",
+    "class Foo {\n@@_foo a := @a = a\n}" `matches` "class Foo {\n  foo(a) {\n    this.a = a;\n  }\n}",
+    "foo2 := 2 + 2" `matches` "const foo2 = () => {\n  return 2 + 2;\n}",
+    "__construct a := @a = a" `matches` "const __construct = (a) => {\n  this.a = a;\n}",
+    "foo ...a := a" `matches` "const foo = (...a) => {\n  return a;\n}",
 
     -- pass by reference
-    "incr &count := ++count" `matches` "function incr(&count) {\n  count = count + 1;\n}",
-    "foo a b := bar\n  where baz = b + 1\n  and bar = a + baz" `matches` "function foo(a, b) {\n  baz = b + 1;\n  bar = a + baz;\n  return bar;\n}",
+    "incr &count := ++count" `matches` "const incr = (count) => {\n  count = count + 1;\n}",
+    "foo a b := bar\n  where baz = b + 1\n  and bar = a + baz" `matches` "const foo = (a, b) => {\n  baz = b + 1;\n  bar = a + baz;\n  return bar;\n}",
 
     -- fails, variables don't have the concept of pass by reference or not yet
     -- "foo = &bar" `matches` "foo = &bar",
@@ -352,9 +354,9 @@ jsTests = [
     "var = (new Foo(:hash.key)).someFunc()" `matches` "var = (new Foo(hash[\"key\"])).someFunc();",
 
     -- braces tests
-    "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "function fib(x) {\n  if (x < 2) {\n      return x;\n  } else {\n      return fib(x - 1) + fib(x - 2);\n  }\n}",
-    "fib x := {\na + b\n b + c\n }\n \n foo a b := a + b" `matches` "function fib(x) {\n  a + b;\n  return b + c;\n}\nfunction foo(a, b) {\n  return a + b;\n}",
-    "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "function fib(x) {\n  a + b;\n  return b + c;\n}\nfunction foo(a, b) {\n  return a + b;\n}",
+    "fib x := {\nif x < 2 then {\nreturn x\n} else {\nreturn fib(x - 1) + fib(x - 2)\n}\n}" `matches` "const fib = (x) => {\n  if (x < 2) {\n    return x;\n  } else {\n    return fib(x - 1) + fib(x - 2);\n  }\n}",
+    "fib x := {\na + b\n b + c\n }\n \n foo a b := a + b" `matches` "const fib = (x) => {\n  a + b;\n  return b + c;\n}\nconst foo = (a, b) => {\n  return a + b;\n}",
+    "fib x := {\na + b\n b + c\n }\n \n foo a b := { a + b }" `matches` "const fib = (x) => {\n  a + b;\n  return b + c;\n}\nconst foo = (a, b) => {\n  return a + b;\n}",
 
     -- hash tests
     "argv[1]" `matches` "argv[1];",
@@ -372,36 +374,36 @@ jsTests = [
 
     -- if statement
     "if a = 1 then {\n b = 2\n c = 3\n }" `matches`"if (a = 1) {\n  b = 2;\n  c = 3;\n}",
-    "if a != 'foo' then return 2 else return 3" `matches` "if (a != \"foo\") {\n  return 2;\n} else {\n  return 3;\n}",
-    "foo := if x % 2 == 0 then 'even' else 'odd'" `matches` "function foo() {\n  if (x % 2 === 0) {\n      return \"even\";\n  } else {\n      return \"odd\";\n  }\n}",
+    "if a != 'foo' then return 2 else return 3" `matches` "if (a !== \"foo\") {\n  return 2;\n} else {\n  return 3;\n}",
+    "foo := if x % 2 == 0 then 'even' else 'odd'" `matches` "const foo = () => {\n  if (x % 2 === 0) {\n    return \"even\";\n  } else {\n    return \"odd\";\n  }\n}",
 
     -- arity for else
-    "fib x := if x < 2 then x else fib(x - 1) + fib(x - 2)" `matches` "function fib(x) {\n  if (x < 2) {\n      return x;\n  } else {\n      return fib(x - 1) + fib(x - 2);\n  }\n}",
+    "fib x := if x < 2 then x else fib(x - 1) + fib(x - 2)" `matches` "const fib = (x) => {\n  if (x < 2) {\n    return x;\n  } else {\n    return fib(x - 1) + fib(x - 2);\n  }\n}",
 
     -- while statement
     "while foo == 1 {\nfoo = 2\n}" `matches`"while (foo === 1) {\n  foo = 2;\n}",
     "while foo == 1 {\nfoo = 2\nbar = 3\n}" `matches`"while (foo === 1) {\n  foo = 2;\n  bar = 3;\n}",
 
     -- function calls
-    "Blocklist.foo()" `matches` "Blocklist::foo();",
+    "Blocklist.foo()" `matches` "Blocklist.foo();",
     "a.foo()" `matches` "a.foo();",
     "@a.foo()" `matches` "this.a.foo();",
     "@foo()" `matches` "this.foo();",
     "@@foo()" `matches` "this.state.foo();",
 
-    "Blocklist.foo(1, 2)" `matches` "Blocklist::foo(1, 2);",
+    "Blocklist.foo(1, 2)" `matches` "Blocklist.foo(1, 2);",
     "a.foo(1, 2)" `matches` "a.foo(1, 2);",
     "@a.foo(1, 2)" `matches` "this.a.foo(1, 2);",
     "@foo(1, 2)" `matches` "this.foo(1, 2);",
     "@@foo(1, 2)" `matches` "this.state.foo(1, 2);",
 
-    "Blocklist.foo(b)" `matches` "Blocklist::foo(b);",
+    "Blocklist.foo(b)" `matches` "Blocklist.foo(b);",
     "a.foo(b)" `matches` "a.foo(b);",
     "@a.foo(b)" `matches` "this.a.foo(b);",
     "@foo(b)" `matches` "this.foo(b);",
     "@@foo(b)" `matches` "this.state.foo(b);",
 
-    "Blocklist.foo(b.bar())" `matches` "Blocklist::foo(b.bar());",
+    "Blocklist.foo(b.bar())" `matches` "Blocklist.foo(b.bar());",
     "a.foo(b.bar())" `matches` "a.foo(b.bar());",
     "@a.foo(@bar())" `matches` "this.a.foo(this.bar());",
     "@foo(@@bar())" `matches` "this.foo(this.state.bar());",
@@ -413,8 +415,8 @@ jsTests = [
     "foo.bar" `matches` "foo.bar;",
     "@foo.bar" `matches` "this.foo.bar;",
     "@@foo.bar" `matches` "this.state.foo.bar;",
-    "Blocklist.foo" `matches` "Blocklist::foo;",
-    "Blocklist.FOO" `matches` "Blocklist::FOO;",
+    "Blocklist.foo" `matches` "Blocklist.foo;",
+    "Blocklist.FOO" `matches` "Blocklist.FOO;",
     "foo.bar = 1" `matches` "foo.bar = 1;",
     "foo.bar = 'hello'" `matches` "foo.bar = \"hello\";",
     "foo.bar = 2 + 2" `matches` "foo.bar = 2 + 2;",
@@ -488,9 +490,9 @@ jsTests = [
     "[foo, bar, baz].map(\\shop -> shop.listings)" `matches` "result = [];\nforeach ([foo, bar, baz] as shop) {\n  result []= shop->listings;\n}",
     "foo[:5].map(\\shop -> shop.listings)" `matches` "result = [];\nforeach (array_slice(foo, 0, 5) as shop) {\n  result []= shop->listings;\n}",
     "@shops().find(1).each(\\s -> s.user)" `matches` "foreach (this.shops()->find(1) as s) {\n  s->user;\n}",
-    "Foo.shops(arg1).each(\\s -> s.user)" `matches` "foreach (Foo::shops(arg1) as s) {\n  s->user;\n}",
+    "Foo.shops(arg1).each(\\s -> s.user)" `matches` "foreach (Foo.shops(arg1) as s) {\n  s->user;\n}",
     "@@shops().map(\\s -> s.user)" `matches` "result = [];\nforeach (this.state.shops() as s) {\n  result []= s->user;\n}",
-    "Foo.shops().any(\\s -> s.user)" `matches`"result = false;\nforeach (Foo::shops() as s) {\n  if(s->user) {\n      result = true;\n      break;\n  }\n}",
+    "Foo.shops().any(\\s -> s.user)" `matches`"result = false;\nforeach (Foo.shops() as s) {\n  if(s->user) {\n      result = true;\n      break;\n  }\n}",
     "@shops().all(\\s -> s.user)" `matches` "result = true;\nforeach (this.shops() as s) {\n  if(!s->user) {\n      result = false;\n      break;\n  }\n}",
     "@shops().select(\\s -> s.user)" `matches` "result = [];\nforeach (this.shops() as s) {\n  if(s->user) {\n      result []= s;\n  }\n}",
 
@@ -562,11 +564,11 @@ jsTests = [
 
     -- string slices
     "foo<1>" `matches` "foo.charAt(1);",
-    "foo<1:>" `matches` "foo.substring(1)",
-    "foo<:2>" `matches` "foo.substring(0, 3)",
-    "foo<:>" `matches` "foo.substring(0)",
-    "foo<1:5>" `matches` "foo.substring(1, 6)",
-    "foo<start:>" `matches` "foo.substring(start)",
+    "foo<1:>" `matches` "foo.substring(1);",
+    "foo<:2>" `matches` "foo.substring(0, 3);",
+    "foo<:>" `matches` "foo.substring(0);",
+    "foo<1:5>" `matches` "foo.substring(1, 6);",
+    "foo<start:>" `matches` "foo.substring(start);",
     "foo<2:count(foo)>" `matches` "foo.substring(2, count(foo)-1);",
     -- instanceof
     "foo instanceof Class" `matches` "foo instanceof Class;",
@@ -595,7 +597,7 @@ jsTests = [
 
     -- scope
     "class Foo {\nbar = 1\n}" `matches` "class Foo {\n  bar = 1;\n}",
-    "class Foo {\n_bar = 1\n}" `matches` "class Foo {\n  bar = 1;\n}",
+    "class Foo {\n_bar = 1\n}" `matches` "class Foo {\n  _bar = 1;\n}",
     "class Foo {\n@@_bar = 1\n}" `matches` "class Foo {\n  this.setState({\n      _bar: 1\n  });\n}",
     "class Foo {\n@@bar = 1\n}" `matches` "class Foo {\n  this.setState({\n      bar: 1\n  });\n}",
 
