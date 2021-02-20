@@ -249,7 +249,7 @@ longClass = [r|constructor props := {
   this.state = {
     activeItem: (window.localStorage.getItem('step') || 0)
   };
-  React.useEffect(\_ -> window.localStorage.setItem('step', @@activeItem))
+  React.useEffect((\_ -> window.localStorage.setItem('step', @@activeItem)))
 }|]
 
 longClassResult = [r|const constructor = (props) => {
@@ -257,9 +257,21 @@ longClassResult = [r|const constructor = (props) => {
   this.state = {
     "activeItem": (window.localStorage.getItem("step") || 0)
   }
-  React.useEffect(() => {
+  React.useEffect((() => {
     return window.localStorage.setItem("step", this.state.activeItem);
-  }
+  }))
+}|]
+
+doFunc = [r|constructor props := {
+  React.useEffect() do
+    window.localStorage.setItem('step', @@activeItem)
+  end
+}|]
+
+doFuncResult = [r|const constructor = (props) => {
+  return React.useEffect(() => {
+    return window.localStorage.setItem("step", this.state.activeItem);
+  });
 }|]
 
 jsTests = [
@@ -276,6 +288,7 @@ jsTests = [
     guardTestComplex `matches` guardTestComplexResult,
     guardTestAsSwitch `matches` guardTestAsSwitchResult,
     longClass `matches` longClassResult,
+    doFunc `matches` doFuncResult,
     -- operations
     "foo = 1" `matches` "foo = 1;",
     "bar = 'adit'" `matches` "bar = \"adit\";",
