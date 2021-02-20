@@ -783,10 +783,13 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   char '.'
   funcName <-      (string "map" >> return Map)
               <||> (string "each" >> return Each)
+              <||> (string "forEach" >> return Each)
               <||> (string "select" >> return Select)
               <||> (string "filter" >> return Select)
               <||> (string "any" >> return Any)
+              <||> (string "some" >> return Any)
               <||> (string "all" >> return All)
+              <||> (string "every" >> return All)
   char '('
   indentDebugger
   func <- lambda
