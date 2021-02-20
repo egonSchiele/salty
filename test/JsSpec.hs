@@ -538,29 +538,29 @@ jsTests = [
     "namespace Foo" `matches` "namespace Foo;",
     "namespace Foo\\Bar" `matches` "namespace Foo\\Bar;",
     "echo 'hi'" `matches` "echo \"hi\";",
-    "greet := echo 'hi'" `matches` "function greet() {\n  echo \"hi\";\n}",
+    "greet := echo 'hi'" `matches` "const greet = () => {\n  echo \"hi\";\n}",
     "break" `matches` "break;",
 
     -- arrays
     "foo = [1, 2, 3]" `matches` "foo = [1, 2, 3];",
-    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches` "a = {\n  \"foo\": 1,\n  \"bar\": 2,\n  \"cat\": \"hello\"\n};",
-    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello'\n }" `matches` "a = {\n  \"foo\": 1,\n  \"bar\": 2,\n  \"cat\": \"hello\"\n};",
+    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello',\n }" `matches` "a = {\n  \"foo\": 1,\n  \"bar\": 2,\n  \"cat\": \"hello\"\n}",
+    "a = {\n foo: 1,\n bar: 2,\n cat: 'hello'\n }" `matches` "a = {\n  \"foo\": 1,\n  \"bar\": 2,\n  \"cat\": \"hello\"\n}",
 
     -- array slices
-    "foo[1:]" `matches` "array_slice(foo, 1);",
-    "foo[:2]" `matches` "array_slice(foo, 0, 2);",
-    "foo[:]" `matches` "array_slice(foo, 0);",
-    "foo[1:5]" `matches` "array_slice(foo, 1, 4);",
-    "foo[start:]" `matches` "array_slice(foo, start);",
-    "foo[2:count(foo)]" `matches` "array_slice(foo, 2, count(foo) - 2);",
+    "foo[1:]" `matches` "foo.slice(1);",
+    "foo[:2]" `matches` "foo.slice(0, 3);",
+    "foo[:]" `matches` "foo.slice(0);",
+    "foo[1:5]" `matches` "foo.slice(1, 6);",
+    "foo[start:]" `matches` "foo.slice(start);",
+    "foo[2:count(foo)]" `matches` "foo.slice(2, count(foo)-1);",
 
     -- array splices
-    "foo[1:] = arr" `matches` "array_splice(foo, 1, null, arr);",
-    "foo[:2] = arr" `matches` "array_splice(foo, 0, 2, arr);",
-    "foo[:] = arr" `matches` "array_splice(foo, 0, null, arr);",
-    "foo[1:5] = arr" `matches` "array_splice(foo, 1, 4, arr);",
-    "foo[start:] = arr" `matches` "array_splice(foo, start, null, arr);",
-    "foo[2:count(foo)] = arr" `matches` "array_splice(foo, 2, count(foo) - 2, arr);",
+    "foo[1:] = arr" `matches` "foo.splice(1, foo.length, arr);",
+    "foo[:2] = arr" `matches` "foo.splice(0, 2, arr);",
+    "foo[:] = arr" `matches` "foo.splice(0, foo.length, arr);",
+    "foo[1:5] = arr" `matches` "foo.splice(1, 4, arr);",
+    "foo[start:] = arr" `matches` "foo.splice(start, foo.length, arr);",
+    "foo[2:count(foo)] = arr" `matches` "foo.splice(2, count(foo) - 2, arr);",
 
     -- string slices
     "foo<1>" `matches` "foo.charAt(1);",
@@ -580,8 +580,8 @@ jsTests = [
 
     -- ranges
     "1..10" `matches` "[1,2,3,4,5,6,7,8,9,10];",
-    "1..foo.bar" `matches` "a range: (1..foo.bar);",
-    "start..end" `matches` "a range: (start..end);",
+    "1..foo.bar" `matches` "a range: (1..foo.bar)",
+    "start..end" `matches` "a range: (start..end)",
 
     -- TODO failing spec
     -- "take(5, (1..10))" `matches` "take(5, [1,2,3,4,5,6,7,8,9,10]);",
