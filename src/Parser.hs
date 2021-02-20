@@ -356,6 +356,15 @@ hashValue = debug "hashValue" >> do
   optional $ oneOf "\n "
   return value
 
+destructuredArray = debug "destructuredArray" >> do
+  char '['
+  optional space
+  vars <- variable `sepBy` (string ", " <||> string ",")
+  optional space
+  char ']'
+  return $ Array vars
+  -- return $ HashTable (zip (map (SaltyString . getVarName) salties) (map (\s -> Variable s GlobalScope) salties))
+
 destructuredHash = debug "destructuredHash" >> do
   string "{ "
   optional $ char '\n'
@@ -1253,7 +1262,7 @@ saltyKeywordVarDeclaration = debug "saltyKeywordVarDeclaration" >> do
   typ <- string "const" <||> string "var" <||> string "let"
   space
   indentDebugger
-  name <- (PurePhp <$> many1 varNameChars) <||> destructuredHash
+  name <- variable <||> destructuredHash <||> destructuredArray
   unindentDebugger
   return $ KwVarDeclaration typ name
 

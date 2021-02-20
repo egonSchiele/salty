@@ -365,6 +365,7 @@ instance ConvertToJs Salty where
 
 addReturn :: Salty -> String
 addReturn x@(ReturnStatement _) = toJs x
+addReturn x@(Operation (Variable (StaticVar _) _) Equals right) = toJs x
 addReturn x@(Operation var@(Variable _ _) Equals h@(HigherOrderFunctionCall obj callName func accVar)) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
 addReturn x@(Operation var@(Variable _ _) Equals (WithNewLine(h@(HigherOrderFunctionCall obj callName func accVar)))) = addReturn (HigherOrderFunctionCall obj callName func (varName var))
 addReturn x@(Operation _ Equals _) = toJs x
@@ -381,6 +382,7 @@ addReturn x@(Braces []) = toJs x
 addReturn (Braces s) = (concat . map toJs . init $ s) ++ "\n" ++ (addReturn . last $ s)
 addReturn (Variable name scope) = "return " ++ (toJs name)
 addReturn (WithNewLine x) = (addReturn x) ++ "\n"
+addReturn (Parens [x@(If _ _ _)]) = addReturn x
 addReturn p@(Parens x) = "return " ++ (toJs p)
 -- this means html will be wrapped in parens automatically
 addReturn f@(FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) _ _) = "return (" ++ toJs f ++ ")"

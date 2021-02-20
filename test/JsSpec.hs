@@ -513,7 +513,7 @@ jsTests = [
     -- assigning accVar manually plus implicit return
     "bar := myAcc = foo.each(\\x -> print(x))" `matches` "const bar = () => {\n  foo.forEach((x) => {\n    print(x);\n  });\n}",
     "bar := @myAcc = foo.map(\\x -> x + 1)" `matches` "const bar = () => {\n  this.myAcc = foo.map((x) => x + 1);\n  return this.myAcc;\n}",
-    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "const bar = () => {\n  this.setState({\n    myAcc: foo.any((x) => x.isEven())\n});\n}",
+    "bar := @@myAcc = foo.any(\\x -> x.isEven())" `matches` "const bar = () => {\n  this.setState({\n      myAcc: foo.some((x) => x.isEven())\n  });\n}",
     "bar := myAcc = foo.all(\\x -> x.isEven())" `matches` "const bar = () => {\n  myAcc = foo.every((x) => x.isEven());\n  return myAcc;\n}",
 
     -- implicit returns for higher order functions

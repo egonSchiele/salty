@@ -357,6 +357,7 @@ addReturn x@(Braces []) = toPhp x
 addReturn (Braces s) = (concat . map toPhp . init $ s) ++ "\n" ++ (addReturn . last $ s)
 addReturn (Variable name scope) = "return " ++ (toPhp name)
 addReturn (WithNewLine x) = (addReturn x) ++ "\n"
+addReturn (Parens [x@(If _ _ _)]) = addReturn x
 addReturn p@(Parens x) = "return " ++ (toPhp p)
 addReturn f@(FunctionCall o n a b) = "return " ++ (toPhp f)
 addReturn h@(HashTable kv) = "return " ++ (toPhp h)
