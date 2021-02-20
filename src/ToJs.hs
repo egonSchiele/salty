@@ -119,7 +119,9 @@ instance ConvertToJs Salty where
 
   -- this is a hack -- it's the same as the statement above just w the WithNewLine added.
   -- toJs (Operation x@(Variable _ _) Equals (WithNewLine (HigherOrderFunctionCall obj callName func accVar))) = toJs $ HigherOrderFunctionCall obj callName func (varName x)
-  toJs (Operation left Equals (If cond thenPath_ (Just elsePath_))) = print4 "% = % ? % : %" (toJs left) (concat . map toJs $ cond) (toJs thenPath_) (toJs elsePath_)
+
+  -- currently hacking a semicolon at the end b/c otherwise my addSemicolons function won't because there's a colon (:) in the line.
+  toJs (Operation left Equals (If cond thenPath_ (Just elsePath_))) = print4 "% = % ? % : %;" (toJs left) (concat . map toJs $ cond) (toJs thenPath_) (toJs elsePath_)
   toJs (Operation left Equals (If cond thenPath_ Nothing)) = print3 "% = null;\nif (%) {\n%\n}" (toJs left) (concat . map toJs $ cond) (toJs (Operation left Equals thenPath_))
   toJs (Operation (ArraySlice obj start Nothing) Equals arr) = print4 "%.splice(%, %.length, %)" (toJs obj) (toJs start) (toJs obj) (toJs arr)
   toJs (Operation (ArraySlice obj (SaltyNumber start) (Just (SaltyNumber end))) Equals arr) = print4 "%.splice(%, %, %)" (toJs obj) start newEnd (toJs arr)
@@ -185,7 +187,7 @@ instance ConvertToJs Salty where
   toJs (FunctionCall Nothing (Left VarDumpShort) args _) = "console.log(" ++ (intercalate ", " . map toJs $ args) ++ ")"
 
   -- functions called on higher order functions
-  toJs (FunctionCall (Just hof@(HigherOrderFunctionCall _ _ _ accVar)) (Right funcName) args block) = print3 "%\n% = %" (toJs hof) accVar (toJs (FunctionCall (Just (PurePhp accVar)) (Right funcName) args block))
+  -- toJs (FunctionCall (Just hof@(HigherOrderFunctionCall _ _ _ accVar)) (Right funcName) args block) = print3 "%\n% = %" (toJs hof) accVar (toJs (FunctionCall (Just (PurePhp accVar)) (Right funcName) args block))
   -- builtin functions on an obj
   toJs (FunctionCall (Just obj) (Right (SimpleVar "uniq")) [] _) = print2 "let % = [...new Set(%)]" (toJs obj) (toJs obj)
   toJs (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "%.replace(%, %)" (toJs obj) (toJs search) (toJs replace)
@@ -226,6 +228,8 @@ instance ConvertToJs Salty where
 
   -- special case, each with a range
   toJs (HigherOrderFunctionCall (Range left right) Each (LambdaFunction loopVar body) _)  =
+                print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toJs left) (formatLoopVars loopVar) (toJs right) (formatLoopVars loopVar) (toJs body)
+  toJs (HigherOrderFunctionCall (Parens [Range left right]) Each (LambdaFunction loopVar body) _)  =
                 print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toJs left) (formatLoopVars loopVar) (toJs right) (formatLoopVars loopVar) (toJs body)
 
   -- each
