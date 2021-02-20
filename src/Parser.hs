@@ -129,6 +129,7 @@ saltyParserSingle_ = do
        EmptyLine -> return ()
        (Operation left op right) -> modifyState (saveIt right)
        (MultiAssign vars right) -> modifyState (saveIt right)
+       (LambdaFunction args body) -> modifyState (saveIt body)
        salty -> modifyState (saveIt salty)
   return salty
 

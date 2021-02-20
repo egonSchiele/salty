@@ -86,6 +86,8 @@ checkBackTracks (a:(BackTrack s):xs) = checkBackTracks (s:xs)
 checkBackTracks ((Operation left op right):(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine (Operation left op s)):xs)
 
 checkBackTracks ((MultiAssign vars right):(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine (MultiAssign vars s)):xs)
+checkBackTracks ((LambdaFunction args body):(BackTrack s):xs) = checkBackTracks ((LambdaFunction args s):xs)
+checkBackTracks ((LambdaFunction args body):(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine (LambdaFunction args s)):xs)
 checkBackTracks (a:(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine s):xs)
 
 -- try using
