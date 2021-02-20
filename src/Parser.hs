@@ -1262,7 +1262,7 @@ saltyKeywordVarDeclaration = debug "saltyKeywordVarDeclaration" >> do
   typ <- string "const" <||> string "var" <||> string "let"
   space
   indentDebugger
-  name <- variable <||> destructuredHash <||> destructuredArray
+  name <- (PurePhp <$> many1 varNameChars) <||> destructuredHash <||> destructuredArray
   unindentDebugger
   return $ KwVarDeclaration typ name
 
