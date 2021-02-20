@@ -409,7 +409,7 @@ jsTests = [
     "@foo(@@bar())" `matches` "this.foo(this.state.bar());",
     "@@foo(@b.bar())" `matches` "this.state.foo(this.b.bar());",
     "a.foo().bar().baz().func().func2()" `matches` "a.foo().bar().baz().func().func2();",
-    "foo . bar . baz  myVar" `matches` "foo(bar(baz(myVar)));",
+    "foo . bar . baz $ myVar" `matches` "foo(bar(baz(myVar)));",
 
     -- attr access
     "foo.bar" `matches` "foo.bar;",
@@ -425,16 +425,16 @@ jsTests = [
     "!foo" `matches` "!foo;",
 
     -- class definition
-    "class Blocklist {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist {\n  public function foo() {\n      return var_dump(\"hi!\");\n  }\n}",
-    "class Blocklist extends Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist extends Bar {\n  public function foo() {\n      return var_dump(\"hi!\");\n  }\n}",
-    "class Blocklist implements Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist implements Bar {\n  public function foo() {\n      return var_dump(\"hi!\");\n  }\n}",
-    "class Blocklist extends Foo implements Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist extends Foo implements Bar {\n  public function foo() {\n      return var_dump(\"hi!\");\n  }\n}",
+    "class Blocklist {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist {\n  foo() {\n    return console.log(\"hi!\");\n  }\n}",
+    "class Blocklist extends Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist extends Bar {\n  foo() {\n    return console.log(\"hi!\");\n  }\n}",
+    "class Blocklist implements Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist implements Bar {\n  foo() {\n    return console.log(\"hi!\");\n  }\n}",
+    "class Blocklist extends Foo implements Bar {\n @foo := p(\"hi!\")\n }" `matches` "class Blocklist extends Foo implements Bar {\n  foo() {\n    return console.log(\"hi!\");\n  }\n}",
 
     -- class creation with where
-    "class Foo implements Bar where\n\nattr1 = 'hi'\n__construct name := @attr1 = name" `matches` "class Foo implements Bar {\n  public attr1 = \"hi\";\n  public function __construct(name) {\n      this.attr1 = name;\n  }\n}",
+    "class Foo implements Bar where\n\nattr1 = 'hi'\n__construct name := @attr1 = name" `matches` "class Foo implements Bar {\n  attr1 = \"hi\";\n  __construct(name) {\n    this.attr1 = name;\n  }\n}",
 
     -- object creation
-    "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n  public function foo() {\n      return var_dump(\"hi!\");\n  }\n}\nb = new Blocklist();\nb.foo();",
+    "class Blocklist {\n@foo := p(\"hi!\")\n }\n b = new Blocklist()\n b.foo()" `matches` "class Blocklist {\n  foo() {\n    return console.log(\"hi!\");\n  }\n}\nb = new Blocklist();\nb.foo();",
 
     -- function type signature
     -- "foo :: string\nfoo := 'hello'" `matches` "\n/**\n * @return string\n */\nfunction foo() {\n  return \"hello\";\n}",
@@ -451,27 +451,27 @@ jsTests = [
     "_SAMPLE_RATE = 0.001" `matches` "_SAMPLE_RATE = 0.001;",
     "const _SAMPLE_RATE = 0.001" `matches` "const _SAMPLE_RATE = 0.001;",
     "foo = ONE + TWO" `matches` "foo = ONE + TWO;",
-    "class Foo {\n_SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  private const SAMPLE_RATE = 0.001;\n}",
-    "class Foo {\nSAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  public const SAMPLE_RATE = 0.001;\n}",
-    "class Foo {\n@@SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  public static const SAMPLE_RATE = 0.001;\n}",
-    "class Foo {\n@@_SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  private static const SAMPLE_RATE = 0.001;\n}",
-    "class Foo {\nconst _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  const _SAMPLE_RATE = 0.001;\n}",
-    "class Foo {\npublic const _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  public const _SAMPLE_RATE = 0.001;\n}",
-    "class Foo {\nprivate const _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  private const _SAMPLE_RATE = 0.001;\n}",
-    "class Foo {\npublic static const _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  public static const _SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\n_SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\nSAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\n@@SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\n@@_SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\nconst _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  _SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\npublic const _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  _SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\nprivate const _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  _SAMPLE_RATE = 0.001;\n}",
+    "class Foo {\npublic static const _SAMPLE_RATE = 0.001\n}" `matches` "class Foo {\n  _SAMPLE_RATE = 0.001;\n}",
 
     -- return statements
     "return foo" `matches` "return foo;",
     "return (1 + 2)" `matches` "return (1 + 2);",
 
     -- implicit returns
-    "foo := 5" `matches` "function foo() {\n  return 5;\n}",
-    "foo := bar = 5" `matches` "function foo() {\n  bar = 5;\n}",
-    "foo := bar []= 5" `matches` "function foo() {\n  bar []= 5;\n}",
-    "foo := \"hello\"" `matches` "function foo() {\n  return \"hello\";\n}",
-    "foo x := if x then 'hi' else 'hello'" `matches` "function foo(x) {\n  if (x) {\n      return \"hi\";\n  } else {\n      return \"hello\";\n  }\n}",
-    "fib x := if x < 2 then x" `matches` "function fib(x) {\n  if (x < 2) {\n      return x;\n  }\n}",
-    "foo := bar ||= 1" `matches` "function foo() {\n  bar = bar ?? 1;\n  return bar;\n}",
+    "foo := 5" `matches` "const foo = () => {\n  return 5;\n}",
+    "foo := bar = 5" `matches` "const foo = () => {\n  bar = 5;\n}",
+    "foo := bar []= 5" `matches` "const foo = () => {\n  bar.push(5);\n}",
+    "foo := \"hello\"" `matches` "const foo = () => {\n  return \"hello\";\n}",
+    "foo x := if x then 'hi' else 'hello'" `matches` "const foo = (x) => {\n  if (x) {\n    return \"hi\";\n  } else {\n    return \"hello\";\n  }\n}",
+    "fib x := if x < 2 then x" `matches` "const fib = (x) => {\n  if (x < 2) {\n    return x;\n  }\n}",
+    "foo := bar ||= 1" `matches` "const foo = () => {\n  bar = bar ?? 1;\n  return bar;\n}",
 
     -- higher order functions
     "arr.any(\\x -> x == 1)" `matches`"result = false;\nforeach (arr as x) {\n  if(x === 1) {\n      result = true;\n      break;\n  }\n}",
@@ -608,10 +608,10 @@ jsTests = [
     "foo = 1;\nbar = 2;" `matches` "foo = 1;\nbar = 2;",
 
     -- ternary
-    "func := if var == 0 then 0 else 1" `matches` "function func() {\n  if (var === 0) {\n      return 0;\n  } else {\n      return 1;\n  }\n}",
+    "func := if var == 0 then 0 else 1" `matches` "const func = () => {\n  if (var === 0) {\n    return 0;\n  } else {\n    return 1;\n  }\n}",
     "var2 = if var == 0 then 0 else 1" `matches` "var2 = var === 0 ? 0 : 1;",
-    "func := if var == 0 then (if var2 == 1 then 1 else 2) else 1" `matches` "function func() {\n  if (var === 0) {\n      return (if (var2 == 1) {\n          1;\n      } else {\n          2;\n      });\n  } else {\n      return 1;\n  }\n}",
-    "func := if var == 0 then 0" `matches` "function func() {\n  if (var === 0) {\n      return 0;\n  }\n}",
+    "func := if var == 0 then (if var2 == 1 then 1 else 2) else 1" `matches`  "const func = () => {\n  if (var === 0) {\n    if (var2 === 1) {\n      return 1;\n    } else {\n      return 2;\n    }\n  } else {\n    return 1;\n  }\n}",
+    "func := if var == 0 then 0" `matches` "const func = () => {\n  if (var === 0) {\n    return 0;\n  }\n}",
     "var2 = if var == 0 then 0" `matches` "var2 = null;\nif (var === 0) {\n  var2 = 0;\n}",
 
     -- backticks for php
