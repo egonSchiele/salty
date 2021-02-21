@@ -15,6 +15,9 @@ import System.Environment (lookupEnv)
 isJust (Just _) = True
 isJust Nothing = False
 
+safeHead [] = Nothing
+safeHead (x:xs) = Just x
+
 {- | Merge two sorted lists into a single, sorted whole.
 
 Example:
@@ -477,4 +480,6 @@ indentD_ (SaltyState prev scope i) = SaltyState prev scope (i+1)
 unindentD_ :: SaltyState -> SaltyState
 unindentD_ (SaltyState prev scope i) = SaltyState prev scope (i-1)
 
+tryString :: String -> (Parsec String SaltyState String)
+tryString str = try . string $ str
 

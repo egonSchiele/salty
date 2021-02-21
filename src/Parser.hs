@@ -14,17 +14,17 @@ import System.Environment (lookupEnv)
 import qualified Parser.KeywordParser as KeywordParser
 import qualified Parser.OperationParser as OperationParser
 import qualified Parser.LambdaParser as LambdaParser
-
-tryString :: String -> (Parsec String SaltyState String)
-tryString str = try . string $ str
+import qualified Parser.ArrayParser as ArrayParser
+import qualified Parser.VariableParser as VariableParser
+import qualified Parser.PrimitiveParser as PrimitiveParser
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
-classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
 extendsNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\."
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
-hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-'\""
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
 -- constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+
+nothing = return Nothing
 
 saltyToPhp :: Int -> String -> String
 saltyToPhp indentAmt str = case (build str) of
@@ -117,7 +117,7 @@ saltyParserSingleWithoutNewline = do
   <|> (try (OperationParser.operation atom saltyParserSingle_))
   <|> saltyBool
   <|> saltyNull
-  <|> emptyObject
+  <|> ArrayParser.emptyObject
   <|> (KeywordParser.saltyKeyword saltyParserSingle_)
   -- these have a double bar b/c saltyKeyword just has too many keywords
   -- to replace them all with `tryString`.
@@ -130,15 +130,15 @@ saltyParserSingleWithoutNewline = do
   <|> saltyComment
   <|> phpComment
   <|> classDefinition
-  <|> array
+  <|> ArrayParser.array validHashValue
   <|> objectCreation
   <|> purePhp
   <|> ifStatement
   <|> whileStatement
   -- all the number ones
   <|> (    times
-      <||> range
-      <||> saltyNumber
+      <||> ArrayParser.range
+      <||> PrimitiveParser.saltyNumber
       -- minusminusStart is here because it begins with a '-',
       -- just like negative saltyNumbers. So if saltyNumber fails
       -- on "--bar" for example we want to make sure it doesn't eat
@@ -146,10 +146,10 @@ saltyParserSingleWithoutNewline = do
       <||> minusminusStart
       )
   -- things that begin with braces
-  <|> (    hashTable
-      <||> destructuredHash
+  <|> (    (ArrayParser.hashTable validHashValue)
+      <||> ArrayParser.destructuredHash
       <||> (braces Nothing)
-      <||> partialHashLookup
+      <||> (ArrayParser.partialHashLookup validFuncArgTypes)
       )
   <|> (try shorthandHtml)
   -- things that begin with a variable name
@@ -157,16 +157,16 @@ saltyParserSingleWithoutNewline = do
       <||> function
       <||> functionTypeSignature
       <||> multiAssign
-      <||> indexIntoArray
+      <||> ArrayParser.indexIntoArray
       <||> shorthandBlock
       <||> functionCall
       <||> attrAccess
-      <||> arraySlice
-      <||> stringIndex
-      <||> stringSlice
-      <||> hashLookup
+      <||> (ArrayParser.arraySlice saltyParserSingle_)
+      <||> (ArrayParser.stringIndex saltyParserSingle_)
+      <||> (ArrayParser.stringSlice saltyParserSingle_)
+      <||> (ArrayParser.hashLookup validFuncArgTypes)
       <||> plusplusAll
-      <||> variable
+      <||> VariableParser.variable
       )
   -- things that begin with a period (.)
   <|> (    partialHigherOrderFunctionCall
@@ -180,23 +180,23 @@ saltyParserSingleWithoutNewline = do
 validFuncArgTypes :: SaltyParser
 validFuncArgTypes = debug "validFuncArgTypes" >> do
        parens
-  <||> emptyObject
-  <||> array
-  <||> destructuredHash
-  <||> hashTable
+  <||> ArrayParser.emptyObject
+  <||> ArrayParser.array validHashValue
+  <||> ArrayParser.destructuredHash
+  <||> (ArrayParser.hashTable validHashValue)
   <||> (OperationParser.operation atom saltyParserSingle_)
   <||> (OperationParser.partialOperation saltyParserSingle_)
   <||> saltyString
-  <||> range
-  <||> indexIntoArray
-  <||> saltyNumber
+  <||> ArrayParser.range
+  <||> ArrayParser.indexIntoArray
+  <||> PrimitiveParser.saltyNumber
   <||> functionCall
   <||> attrAccess
-  <||> arraySlice
-  <||> stringIndex
-  <||> stringSlice
-  <||> hashLookup
-  <||> partialHashLookup
+  <||> (ArrayParser.arraySlice saltyParserSingle_)
+  <||> (ArrayParser.stringIndex saltyParserSingle_)
+  <||> (ArrayParser.stringSlice saltyParserSingle_)
+  <||> (ArrayParser.hashLookup validFuncArgTypes)
+  <||> (ArrayParser.partialHashLookup validFuncArgTypes)
   <||> partialFunctionCall
   <||> partialAttrAccess
   <||> negateSalty
@@ -207,28 +207,8 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> phpVar
   <||> purePhp
   <||> html
-  <||> variable
+  <||> VariableParser.variable
   <?> "a valid function argument type"
-
-safeHead [] = Nothing
-safeHead (x:xs) = Just x
-
-variable = debug "variable" >> do
-  name <- variableName
-  scope_ <- (safeHead . stateScopes) <$> getState
-  let scope = case scope_ of
-       Just scope -> scope
-       Nothing -> GlobalScope
-  case isConstant (getVarName name) of
-       True -> return $ Constant $ Variable name scope
-       False -> return $ Variable name scope
-
-variableName = debug "variableName" >> do
-        staticVar
-  <||>  instanceVar
-  <||>  classVar
-  <||>  simpleVar
-  <?> "a variable"
 
 parens = debug "parens" >> do
   char '('
@@ -241,98 +221,24 @@ parens = debug "parens" >> do
 
 validHashValue = debug "validHashValue" >> do
        parens
-  <||> emptyObject
+  <||> ArrayParser.emptyObject
   <||> saltyString
-  <||> saltyNumber
-  <||> hashTable
-  <||> array
+  <||> PrimitiveParser.saltyNumber
+  <||> (ArrayParser.hashTable validHashValue)
+  <||> ArrayParser.array validHashValue
   <||> functionCall
-  <||> hashLookup
+  <||> (ArrayParser.hashLookup validFuncArgTypes)
   <||> attrAccess
   <||> LambdaParser.lambda lambdaBody
-  <||> destructuredHash
+  <||> ArrayParser.destructuredHash
   <||> saltyBool
   <||> saltyNull
   <||> saltyMagicConstant
   <||> negateSalty
   <||> purePhp
   <||> html
-  <||> variable
+  <||> VariableParser.variable
   <?> "a valid hash value"
-
-stringKey = debug "stringKey" >> do
-  key <- many1 hashKeyChars
-  return $ SaltyString key
-
-saltyKey = debug "saltyKey" >> do
-  char '['
-  indentDebugger
-  value <- hashLookup <||> saltyBool <||> saltyNull <||> purePhp <||> variable
-  unindentDebugger
-  char ']' <?> "a closing bracket for a salty key"
-  return value
-
-keyValuePair = debug "keyValuePair" >> do
-  indentDebugger
-  key <- saltyKey <||> stringKey
-  unindentDebugger
-  optional space
-  char ':'
-  space
-  indentDebugger
-  value <- validHashValue
-  unindentDebugger
-  char ',' <||> char '}' <||> char '\n' <||> char ' '
-  optional (oneOf " \n")
-  return (key, value)
-
-hashTable = debug "hashTable" >> do
-  char '{'
-  optional (oneOf " \n")
-  kvPairs <- many1 keyValuePair
-  optional $ char '}'
-  return $ HashTable kvPairs
-
-arrayValue = debug "arrayValue" >> do
-  indentDebugger
-  value <- validHashValue
-  unindentDebugger
-  char ',' <||> (char ']' <?> "a closing bracket.")
-  optional space
-  return value
-
-array = debug "array" >> do
-  char '['
-  optional $ char '\n' <||> char ' '
-  indentDebugger
-  salties <- validHashValue `sepBy` ((string ", ") <||> (string ",\n") <||> (string ","))
-  optional $ char '\n' <||> char ' '
-  char ']' <?> "a closing bracket"
-  return $ Array salties
-
-hashValue = debug "hashValue" >> do
-  value <- many1 varNameChars
-  char ',' <||> char '}'
-  optional $ oneOf "\n "
-  return value
-
-destructuredArray = debug "destructuredArray" >> do
-  char '['
-  optional space
-  vars <- variable `sepBy` (string ", " <||> string ",")
-  optional space
-  char ']'
-  return $ Array vars
-  -- return $ HashTable (zip (map (SaltyString . getVarName) salties) (map (\s -> Variable s GlobalScope) salties))
-
-destructuredHash = debug "destructuredHash" >> do
-  string "{ "
-  optional $ char '\n'
-  vars <- (many1 varNameChars) `sepBy` (string ", " <||> string ",")
-  optional $ char '\n'
-  string " }"
-  return $ DestructuredHash vars
-  -- return $ HashTable (zip (map (SaltyString . getVarName) salties) (map (\s -> Variable s GlobalScope) salties))
 
 addScope :: Scope -> SaltyState -> SaltyState
 addScope scope (SaltyState prev scopes i) = SaltyState prev (scope:scopes) i
@@ -367,7 +273,7 @@ varArg = debug "varArg" >> do
   return $ "..." ++ arg
 
 destructuredArg = debug "destructuredArg" >> do
-  (DestructuredHash vars) <- destructuredHash
+  (DestructuredHash vars) <- ArrayParser.destructuredHash
   return $ "{ " ++ (join ", " vars) ++ " }"
 
 functionArgs = debug "functionArgs" >> many (do
@@ -412,7 +318,7 @@ readTill endParser = debug "readTill" >> do
 onelineFunction = debug "onelineFunction" >> do
   prevSalty <- lastSalty <$> getState
   scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
-  (name, visibility) <- getVisibility <$> variableName
+  (name, visibility) <- getVisibility <$> VariableParser.variableName
   space
   indentDebugger
   _args <- functionArgs
@@ -435,7 +341,7 @@ onelineFunction = debug "onelineFunction" >> do
 multilineFunction = debug "multilineFunction" >> do
   prevSalty <- lastSalty <$> getState
   scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
-  (name, visibility) <- getVisibility <$> variableName
+  (name, visibility) <- getVisibility <$> VariableParser.variableName
   space
   indentDebugger
   _args <- functionArgs
@@ -510,7 +416,7 @@ saltyGuardOnly = debug "saltyGuardOnly" >> do
 guardFunction = debug "guardFunction" >> do
   prevSalty <- lastSalty <$> getState
   scope <- (getOrDefaultScope . safeHead . stateScopes) <$> getState
-  (name, visibility) <- getVisibility <$> variableName
+  (name, visibility) <- getVisibility <$> VariableParser.variableName
   space
   args <- makeArgNames <$> functionArgs
   string ":= "
@@ -548,12 +454,6 @@ _getVisibility "__construct" = (Public, "__construct")
 _getVisibility ('_':xs) = (Private, xs)
 _getVisibility str = (Public, str)
 
-getVarName :: VariableName -> String
-getVarName (InstanceVar str) = str
-getVarName (StaticVar str) = str
-getVarName (ClassVar str) = str
-getVarName (SimpleVar str) = str
-
 findArgTypes = debug "findArgTypes" >> do
   args <- many1 $ do
             typ <- many1 typeChars
@@ -566,7 +466,7 @@ findArgTypes = debug "findArgTypes" >> do
 setToReturnArgType (ArgumentType o a _) = ArgumentType o a True
 
 functionTypeSignature = debug "functionTypeSignature" >> do
-  name <- variableName
+  name <- VariableParser.variableName
   space
   string "::"
   space
@@ -578,18 +478,18 @@ functionTypeSignature = debug "functionTypeSignature" >> do
 atom = debug "atom" >> do
        parens
   <||> functionCall
-  <||> indexIntoArray
+  <||> ArrayParser.indexIntoArray
   <||> attrAccess
-  <||> arraySlice
-  <||> stringIndex
-  <||> stringSlice
-  <||> hashLookup
+  <||> (ArrayParser.arraySlice saltyParserSingle_)
+  <||> (ArrayParser.stringIndex saltyParserSingle_)
+  <||> (ArrayParser.stringSlice saltyParserSingle_)
+  <||> (ArrayParser.hashLookup validFuncArgTypes)
   <||> saltyBool
   <||> saltyNull
   <||> saltyMagicConstant
-  <||> variable
+  <||> VariableParser.variable
   <||> saltyString
-  <||> saltyNumber
+  <||> PrimitiveParser.saltyNumber
   <?> "an atom"
 
 partialAttrAccess = debug "partialAttrAccess" >> do
@@ -634,66 +534,9 @@ saltyString = debug "saltyString" >> do
   char quoteType
   return $ SaltyString str
 
-saltyNumber = debug "saltyNumber" >> do
-       decimal <||> negativeDecimal
-  <||> integer <||> negativeInteger
-  <?> "a decimal or integer"
-
-negativeInteger = debug "negativeInteger" >> do
-  char '-'
-  number <- many1 (oneOf "1234567890")
-  return $ SaltyNumber ('-':number)
-
-integer = debug "integer" >> do
-  number <- many1 (oneOf "1234567890")
-  return $ SaltyNumber number
-
-negativeDecimal = debug "negativeDecimal" >> do
-  char '-'
-  number <- many1 (oneOf "1234567890")
-  char '.'
-  decimal <- many1 (oneOf "1234567890")
-  return $ SaltyNumber (('-':number) ++ "." ++ decimal)
-
-decimal = debug "decimal" >> do
-  number <- many1 (oneOf "1234567890")
-  char '.'
-  decimal <- many1 (oneOf "1234567890")
-  return $ SaltyNumber (number ++ "." ++ decimal)
-
--- @foo
-instanceVar = debug "instanceVar" >> do
-  char '@'
-  variable <- many1 varNameChars
-  return $ InstanceVar variable
-
--- @@foo
-staticVar = debug "staticVar" >> do
-  string "@@"
-  variable <- many1 varNameChars
-  return $ StaticVar variable
-
--- foo
-simpleVar = debug "simpleVar" >> do
-  first <- (letter <||> char '_')
-  rest <- many varNameChars
-  return $ SimpleVar (first:rest)
-
-classVar = debug "classVar" >> do
-  classicClassVar <||> selfClassVar
-
-selfClassVar = debug "selfClassVar" >> do
-  string "self"
-  return $ ClassVar "self"
-
-classicClassVar = debug "classicClassVar" >> do
-  start <- upper
-  variable <- many1 classNameChars
-  return $ ClassVar (start:variable)
-
 higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   indentDebugger
-  obj <- range <||> indexIntoArray <||> functionCall <||> partialFunctionCall <||> array <||> arraySlice <||> stringSlice <||> variable
+  obj <- ArrayParser.range <||> ArrayParser.indexIntoArray <||> functionCall <||> partialFunctionCall <||> (ArrayParser.array validHashValue) <||> (ArrayParser.arraySlice saltyParserSingle_) <||> (ArrayParser.stringSlice saltyParserSingle_) <||> VariableParser.variable
   unindentDebugger
   char '.'
   funcName <-      (string "map" >> return Map)
@@ -713,7 +556,7 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
   return $ HigherOrderFunctionCall obj funcName func "$result"
 
 variableAsLambda = debug "variableAsLambda" >> do
-  var <- variableName
+  var <- VariableParser.variableName
   return $ LambdaFunction ["x"] (FunctionCall Nothing (Right var) [Variable (SimpleVar "x") GlobalScope] Nothing)
 
 partialHigherOrderFunctionCall = debug "partialHigherOrderFunctionCall" >> do
@@ -734,7 +577,7 @@ partialHigherOrderFunctionCall = debug "partialHigherOrderFunctionCall" >> do
   return $ BackTrack $ HigherOrderFunctionCall obj funcName func "$result"
 
 times = debug "times" >> do
-  number <- integer
+  number <- PrimitiveParser.integer
   char '.'
   string "times"
   char '('
@@ -811,13 +654,13 @@ findArgs = debug "findArgs" >> do
   validFuncArgTypes `sepBy` ((string ", ") <||> (string ","))
 
 attrAccess = debug "attrAccess" >> do
-  obj <- variable
+  obj <- VariableParser.variable
   char '.'
   attrName <- many1 varNameChars
   return $ AttrAccess obj attrName
 
 shorthandBlock = debug "shorthandBlock" >> do
-  var <- variable
+  var <- VariableParser.variable
   indentDebugger
   block <- functionBlock
   unindentDebugger
@@ -846,7 +689,7 @@ bracesBlock = debug "bracesBlock" >> do
   return $ Braces body
 
 functionCallOnObject = debug "functionCallOnObject" >> do
-  obj <- variable
+  obj <- VariableParser.variable
   char '.'
   funcName <- many1 varNameChars
   char '('
@@ -864,7 +707,7 @@ parseBuiltInFuncName (SimpleVar "p") = Left VarDumpShort
 parseBuiltInFuncName s = Right s
 
 functionCallWithoutObject = debug "functionCallWithoutObject" >> do
-  funcName <- variableName
+  funcName <- VariableParser.variableName
   char '('
   indentDebugger
   funcArgs <- findArgs
@@ -877,7 +720,7 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs Nothing
 
 functionCallOnObjectWithoutParens = debug "functionCallOnObjectWithoutParens" >> do
-  obj <- variable
+  obj <- VariableParser.variable
   char '.'
   funcName <- many1 varNameChars
   string " . " <||> string " $ "
@@ -887,91 +730,12 @@ functionCallOnObjectWithoutParens = debug "functionCallOnObjectWithoutParens" >>
   return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) [funcArgs] Nothing
 
 functionCallWithoutObjectWithoutParens = debug "functionCallWithoutObjectWithoutParens" >> do
-  funcName <- variableName
+  funcName <- VariableParser.variableName
   string " . " <||> string " $ "
   indentDebugger
   funcArgs <- functionCallOnObjectWithoutParens <||> functionCallWithoutObjectWithoutParens <||> validFuncArgTypes
   unindentDebugger
   return $ FunctionCall Nothing (parseBuiltInFuncName funcName) [funcArgs] Nothing
-
-arraySlice = debug "arraySlice" >> do
-  array <- variable
-  char '['
-  indentDebugger
-  start_ <- (Just <$> saltyParserSingle_) <||> nothing
-  unindentDebugger
-  char ':'
-  indentDebugger
-  end <- (Just <$> saltyParserSingle_) <||> nothing
-  unindentDebugger
-  char ']' <?> "a closing bracket for an array slice"
-  let start = case start_ of
-                Just salty -> salty
-                Nothing -> SaltyNumber "0"
-  return $ ArraySlice array start end
-
-stringSlice = debug "stringSlice" >> do
-  string <- variable
-  char '<'
-  indentDebugger
-  start_ <- (Just <$> saltyParserSingle_) <||> nothing
-  unindentDebugger
-  char ':'
-  indentDebugger
-  end <- (Just <$> saltyParserSingle_) <||> nothing
-  unindentDebugger
-  char '>'
-  let start = case start_ of
-                Just salty -> salty
-                Nothing -> SaltyNumber "0"
-  return $ StringSlice string start end
-
-stringIndex = debug "stringIndex" >> do
-  string <- variable
-  char '<'
-  indentDebugger
-  index <- saltyParserSingle_
-  unindentDebugger
-  char '>'
-  return $ StringIndex string index
-
-hashLookup = debug "hashLookup" >> do
-       shortHashLookup
-  <||> standardHashLookup
-
-shortHashLookup = debug "shortHashLookup" >> do
-  char ':'
-  hash <- variable
-  keys <- many1 $ hashKeyNumber <||> hashKeyString
-  return $ foldl (\acc key -> HashLookup acc key) (HashLookup hash (head keys)) (tail keys)
-
-hashKeyNumber = debug "hashKeyString" >> do
-  char '.'
-  key <- many1 digit
-  return $ SaltyNumber key
-
-hashKeyString = debug "hashKeyString" >> do
-  char '.'
-  key <- many1 varNameChars
-  return $ SaltyString key
-
-standardHashLookup = debug "standardHashLookup" >> do
-  hash <- variable
-  char '['
-  indentDebugger
-  key <- validFuncArgTypes
-  unindentDebugger
-  char ']' <?> "a closing bracket for a hash lookup"
-  return $ HashLookup hash key
-
-partialHashLookup = debug "partialHashLookup" >> do
-  hash <- lastSalty <$> getState
-  char '['
-  indentDebugger
-  key <- validFuncArgTypes
-  unindentDebugger
-  char ']' <?> "a closing bracket for a partial hash lookup"
-  return $ BackTrack (HashLookup hash key)
 
 ifStatement = debug "ifStatement" >> do
        ifWithElse
@@ -1031,7 +795,7 @@ whereStatement = debug "whereStatement" >> do
 classDefinition = debug "classDefinition" >> do
   tryString "class"
   space
-  name <- classVar
+  name <- VariableParser.classVar
   space
   extendsName <- classDefExtends <||> nothing
   implementsName <- classDefImplements <||> nothing
@@ -1055,12 +819,10 @@ classDefImplements = debug "classDefImplements" >> do
   space
   return $ Just (ClassVar implementsName)
 
-nothing = return Nothing
-
 objectCreation = debug "objectCreation" >> do
   tryString "new"
   space
-  className <- classVar
+  className <- VariableParser.classVar
   char '('
   indentDebugger
   constructorArgs <- findArgs
@@ -1078,16 +840,12 @@ saltyFalse = debug "saltyFalse" >> do
   s <- tryString "false"
   return $ SaltyBool FALSE
 
-emptyObject = debug "emptyObject" >> do
-  tryString "{}" <||> tryString "{ }"
-  return $ HashTable []
-
 saltyNull = debug "saltyNull" >> do
   s <- tryString "null"
   return SaltyNull
 
 multiAssignVar = debug "multiAssignVar" >> do
-  var <- variable
+  var <- VariableParser.variable
   string ", " <||> string " ="
   return var
 
@@ -1109,21 +867,21 @@ plusplusAll = debug "plusplusAll" >> do
 
 plusplusStart = debug "plusplusStart" >> do
   string "++"
-  var <- variable
+  var <- VariableParser.variable
   return $ Operation var PlusEquals (SaltyNumber "1")
 
 plusplusEnd = debug "plusplusEnd" >> do
-  var <- variable
+  var <- VariableParser.variable
   string "++"
   return $ Operation var PlusEquals (SaltyNumber "1")
 
 minusminusStart = debug "minusminusStart" >> do
   string "--"
-  var <- variable
+  var <- VariableParser.variable
   return $ Operation var MinusEquals (SaltyNumber "1")
 
 minusminusEnd = debug "minusminusEnd" >> do
-  var <- variable
+  var <- VariableParser.variable
   string "--"
   return $ Operation var MinusEquals (SaltyNumber "1")
 
@@ -1142,30 +900,6 @@ saltyMagicConstant = debug "saltyMagicConstant" >> do
               <||> magicConstant "__NAMESPACE__" MCNAMESPACE
   return $ SaltyMagicConstant constant
 
-validRangeArgTypes :: SaltyParser
-validRangeArgTypes = debug "validRangeArgTypes" >> do
-       saltyNumber
-  <||> functionCall
-  <||> attrAccess
-  <||> hashLookup
-  <||> partialHashLookup
-  <||> partialFunctionCall
-  <||> partialAttrAccess
-  <||> negateSalty
-  <||> saltyMagicConstant
-  <||> variable
-  <?> "a valid range argument type"
-
-range = debug "range" >> do
-  indentDebugger
-  left <- validRangeArgTypes
-  unindentDebugger
-  string ".."
-  indentDebugger
-  right <- validRangeArgTypes
-  unindentDebugger
-  return $ Range left right
-
 parseError = debug "parseError" >> do
   line <- many1 (noneOf "\n")
   char '\n'
@@ -1175,9 +909,3 @@ phpVar = debug "phpVar" >> do
   char '$'
   name <- many1 varNameChars
   return $ PurePhp ('$':name)
-
-indexIntoArray = debug "indexIntoArray" >> do
-  var <- variable
-  char '.'
-  number <- integer
-  return $ HashLookup var number
