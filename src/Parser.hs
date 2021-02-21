@@ -51,15 +51,13 @@ printDebug str = do
 
 saltyToPhp :: Int -> String -> String
 saltyToPhp indentAmt str = case (build str) of
-                   Left err -> show err
-                   -- Left err -> printError str err
+                   Left err -> printError str err
                    Right xs -> saltyToPhp_ indentAmt xs
                    -- Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
 
 saltyToJs :: Int -> String -> String
 saltyToJs indentAmt str = case (build str) of
-                   Left err -> show err
-                   -- Left err -> printError str err
+                   Left err -> printError str err
                    Right xs -> FormattingJs.saltyToJs_ indentAmt xs
                    -- Right xs -> checkForErrors str (saltyToPhp_ indentAmt xs)
 
@@ -68,7 +66,7 @@ printError :: String -> ParseError -> String
 printError inputStr err = print3 "%\n%\n%" affectedLine pointer (show err)
   where line = sourceLine . errorPos $ err
         col  = sourceColumn . errorPos $ err
-        affectedLine = (lines inputStr) !! (line - 1)
+        affectedLine = (lines inputStr) !! (max 0 (line - 1))
         pointer = (replicate (col - 1) $ ' ') ++ "^"
 
 numLines str = length . filter (/="") . lines $ str
@@ -1204,150 +1202,39 @@ saltyNull = debug "saltyNull" >> do
   return SaltyNull
 
 saltyKeyword = debug "saltyKeyword" >> do
-  phpKeyword <-      saltyKeywordUse
-                <||> saltyKeywordThrow
-                <||> saltyKeywordRequire
-                <||> saltyKeywordRequireOnce
-                <||> saltyKeywordImport
-                <||> saltyKeywordVarDeclaration
-                <||> saltyKeywordPublic
-                <||> saltyKeywordPrivate
-                <||> saltyKeywordProtected
-                <||> saltyKeywordStatic
-                <||> saltyKeywordExport
-                <||> saltyKeywordDefault
-                <||> saltyKeywordNamespace
-                <||> saltyKeywordEcho
-                <||> saltyKeywordBreak
-                <||> saltyKeywordUndefined
-  return $ Keyword phpKeyword
+  kw <- saltyKeywordPreceding <||> saltyKeywordSimple
+  return $ Keyword kw
 
-saltyKeywordUse = debug "saltyKeywordUse" >> do
-  saltyKeywordUseAs <||> saltyKeywordUseOnly
+saltyKeywordSimple = debug "saltyKeywordSimple" >> do
+  kw <-      string "undefined"
+         <||> string "break"
+  return $ KwSimple kw
 
-saltyKeywordUseAs = debug "saltyKeywordUseAs" >> do
-  string "use"
-  space
-  var <- variableName
-  space
-  string "as"
-  space
-  varAs <- variableName
-  return $ KwUse var (Just varAs)
-
-saltyKeywordUseOnly = debug "saltyKeywordUseOnly" >> do
-  string "use"
-  space
-  var <- variableName
-  return $ KwUse var Nothing
-
-saltyKeywordThrow = debug "saltyKeywordThrow" >> do
-  string "throw"
-  space
-  salty <- saltyParserSingle_
-  return $ KwThrow salty
-
-saltyKeywordRequire = debug "saltyKeywordRequire" >> do
-  string "require"
+saltyKeywordPreceding = debug "saltyKeywordPreceding" >> do
+  kw <-      string "const"
+         <||> string "var"
+         <||> string "let"
+         <||> string "throw"
+         <||> string "require"
+         <||> string "require_once"
+         <||> string "public"
+         <||> string "private"
+         <||> string "protected"
+         <||> string "static"
+         <||> string "export"
+         <||> string "default"
+         <||> string "namespace"
+         <||> string "echo"
+         <||> string "import *"
+         <||> string "import"
+         <||> string "as"
+         <||> string "use"
+         <||> string "from"
   space
   indentDebugger
   salty <- saltyParserSingle_
   unindentDebugger
-  return $ KwRequire salty
-
-saltyKeywordRequireOnce = debug "saltyKeywordRequireOnce" >> do
-  string "require_once"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwRequireOnce salty
-
-saltyKeywordImport = debug "saltyKeywordImport" >> do
-  string "import"
-  space
-  salty <- many1 $ noneOf "\n"
-  return $ KwImport $ PurePhp salty
-
-saltyKeywordVarDeclaration = debug "saltyKeywordVarDeclaration" >> do
-  typ <- string "const" <||> string "var" <||> string "let"
-  space
-  indentDebugger
-  name <- (PurePhp <$> many1 varNameChars) <||> destructuredHash <||> destructuredArray
-  unindentDebugger
-  return $ KwVarDeclaration typ name
-
-saltyKeywordPublic = debug "saltyKeywordPublic" >> do
-  string "public"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwPublic salty
-
-saltyKeywordPrivate = debug "saltyKeywordPrivate" >> do
-  string "private"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwPrivate salty
-
-saltyKeywordProtected = debug "saltyKeywordProtected" >> do
-  string "protected"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwProtected salty
-
-saltyKeywordStatic = debug "saltyKeywordStatic" >> do
-  string "static"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwStatic salty
-
-saltyKeywordExport = debug "saltyKeywordExport" >> do
-  string "export"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwExport salty
-
-saltyKeywordDefault = debug "saltyKeywordDefault" >> do
-  string "default"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwDefault salty
-
-saltyKeywordNamespace = debug "saltyKeywordNamespace" >> do
-  string "namespace"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwNamespace salty
-
-saltyKeywordEcho = debug "saltyKeywordEcho" >> do
-  string "echo"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwEcho salty
-
-saltyKeywordBreak = debug "saltyKeywordBreak" >> do
-  string "break"
-  return KwBreak
-
-saltyKeywordUndefined = debug "saltyKeywordUndefined" >> do
-  string "undefined"
-  return KwUndefined
+  return $ KwPreceding kw salty
 
 multiAssignVar = debug "multiAssignVar" >> do
   var <- variable

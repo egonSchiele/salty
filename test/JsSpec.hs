@@ -680,7 +680,12 @@ jsTests = [
     "<div />" `matches` "<div />",
     "<div className='foo' val={@myVar} />" `matches`"<div className='foo' val={@myVar} />",
     "foo = <div className='foo' val={@myVar} />" `matches` "foo = <div className='foo' val={@myVar} />",
-    "foo := <div className='foo' val={@myVar} />" `matches` "const foo = () => {\n  return <div className='foo' val={@myVar} />\n}"
+    "foo := <div className='foo' val={@myVar} />" `matches` "const foo = () => {\n  return <div className='foo' val={@myVar} />\n}",
+
+    -- imports
+    "import * as React from \"React\"" `matches` "import * as React from \"React\";",
+    "import React from \"React\"" `matches` "import React from \"React\";",
+    "import { createElement } from \"React\"" `matches` "import { createElement } from \"React\";"
 
     -- empty hash
     -- disabling this feature since the syntax becomes ambiguous

@@ -11,22 +11,11 @@ data VariableName =
   | SimpleVar String -- e.g. foo
   deriving (Show)
 
-data PhpKeyword =   KwUse VariableName (Maybe VariableName)
-                  | KwThrow Salty
-                  | KwRequire Salty
-                  | KwRequireOnce Salty
-                  | KwImport Salty
-                  | KwVarDeclaration String Salty
-                  | KwPublic Salty
-                  | KwPrivate Salty
-                  | KwProtected Salty
-                  | KwStatic Salty
-                  | KwExport Salty
-                  | KwDefault Salty
-                  | KwEcho Salty
-                  | KwBreak
-                  | KwUndefined
-                  | KwNamespace Salty deriving (Show)
+data Language = LanguagePhp | LanguageJs deriving (Show)
+
+data PhpKeyword =   KwSimple String
+                  | KwPreceding String Salty
+                  deriving (Show)
 
 data MagicConstant =   MCLINE
                      | MCFILE
@@ -202,6 +191,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | SaltyNull
              | SaltyMagicConstant MagicConstant
              | Keyword PhpKeyword
+             | LanguageBlock Language Salty
              | ParseError String
              deriving (Show)
 
