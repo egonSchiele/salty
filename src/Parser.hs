@@ -510,7 +510,7 @@ partialFunctionCall = debug "partialFunctionCall" >> do
   char ')'
 
   indentDebugger
-  block <- optionMaybe functionBlock
+  block <- optionMaybe (try functionBlock)
   unindentDebugger
 
   return $ case leftHandSide of
@@ -698,7 +698,7 @@ functionCallOnObject = debug "functionCallOnObject" >> do
   unindentDebugger
   char ')'
   indentDebugger
-  block <- optionMaybe functionBlock
+  block <- optionMaybe (try functionBlock)
   unindentDebugger
   return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) funcArgs block
 

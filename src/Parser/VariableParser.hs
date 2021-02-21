@@ -25,7 +25,8 @@ variable = debug "variable" >> do
        True -> return $ Constant $ Variable name scope
        False -> return $ Variable name scope
 
-variableName = debug "variableName" >> do
+-- variableName = debug "variableName" >> do
+variableName = do
         staticVar
   <||>  instanceVar
   <||>  classVar
@@ -33,31 +34,37 @@ variableName = debug "variableName" >> do
   <?> "a variable"
 
 -- @foo
-instanceVar = debug "instanceVar" >> do
+-- instanceVar = debug "instanceVar" >> do
+instanceVar = do
   char '@'
   variable <- many1 varNameChars
   return $ InstanceVar variable
 
 -- @@foo
-staticVar = debug "staticVar" >> do
+-- staticVar = debug "staticVar" >> do
+staticVar = do
   string "@@"
   variable <- many1 varNameChars
   return $ StaticVar variable
 
 -- foo
-simpleVar = debug "simpleVar" >> do
+-- simpleVar = debug "simpleVar" >> do
+simpleVar = do
   first <- (letter <||> char '_')
   rest <- many varNameChars
   return $ SimpleVar (first:rest)
 
-classVar = debug "classVar" >> do
+-- classVar = debug "classVar" >> do
+classVar = do
   classicClassVar <||> selfClassVar
 
-selfClassVar = debug "selfClassVar" >> do
+-- selfClassVar = debug "selfClassVar" >> do
+selfClassVar = do
   string "self"
   return $ ClassVar "self"
 
-classicClassVar = debug "classicClassVar" >> do
+-- classicClassVar = debug "classicClassVar" >> do
+classicClassVar = do
   start <- upper
   variable <- many1 classNameChars
   return $ ClassVar (start:variable)
