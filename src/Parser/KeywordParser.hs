@@ -10,23 +10,27 @@ saltySpace = debug "saltySpace" >> do
   space
   return SaltySpace
 
+maybeToSpace Nothing = ""
+maybeToSpace (Just _) = " "
+
 saltyKeyword followupParser = debug "saltyKeyword" >> do
-  optional space
   kw <- (saltyKeywordPreceding followupParser) <||> saltyKeywordSimple
   return $ Keyword kw
 
 saltyKeywordSimple = debug "saltyKeywordSimple" >> do
-  kw <-      string "undefined"
+  sp <- optionMaybe space
+  kw <-       string "undefined"
          <||> string "break"
-  return $ KwSimple kw
+  return $ KwSimple ((maybeToSpace sp) ++ kw)
 
 saltyKeywordPreceding followupParser = debug "saltyKeywordPreceding" >> do
-  kw <-      string "const"
+  sp <- optionMaybe space
+  kw <-       string "const"
          <||> string "var"
          <||> string "let"
          <||> string "throw"
-         <||> string "require"
          <||> string "require_once"
+         <||> string "require"
          <||> string "public"
          <||> string "private"
          <||> string "protected"
@@ -45,4 +49,4 @@ saltyKeywordPreceding followupParser = debug "saltyKeywordPreceding" >> do
   indentDebugger
   salty <- followupParser
   unindentDebugger
-  return $ KwPreceding kw salty
+  return $ KwPreceding ((maybeToSpace sp) ++ kw) salty

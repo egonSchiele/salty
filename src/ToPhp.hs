@@ -316,6 +316,10 @@ instance ConvertToPhp Salty where
   toPhp (SaltyBool FALSE) = "false"
   toPhp SaltyNull = "null"
   toPhp (SaltyMagicConstant c) = toPhp c
+  toPhp (Keyword (KwPreceding "const" (Operation (Constant (Variable var _)) op right))) = "const " ++ (toPhp (Operation (PurePhp (simpleVarName var)) op right))
+  toPhp (Keyword (KwPreceding "const" (Constant (Variable var _)))) = "const " ++ (simpleVarName var)
+  toPhp (Keyword (KwPreceding "const" (Variable var _))) = "const " ++ (simpleVarName var)
+
   toPhp (Keyword (KwPreceding str salty)) = str ++ " " ++ (toPhp salty)
   toPhp (Keyword (KwSimple str)) = str
   toPhp (Range (SaltyNumber l) (SaltyNumber r)) = show $ [left..right]
