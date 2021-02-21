@@ -644,11 +644,14 @@ htmlWithChildren = debug "htmlWithChildren" >> do
   return $ PurePhp $ "<" ++ tag ++ line ++ "</" ++ tag ++ ">"
 
 functionCall = debug "functionCall" >> do
-       functionCallOnObject
-  <||> functionCallWithoutObject
-  <||> functionCallOnObjectWithoutParens
-  <||> functionCallWithoutObjectWithoutParens
-  <?> "a function call"
+  indentDebugger
+  func <- functionCallOnObject
+          <||> functionCallWithoutObject
+          <||> functionCallOnObjectWithoutParens
+          <||> functionCallWithoutObjectWithoutParens
+          <?> "a function call"
+  unindentDebugger
+  return func
 
 findArgs = debug "findArgs" >> do
   validFuncArgTypes `sepBy` ((string ", ") <||> (string ","))
@@ -689,15 +692,15 @@ bracesBlock = debug "bracesBlock" >> do
   return $ Braces body
 
 functionCallOnObject = debug "functionCallOnObject" >> do
+  indentDebugger
   obj <- VariableParser.variable
   char '.'
   funcName <- many1 varNameChars
   char '('
-  indentDebugger
+  optional $ char '\n'
   funcArgs <- findArgs
-  unindentDebugger
+  optional $ char '\n'
   char ')'
-  indentDebugger
   block <- optionMaybe (try functionBlock)
   unindentDebugger
   return $ FunctionCall (Just obj) (Right (SimpleVar funcName)) funcArgs block
@@ -707,12 +710,14 @@ parseBuiltInFuncName (SimpleVar "p") = Left VarDumpShort
 parseBuiltInFuncName s = Right s
 
 functionCallWithoutObject = debug "functionCallWithoutObject" >> do
+  indentDebugger
   funcName <- VariableParser.variableName
   char '('
-  indentDebugger
+  optional $ char '\n'
   funcArgs <- findArgs
-  unindentDebugger
+  optional $ char '\n'
   char ')'
+  unindentDebugger
   -- TO FIX: adding the ability to have a block here causes some tests to fail.
   -- fix and then uncomment
   -- block <- optionMaybe functionBlock

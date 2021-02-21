@@ -173,9 +173,11 @@ partialHashLookup keyParser = debug "partialHashLookup" >> do
   return $ BackTrack (HashLookup hash key)
 
 indexIntoArray = debug "indexIntoArray" >> do
+  indentDebugger
   var <- VariableParser.variable
   char '.'
   number <- PrimitiveParser.integer
+  unindentDebugger
   return $ HashLookup var number
 
 validRangeArgTypes :: SaltyParser
