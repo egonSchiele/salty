@@ -483,3 +483,5 @@ unindentD_ (SaltyState prev scope i) = SaltyState prev scope (i-1)
 tryString :: String -> (Parsec String SaltyState String)
 tryString str = try . string $ str
 
+stripNewline (WithNewLine salty) = salty
+stripNewline salty = salty

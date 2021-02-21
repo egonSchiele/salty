@@ -2,7 +2,7 @@ module ToJs where
 import Types
 import Print
 import Data.List (intercalate)
-import Utils (isConstant, join)
+import Utils (isConstant, join, stripNewline)
 
 initToJs body = join "\n" $ map toJs (init body)
 stripNewlineToJs (WithNewLine salty) = toJs salty
@@ -177,8 +177,8 @@ instance ConvertToJs Salty where
 
   -- functions called without an object (bare)
   toJs (FunctionCall Nothing (Right var) args Nothing) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toJs $ args)
-  toJs (FunctionCall Nothing (Right var) args (Just block@(Braces _))) = print2 "%(%)" (varNameToFunc var) args_
-    where args_ = join ", " $ (map toJs args) ++ [(addReturn $ LambdaFunction [] block)]
+  toJs (FunctionCall Nothing (Right var) args (Just block@(Braces arr))) = print2 "%(%)" (varNameToFunc var) args_
+    where args_ = join ", " $ (map toJs (args ++ (map stripNewline arr)))
 
   toJs (FunctionCall Nothing (Right var) args (Just block@(LambdaFunction _ _))) = print2 "%(%)" (varNameToFunc var) args_
     where args_ = join ", " $ (map toJs args) ++ [(addReturn block)]
@@ -205,8 +205,8 @@ instance ConvertToJs Salty where
   -- functions called on an obj
   -- toJs (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args Nothing) = print3 "%.%(%)" obj (simpleVarName funcName) (intercalate ", " . map toJs $ args)
   toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args Nothing) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) (intercalate ", " . map toJs $ args)
-  toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args (Just block@(Braces _))) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) args_
-    where args_ = join ", " $ (map toJs args) ++ [(addReturn $ LambdaFunction [] block)]
+  toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args (Just block@(Braces arr))) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) args_
+    where args_ = join ", " $ (map toJs $ args ++ (map stripNewline arr))
 
   toJs (FunctionCall (Just var@(Variable _ _)) (Right funcName) args (Just block@(LambdaFunction _ _))) = print3 "%.%(%)" (toJs var) (simpleVarName funcName) args_
     where args_ = join ", " $ (map toJs args) ++ [(addReturn block)]
