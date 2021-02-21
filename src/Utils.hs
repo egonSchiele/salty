@@ -8,6 +8,9 @@ import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 import Data.Functor.Identity (Identity)
 import Data.Char (isAlphaNum, isUpper)
+import Types
+import System.IO.Unsafe (unsafePerformIO)
+import System.Environment (lookupEnv)
 
 isJust (Just _) = True
 isJust Nothing = False
@@ -430,4 +433,48 @@ for = flip map
 isConstant :: String -> Bool
 isConstant str = all isUpper chars
   where chars = filter isAlphaNum str
+
+------------------------------
+    --
+
+data SaltyState = SaltyState {
+                      lastSalty :: Salty,
+                      stateScopes :: [Scope],
+                      debugIndent :: Int
+                  }
+
+type SaltyParser = Parsec String SaltyState Salty
+
+debug :: String -> SaltyParser
+debug str
+  | flag = printDebug str
+  | otherwise = return (SaltyString str)
+  where flag = unsafePerformIO $ do
+          result <- lookupEnv "DEBUG"
+          case result of
+               Nothing -> return False
+               Just _ -> return True
+
+printDebug :: String -> SaltyParser
+printDebug str = do
+  indent <- debugIndent <$> getState
+  parserTrace ((replicate (indent*4) ' ') ++ str)
+  return $ SaltyString str
+
+indentDebugger :: SaltyParser
+indentDebugger = do
+  modifyState indentD_
+  return Salt
+
+unindentDebugger :: SaltyParser
+unindentDebugger = do
+  modifyState unindentD_
+  return Salt
+
+indentD_ :: SaltyState -> SaltyState
+indentD_ (SaltyState prev scope i) = SaltyState prev scope (i+1)
+
+unindentD_ :: SaltyState -> SaltyState
+unindentD_ (SaltyState prev scope i) = SaltyState prev scope (i-1)
+
 

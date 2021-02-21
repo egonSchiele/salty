@@ -4,7 +4,6 @@ import System.Environment
 import System.Directory
 
 import Parser
-import ParserPhp (phpToPhp)
 import Utils
 import Print (print2)
 
@@ -25,13 +24,6 @@ convertToFile infile outfile = do
     contents <- readFile infile
     let out = saltyToPhp (getIndentAmt contents) contents
     writeFile outfile ("<?php\n" ++ out)
-
-convertToPhp infile = do
-    contents <- readFile infile
-    let out = phpToPhp (getIndentAmt contents) contents
-    if out /= ""
-       then putStrLn $ print2 "\"%\" : \"%\"," out infile
-       else return ()
 
 convertToJsFile infile outfile = do
     contents <- readFile infile
@@ -88,7 +80,6 @@ main = do
        ["-e"] -> findErrorInStdin
        ["-f", inputFile] -> convertToFile inputFile (replace ".salt" ".php" inputFile)
        ["-e", inputFile] -> findErrorInFile inputFile
-       ["-p", inputFile] -> convertToPhp inputFile
        ["-j"] -> convertToJs
        ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".jsx" inputFile)
        [inputFile] -> convert inputFile

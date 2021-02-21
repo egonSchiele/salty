@@ -346,6 +346,7 @@ instance ConvertToJs Salty where
   toJs (Range l r) = "a range: (" ++ (toJs l) ++ ".." ++ (toJs r) ++ ")"
   toJs (Keyword x) = "keyword not implemented yet: " ++ (show x)
   toJs (ParseError x) = x ++ "\n"
+  toJs SaltySpace = " "
   toJs x = "not implemented yet: " ++ (show x)
 
 

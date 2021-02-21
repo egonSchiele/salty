@@ -324,6 +324,7 @@ instance ConvertToPhp Salty where
   toPhp (Range l r) = "a range: (" ++ (toPhp l) ++ ".." ++ (toPhp r) ++ ")"
   toPhp (Keyword x) = "keyword not implemented yet: " ++ (show x)
   toPhp (ParseError x) = x ++ "\n"
+  toPhp SaltySpace = " "
   toPhp x = "not implemented yet: " ++ (show x)
 
 

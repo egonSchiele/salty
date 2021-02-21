@@ -183,6 +183,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
              | PurePhp String
              | PhpComment String
              | SaltyComment String
+             | SaltySpace
              | Salt
              | BackTrack Salty
              | Constant Salty

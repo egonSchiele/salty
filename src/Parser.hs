@@ -7,11 +7,12 @@ import qualified FormattingJs
 import Text.Parsec
 import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
-import Debug.Trace (trace)
 import ToPhp
 import Print
 import System.IO.Unsafe (unsafePerformIO)
 import System.Environment (lookupEnv)
+import qualified Parser.KeywordParser as KeywordParser
+import qualified Parser.OperationParser as OperationParser
 
 tryString :: String -> (Parsec String SaltyState String)
 tryString str = try . string $ str
@@ -24,30 +25,6 @@ functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1
 hashKeyChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-'\""
 typeChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_?[]"
 -- constChars = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-
-data SaltyState = SaltyState {
-                      lastSalty :: Salty,
-                      stateScopes :: [Scope],
-                      debugIndent :: Int
-                  }
-
-type SaltyParser = Parsec String SaltyState Salty
-
-debug :: String -> SaltyParser
-debug str
-  | flag = printDebug str
-  | otherwise = return (SaltyString str)
-  where flag = unsafePerformIO $ do
-          result <- lookupEnv "DEBUG"
-          case result of
-               Nothing -> return False
-               Just _ -> return True
-
-printDebug :: String -> SaltyParser
-printDebug str = do
-  indent <- debugIndent <$> getState
-  parserTrace ((replicate (indent*4) ' ') ++ str)
-  return $ SaltyString str
 
 saltyToPhp :: Int -> String -> String
 saltyToPhp indentAmt str = case (build str) of
@@ -134,30 +111,14 @@ saltyParserSingle_ = do
 saveIt :: Salty -> SaltyState -> SaltyState
 saveIt salty (SaltyState _ scopes i) = SaltyState salty scopes i
 
-indentDebugger :: SaltyParser
-indentDebugger = do
-  modifyState indentD_
-  return Salt
-
-unindentDebugger :: SaltyParser
-unindentDebugger = do
-  modifyState unindentD_
-  return Salt
-
-indentD_ :: SaltyState -> SaltyState
-indentD_ (SaltyState prev scope i) = SaltyState prev scope (i+1)
-
-unindentD_ :: SaltyState -> SaltyState
-unindentD_ (SaltyState prev scope i) = SaltyState prev scope (i-1)
-
 saltyParserSingleWithoutNewline :: SaltyParser
 saltyParserSingleWithoutNewline = do
-  parens
-  <|> (try operation)
+      parens
+  <|> (try (OperationParser.operation atom saltyParserSingle_))
   <|> saltyBool
   <|> saltyNull
   <|> emptyObject
-  <|> saltyKeyword
+  <|> (KeywordParser.saltyKeyword saltyParserSingle_)
   -- these have a double bar b/c saltyKeyword just has too many keywords
   -- to replace them all with `tryString`.
   <||> saltyString
@@ -212,7 +173,7 @@ saltyParserSingleWithoutNewline = do
       <||> partialFunctionCall
       <||> partialAttrAccess
       )
-  <|> partialOperation
+  <|> (OperationParser.partialOperation saltyParserSingle_)
   <||> html
   <||> emptyLine
 
@@ -223,8 +184,8 @@ validFuncArgTypes = debug "validFuncArgTypes" >> do
   <||> array
   <||> destructuredHash
   <||> hashTable
-  <||> operation
-  <||> partialOperation
+  <||> (OperationParser.operation atom saltyParserSingle_)
+  <||> (OperationParser.partialOperation saltyParserSingle_)
   <||> saltyString
   <||> range
   <||> indexIntoArray
@@ -517,7 +478,7 @@ whereClause = debug "whereClause" >> do
   string "where" <||> string "and"
   space
   indentDebugger
-  op <- operation <||> multiAssign
+  op <- (OperationParser.operation atom saltyParserSingle_) <||> multiAssign
   unindentDebugger
   optional $ char '\n'
   return op
@@ -614,38 +575,6 @@ functionTypeSignature = debug "functionTypeSignature" >> do
   unindentDebugger
   return $ FunctionTypeSignature name argTypes
 
-operator = debug "operator" >> do
-       (string "!=" >> return NotEquals)
-  <||> (string "+=" >> return PlusEquals)
-  <||> (string "-=" >> return MinusEquals)
-  <||> (string "/=" >> return DivideEquals)
-  <||> (string "*=" >> return MultiplyEquals)
-  <||> (string "[]=" >> return ArrayPush)
-  <||> (string "||=" >> return OrEquals)
-  <||> (string "||" >> return OrOr)
-  <||> (string "&&" >> return AndAnd)
-  <||> (string "??" >> return NullCoalesce)
-  <||> (string "++" >> return PlusPlus)
-  <||> (string "<>" >> return ArrayMerge)
-  <||> (string "<->" >> return ArrayDiff)
-  <||> (string "instanceof" >> return InstanceOf)
-  <||> (string "isa" >> return InstanceOf)
-  <||> (string "in" >> return In)
-  <||> (string "keyin" >> return KeyIn)
-  <||> (string "==" >> return EqualsEquals)
-  <||> (string "<=>" >> return Spaceship)
-  <||> (string "<=" >> return LessThanOrEqualTo)
-  <||> (string ">=" >> return GreaterThanOrEqualTo)
-  <||> (string "<" >> return LessThan)
-  <||> (string ">" >> return GreaterThan)
-  <||> (string "+" >> return Add)
-  <||> (string "-" >> return Subtract)
-  <||> (string "/" >> return Divide)
-  <||> (string "*" >> return Multiply)
-  <||> (string "=" >> return Equals)
-  <||> (string "%" >> return Modulo)
-  <?> "an operator"
-
 atom = debug "atom" >> do
        parens
   <||> functionCall
@@ -662,28 +591,6 @@ atom = debug "atom" >> do
   <||> saltyString
   <||> saltyNumber
   <?> "an atom"
-
-operation = debug "operation" >> do
-  indentDebugger
-  left <- atom
-  unindentDebugger
-  space
-  op <- operator
-  space
-  indentDebugger
-  right <- saltyParserSingle_
-  unindentDebugger
-  return $ Operation left op right
-
-partialOperation = debug "partialOperation" >> do
-  leftHandSide <- lastSalty <$> getState
-  space
-  op <- operator
-  space
-  indentDebugger
-  right <- saltyParserSingle_
-  unindentDebugger
-  return $ BackTrack (Operation leftHandSide op right)
 
 partialAttrAccess = debug "partialAttrAccess" >> do
   leftHandSide <- lastSalty <$> getState
@@ -1200,41 +1107,6 @@ emptyObject = debug "emptyObject" >> do
 saltyNull = debug "saltyNull" >> do
   s <- tryString "null"
   return SaltyNull
-
-saltyKeyword = debug "saltyKeyword" >> do
-  kw <- saltyKeywordPreceding <||> saltyKeywordSimple
-  return $ Keyword kw
-
-saltyKeywordSimple = debug "saltyKeywordSimple" >> do
-  kw <-      string "undefined"
-         <||> string "break"
-  return $ KwSimple kw
-
-saltyKeywordPreceding = debug "saltyKeywordPreceding" >> do
-  kw <-      string "const"
-         <||> string "var"
-         <||> string "let"
-         <||> string "throw"
-         <||> string "require"
-         <||> string "require_once"
-         <||> string "public"
-         <||> string "private"
-         <||> string "protected"
-         <||> string "static"
-         <||> string "export"
-         <||> string "default"
-         <||> string "namespace"
-         <||> string "echo"
-         <||> string "import *"
-         <||> string "import"
-         <||> string "as"
-         <||> string "use"
-         <||> string "from"
-  space
-  indentDebugger
-  salty <- saltyParserSingle_
-  unindentDebugger
-  return $ KwPreceding kw salty
 
 multiAssignVar = debug "multiAssignVar" >> do
   var <- variable
