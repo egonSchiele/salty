@@ -718,11 +718,8 @@ functionCallWithoutObject = debug "functionCallWithoutObject" >> do
   optional $ char '\n'
   char ')'
   unindentDebugger
-  -- TO FIX: adding the ability to have a block here causes some tests to fail.
-  -- fix and then uncomment
-  -- block <- optionMaybe functionBlock
-  -- return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs block
-  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs Nothing
+  block <- optionMaybe (try functionBlock)
+  return $ FunctionCall Nothing (parseBuiltInFuncName funcName) funcArgs block
 
 functionCallOnObjectWithoutParens = debug "functionCallOnObjectWithoutParens" >> do
   obj <- VariableParser.variable

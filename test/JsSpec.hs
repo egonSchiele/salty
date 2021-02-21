@@ -263,7 +263,7 @@ longClassResult = [r|const constructor = (props) => {
 }|]
 
 doFunc = [r|constructor props := {
-  React.useEffect() do
+  React.useEffect() do \_ ->
     window.localStorage.setItem('step', @@activeItem)
   end
 }|]
