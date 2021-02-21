@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
-module LongExamples.Js.SimpleWebPage.Pages where
+module LongExamples.Js.SimpleWebPage.Controller where
 import Text.RawString.QQ
 
 import Test.HUnit
