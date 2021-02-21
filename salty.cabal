@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9dd8d4448c8c400928065f6d4ee10b61d138e94107d31db8cc4ae1d1a46dc099
+-- hash: 79aac87a7fb53aab55fdea45ff3081effe455eae676232095b8db3df5502f334
 
 name:           salty
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       FormattingJs
       Parser
       Parser.KeywordParser
+      Parser.LambdaParser
       Parser.OperationParser
       Print
       ToJs

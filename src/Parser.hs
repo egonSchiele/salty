@@ -13,12 +13,12 @@ import System.IO.Unsafe (unsafePerformIO)
 import System.Environment (lookupEnv)
 import qualified Parser.KeywordParser as KeywordParser
 import qualified Parser.OperationParser as OperationParser
+import qualified Parser.LambdaParser as LambdaParser
 
 tryString :: String -> (Parsec String SaltyState String)
 tryString str = try . string $ str
 
 varNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_"
-lambdaVarNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_ "
 classNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\"
 extendsNameChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\\."
 functionArgsChars = oneOf "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_&"
@@ -122,7 +122,7 @@ saltyParserSingleWithoutNewline = do
   -- these have a double bar b/c saltyKeyword just has too many keywords
   -- to replace them all with `tryString`.
   <||> saltyString
-  <|> lambda
+  <|> LambdaParser.lambda lambdaBody
   <|> saltyMagicConstant
   <||> phpVar
   <|> returnStatement
@@ -249,7 +249,7 @@ validHashValue = debug "validHashValue" >> do
   <||> functionCall
   <||> hashLookup
   <||> attrAccess
-  <||> lambda
+  <||> LambdaParser.lambda lambdaBody
   <||> destructuredHash
   <||> saltyBool
   <||> saltyNull
@@ -707,7 +707,7 @@ higherOrderFunctionCall = debug "higherOrderFunctionCall" >> do
               <||> (string "every" >> return All)
   char '('
   indentDebugger
-  func <- lambda
+  func <- LambdaParser.lambda lambdaBody
   unindentDebugger
   char ')'
   return $ HigherOrderFunctionCall obj funcName func "$result"
@@ -728,7 +728,7 @@ partialHigherOrderFunctionCall = debug "partialHigherOrderFunctionCall" >> do
               <||> (string "all" >> return All)
   char '('
   indentDebugger
-  func <- lambda
+  func <- LambdaParser.lambda lambdaBody
   unindentDebugger
   char ')'
   return $ BackTrack $ HigherOrderFunctionCall obj funcName func "$result"
@@ -739,25 +739,10 @@ times = debug "times" >> do
   string "times"
   char '('
   indentDebugger
-  func <- lambda <||> lambdaWithoutArgs
+  func <- (LambdaParser.lambda lambdaBody) <||> (LambdaParser.lambdaWithoutArgs lambdaBody)
   unindentDebugger
   char ')'
   return $ HigherOrderFunctionCall (Range (SaltyNumber "1") number)  Each func "$result"
-
-lambda = debug "lambda" >> do
-  char '\\'
-  args <-  many1 lambdaVarNameChars
-  string "-> "
-  indentDebugger
-  body <- (braces Nothing) <||> saltyParserSingle_ <?> "a lambda function body"
-  unindentDebugger
-  return $ LambdaFunction (words args) body
-
-lambdaWithoutArgs = debug "lambdaWithoutArgs" >> do
-  indentDebugger
-  body <- (braces Nothing) <||> saltyParserSingle_ <?> "a lambda function (without args) body"
-  unindentDebugger
-  return $ LambdaFunction [] body
 
 returnStatement = debug "returnStatement" >> do
   tryString "return "
@@ -848,8 +833,10 @@ shorthandHtml = debug "shorthandHtml" >> do
   (SaltyString str) <- saltyString
   return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just (Braces [PurePhp str]))
 
+lambdaBody = (braces Nothing) <||> saltyParserSingle_
+
 functionBlock = debug "functionBlock" >> do
-  bracesBlock <||> lambdaBlock
+  bracesBlock <||> (LambdaParser.lambdaBlock $ parseTill (wrapInSalt $ string "end"))
 
 bracesBlock = debug "bracesBlock" >> do
   string " do\n"
@@ -857,15 +844,6 @@ bracesBlock = debug "bracesBlock" >> do
   body <- parseTill (wrapInSalt $ string "end")
   unindentDebugger
   return $ Braces body
-
-lambdaBlock = debug "lambdaBlock" >> do
-  string " do \\"
-  args <-  many1 lambdaVarNameChars
-  string "->\n"
-  indentDebugger
-  body <- parseTill (wrapInSalt $ string "end")
-  unindentDebugger
-  return $ LambdaFunction (words args) (Braces body)
 
 functionCallOnObject = debug "functionCallOnObject" >> do
   obj <- variable
