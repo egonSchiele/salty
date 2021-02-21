@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5028c99b2b64d5eb87ee88db7aab7b03a32a837f29b65424ba99aadd84bfb3e2
+-- hash: de87688a8c0ef5fc7533bb54220ff935324c137d25dea6745d4d70ec6fd6e936
 
 name:           salty
 version:        0.1.0.0
@@ -76,7 +76,9 @@ test-suite salty-test
   main-is: Spec.hs
   other-modules:
       JsSpec
+      LongExamples.Js.SimpleWebPage.Pages
       PhpSpec
+      TestUtils
       Paths_salty
   hs-source-dirs:
       test
