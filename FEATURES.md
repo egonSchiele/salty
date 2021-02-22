@@ -10,7 +10,7 @@
 
 Inside a class,
 
-```
+```ruby
 FOO = 1
 _FOO = 1
 @@FOO = 1
@@ -18,7 +18,7 @@ _FOO = 1
 
 becomes
 
-```
+```php
 public const FOO = 1;
 private const FOO = 1;
 static::FOO = 1;
@@ -26,19 +26,19 @@ static::FOO = 1;
 
 outside a class, you need `const`:
 
-```
+```ruby
 const FOO = 1
 ```
 
 becomes
 
-```
+```php
 const FOO = 1;
 ```
 
 You can use const in classes too. In fact you could write:
 
-```
+```php
 class Foo {
     public static const FOO = 1
 }
@@ -46,7 +46,7 @@ class Foo {
 
 Which would become
 
-```
+```php
 class Foo {
     public static const FOO = 1;
 }
@@ -54,13 +54,13 @@ class Foo {
 
 ## Functions
 
-```
+```haskell
 foo a b := a + b
 ```
 
 becomes
 
-```
+```php
 public function foo($a, $b) {
     return $a + $b;
 }
@@ -69,7 +69,7 @@ public function foo($a, $b) {
 
 ### Multi-line functions:
 
-```
+```haskell
 foo a b := {
   bar = 1
   baz = a
@@ -79,7 +79,7 @@ foo a b := {
 
 becomes
 
-```
+```php
 public function foo($a, $b) {
     $bar = 1;
     $baz = $a;
@@ -89,13 +89,13 @@ public function foo($a, $b) {
 
 ### Static functions:
 
-```
+```ruby
 @@build a b := return 2
 ```
 
 becomes
 
-```
+```php
 public static function build($a, $b) {
     return 2;
 }
@@ -103,13 +103,13 @@ public static function build($a, $b) {
 
 ### Private function:
 
-```
+```ruby
 _foo a b := a + b
 ```
 
 becomes
 
-```
+```php
 private function foo($a, $b) {
     return $a + $b;
 }
@@ -118,7 +118,7 @@ private function foo($a, $b) {
 ### Guards
 Like switch statements for functions.
 
-```
+```haskell
 fib x := guard
   | x < 2 -> x
   | otherwise -> fib(x - 1) + fib(x - 2)
@@ -126,7 +126,7 @@ fib x := guard
 
 becomes
 
-```
+```php
 function fib($x) {
     if ($x < 2) {
         return $x;
@@ -138,14 +138,14 @@ function fib($x) {
 
 ### Type signatures
 
-```
+```haskell
 foo :: string -> string
 foo a := a
 ```
 
 becomes
 
-```
+```php
 /**
  * @param string
  * @return string
@@ -155,14 +155,14 @@ public function foo(string $a) {
 }
 ```
 
-```
+```haskell
 foo :: string? -> string
 foo a := a
 ```
 
 becomes
 
-```
+```php
 /**
  * @param string|null
  * @return string
@@ -172,14 +172,14 @@ public function foo(?string $a = null) {
 }
 ```
 
-```
+```haskell
 foo :: string -> int? -> string
 foo a b := a
 ```
 
 becomes
 
-```
+```php
 /**
  * @param string|null
  * @param int

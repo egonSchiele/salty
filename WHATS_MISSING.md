@@ -4,10 +4,6 @@ The goal isn't to have every PHP feature in here, but there are definitely some 
 - pass by reference (`foo = &bar`)
 - function arg defaults (foo a=1 := a + 1)
 
-chaining optionals for hash keys like
-
-    :foo.bar?.baz?
-
 would be cool.
 
 Use php 7.4 lambda shorthand to allow HoFs to be passed into functions:
@@ -24,5 +20,3 @@ instead of
      * @param bool
 
 name not needed for returns, or for annotations on variables
-
-formatting for multi-line arrays could be better.
