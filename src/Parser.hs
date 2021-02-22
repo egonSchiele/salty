@@ -676,8 +676,11 @@ htmlVar = debug "htmlVar" >> do
 shorthandHtml = debug "shorthandHtml" >> do
   var <- htmlVar
   space
-  (SaltyString str) <- saltyString
-  return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just (Braces [PurePhp str]))
+  val <- saltyString <||> parens
+  let arr = case val of
+              (Parens salty) -> salty
+              _ -> [val]
+  return $ FunctionCall (Just var) (Right (SimpleVar "new")) [] (Just (Braces arr))
 
 lambdaBody = (braces Nothing) <||> saltyParserSingle_
 

@@ -685,22 +685,15 @@ jsTests = [
     -- imports
     "import * as React from \"React\"" `matches` "import * as React from \"React\";",
     "import React from \"React\"" `matches` "import React from \"React\";",
-    "import { createElement } from \"React\"" `matches` "import { createElement } from \"React\";"
+    "import { createElement } from \"React\"" `matches` "import { createElement } from \"React\";",
 
-    -- empty hash
-    -- disabling this feature since the syntax becomes ambiguous
-    -- "{}" `matches` "[];",
-    -- "foo = {}" `matches` "foo = [];",
-    -- "a, b, foo = {}" `matches` "a = [];\nb = [];\nfoo = [];",
-    -- "foo := {}" `matches` "function foo() {\n}",
-    -- "foo := return {}" `matches` "function foo() {\n  return [];\n}",
-    -- "foo := { {} }" `matches` "function foo() {\n  return [];\n}"
-
-    -- unsure what to do with this
-    -- "if 1 == 1 then {}" `matches` ""
-
-
-    -- comments at the end of the line
-    -- "a + b # hi\nhello = 1" `matches` "a + b;\nhello = 1;",
-    -- "a + b // hi\nhello = 1" `matches` "a + b; // hi\nhello = 1;"
+    -- jsx
+    "h1 'hi there'" `matches` "<h1>hi there</h1>",
+    "h1 (myVar)" `matches` "<h1>{myVar}</h1>",
+    "h1 (@myVar)" `matches` "<h1>{this.myVar}</h1>",
+    "h1 (@@myVar)" `matches` "<h1>{this.state.myVar}</h1>",
+    "h1 (myVar.foo)" `matches` "<h1>{myVar.foo}</h1>",
+    "h1 (@myVar.bar)" `matches` "<h1>{this.myVar.bar}</h1>",
+    "h1 (@@myVar.baz)" `matches` "<h1>{this.state.myVar.baz}</h1>",
+    "h1 ('hello, ' ++ name ++ '!')" `matches` "<h1>{\"hello, \" + name + \"!\"}</h1>"
   ]
