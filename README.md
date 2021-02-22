@@ -1,9 +1,58 @@
-# salty
+# Salty
 
-## Usage
+Salty is a language that compiles to PHP, JavaScript, and JSX.
+
+Salty compiles to readable code, so there's no long term dependency on it.
+
+Stop using Salty whenever you want, and you'll be left with the PHP or JavaScript code you'd have probably written instead anyway.
+
+## What can Salty do for you?
+
+Salty is meant to be a pleasure to write and read, and that can be subjective, so see if Salty is right for you!
+
+Here's a PHP function:
+
+```php
+/**
+ * @param int
+ * @param int
+ * @return int
+ */
+public function add(int $a, int $b) {
+    return $a + $b;
+}
+```
+
+Here's the same function in Salty:
+
+```haskell
+add :: int -> int -> int
+add a b := a + b
+```
+
+Here's a `forEach` loop in PHP:
+
+```php
+$evens = [];
+forEach($numbers as $number) {
+    if (isEven($number)) {
+        $evens []= $number;
+    }
+}
+```
+
+This is essentially a `select`, and Salty provides higher order functions so you can write it as a select:
+
+```haskell
+evens = numbers.select(\number -> isEven(number))
+```
+
+These are simple examples, but you can find some longer examples [here](/test/LongExamples/Js/SimpleWebPage).
+
+## Getting Salty
 Compile the code yourself or just copy one of the binaries in `bin`.
 
-## Compiling
+### Compiling
 
 Install Stack:
 
@@ -13,6 +62,8 @@ Then:
 
     make install
 
+## Usage
+
 By default salty reads from stdin and prints to stdout.
 You can also give it a file to read like so:
 
@@ -20,9 +71,13 @@ You can also give it a file to read like so:
 
 And it will print php code on stdout.
 
+Or,
+
     salty -f test.salt
 
 Will write to `test.php`.
+
+Use
 
     stack ghci
 
@@ -47,5 +102,3 @@ Add these to your `.vimrc`:
 
 
 Syntax highlighting: https://github.com/egonschiele/salt-vim
-
-
