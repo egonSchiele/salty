@@ -196,14 +196,14 @@ guardResult = [r|function foo() {
 
 guardTestWithArgs = [r|foo a bar := guard
   | x == 1 -> x.foo()
-  | otherwise -> Foo.new().bar()
+  | otherwise -> Foo.bar()
 |]
 
 guardResultWithArgs = [r|function foo($a, $bar) {
     if ($x == 1) {
         return $x->foo();
     } else {
-        return (new Foo())->bar();
+        return Foo::bar();
     }
 }|]
 
@@ -211,12 +211,12 @@ guardTestWithWhere = [r|foo a bar := guard
   | awesome -> x.foo()
   | otherwise -> x.map(\y -> y + 1)
   where awesome = 1 + 1
-  and blossom = Foo.new()
+  and blossom = "hi there"
 |]
 
 guardResultWithWhere = [r|function foo($a, $bar) {
     $awesome = 1 + 1;
-    $blossom = (new Foo());
+    $blossom = "hi there";
     if ($awesome) {
         return $x->foo();
     } else {
@@ -490,7 +490,7 @@ phpTests = [
     "arr.each(\\x -> print(x))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
     "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
     "10.times(p('hello'))" `matches` "for ($x = 1; $x <= 10; $x++) {\n    var_dump(\"hello\");\n}",
-    "10.times(\\i -> Hello.new(i))" `matches` "for ($i = 1; $i <= 10; $i++) {\n    (new Hello($i));\n}",
+    "10.times(\\i -> new Hello(i))" `matches` "for ($i = 1; $i <= 10; $i++) {\n    new Hello($i);\n}",
     -- same but w parens
     "(@adit).map(\\x -> x + 1)" `matches` "$result = [];\nforeach (($this->adit) as $x) {\n    $result []= $x + 1;\n}",
     "users = shops.map(\\s -> s.user)" `matches`"$users = [];\nforeach ($shops as $s) {\n    $users []= $s->user;\n}",
@@ -662,7 +662,6 @@ phpTests = [
     "foo.split(',').uniq()" `matches` "array_unique(explode(',', $foo));",
     "foo.sub(\"foo\", 'bar')" `matches` "str_replace(\"foo\", \"bar\", $foo);",
     "foo.sub(\"foo\", bar)" `matches` "str_replace(\"foo\", $bar, $foo);",
-    "Array.new(3, true)" `matches` "(new Array(3,true));",
 
     -- multi-assign
     "foo, bar = baz" `matches` "$foo = $baz[0];\n$bar = $baz[1];",
@@ -670,7 +669,7 @@ phpTests = [
     "foo, bar = 0" `matches` "$foo = 0;\n$bar = 0;",
     "foo, bar = explode('.', array)" `matches` "$result = explode(\".\", $array);\n$foo = $result[0];\n$bar = $result[1];",
     "foo, bar = obj.func()" `matches` "$result = $obj->func();\n$foo = $result[0];\n$bar = $result[1];",
-    "foo, bar = Foo.new(bar).run()" `matches` "$result = (new Foo($bar))->run();\n$foo = $result[0];\n$bar = $result[1];",
+    "foo, bar = (new Foo(bar)).run()" `matches` "$result = (new Foo($bar))->run();\n$foo = $result[0];\n$bar = $result[1];",
 
     -- hash lookup
     "arr.1 - arr.0" `matches` "$arr[1] - $arr[0];",

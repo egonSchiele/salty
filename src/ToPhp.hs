@@ -2,7 +2,7 @@ module ToPhp where
 import Types
 import Print
 import Data.List (intercalate)
-import Utils (isConstant, join)
+import Utils (isConstant, join, stripNewline)
 
 initToPhp body = join "\n" $ map toPhp (init body)
 stripNewlineToPhp (WithNewLine salty) = toPhp salty
@@ -145,7 +145,13 @@ instance ConvertToPhp Salty where
   toPhp (SaltyString s) = "\"" ++ s ++ "\""
 
   -- functions called without an object (bare)
-  toPhp (FunctionCall Nothing (Right var) args _) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall Nothing (Right var) args Nothing) = print2 "%(%)" (varNameToFunc var) (intercalate ", " . map toPhp $ args)
+
+  toPhp (FunctionCall Nothing (Right var) args (Just block@(Braces arr))) = print2 "%(%)" (varNameToFunc var) args_
+    where args_ = join ", " $ (map toPhp (args ++ (map stripNewline arr)))
+
+  toPhp (FunctionCall Nothing (Right var) args (Just block@(LambdaFunction _ _))) = print2 "%(%)" (varNameToFunc var) args_
+    where args_ = join ", " $ (map toPhp args) ++ [(addReturn block)]
 
   -- builtin bare functions
   toPhp (FunctionCall Nothing (Left VarDumpShort) args _) = "var_dump(" ++ (intercalate ", " . map toPhp $ args) ++ ")"
@@ -166,14 +172,21 @@ instance ConvertToPhp Salty where
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "size")) [] _) = "count(" ++ (toPhp obj) ++ ")"
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "shuffle")) [] _) = "shuffle(" ++ (toPhp obj) ++ ")"
   toPhp (FunctionCall (Just obj) (Right (SimpleVar "sub")) [search, replace] _) = print3 "str_replace(%, %, %)" (toPhp search) (toPhp replace) (toPhp obj)
-  toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args _) = "(" ++ (toPhp $ New vName args) ++ ")"
+  toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args (Just (Braces block))) = toPhp $ New vName (args ++ (map stripNewline block))
+  toPhp (FunctionCall (Just (Variable vName _)) (Right (SimpleVar "new")) args _) = toPhp $ New vName args
 
   -- functions called on an obj
-  toPhp (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args _) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
-  toPhp (FunctionCall (Just var@(Variable _ _)) (Right funcName) args _) = print3 "%->%(%)" (toPhp var) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just (Variable (ClassVar obj) _)) (Right funcName) args Nothing) = print3 "%::%(%)" obj (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just var@(Variable _ _)) (Right funcName) args Nothing) = print3 "%->%(%)" (toPhp var) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
 
-  toPhp (FunctionCall (Just obj) (Right funcName) args _) = print3 "%->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+  toPhp (FunctionCall (Just obj) (Right funcName) args Nothing) = print3 "%->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
+
+  toPhp (FunctionCall (Just var@(Variable _ _)) (Right funcName) args (Just block@(Braces arr))) = print3 "%->%(%)" (toPhp var) (simpleVarName funcName) args_
+    where args_ = join ", " $ (map toPhp $ args ++ (map stripNewline arr))
+
+  toPhp (FunctionCall (Just var@(Variable _ _)) (Right funcName) args (Just block@(LambdaFunction _ _))) = print3 "%->%(%)" (toPhp var) (simpleVarName funcName) args_
+    where args_ = join ", " $ (map toPhp args) ++ [(addReturn block)]
 
   -- same as above but with parens
   toPhp (FunctionCall (Just (Parens [obj])) (Right funcName) args _) = print3 "(%)->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
