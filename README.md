@@ -65,6 +65,34 @@ These are simple examples, but you can find some longer examples [here](/test/Lo
 
 See list of features [here](FEATURES.md): dot notation, implicit returns, guards, multi-assign, hash destructuring, and more.
 
+## Compiling to JSX
+
+Salty provides an alternative to JSX that's similar to [hyperscript-helpers](https://github.com/ohanhi/hyperscript-helpers).
+
+Take this JSX fragment for example:
+
+```jsx
+<TodoList title="My Todos">
+    <ul>
+        <li>todo one</li>
+        <li>todo two</li>
+        <li>todo three</li>
+    </ul>
+</TodoList>
+```
+
+You can write it in Salty like this:
+
+```ruby
+TodoList.new({title: "My Todos"}) do
+    ul do
+        li "todo one"
+        li "todo two"
+        li "todo three"
+    end
+end
+```
+
 ## Getting Salty
 Compile the code yourself or just copy one of the binaries in `bin`.
 
