@@ -273,6 +273,19 @@ guardTestAsSwitchResult = [r|function todos($state, $action) {
     }
 }|]
 
+blocks = [r|Hello do
+  foo
+  1
+end
+
+foo() do
+  "hi"
+  1 + 1
+end
+|]
+
+blocksResult = [r|new Hello($foo,1);
+foo("hi", 1 + 1);|]
 phpTests = [
     multiLineEachTest,
     multiLineMapTest,
@@ -286,6 +299,7 @@ phpTests = [
     guardTestWithWhere `matches` guardResultWithWhere,
     guardTestComplex `matches` guardTestComplexResult,
     guardTestAsSwitch `matches` guardTestAsSwitchResult,
+    blocks `matches` blocksResult,
     -- operations
     "foo = 1" `matches` "$foo = 1;",
     "bar = 'adit'" `matches` "$bar = \"adit\";",
