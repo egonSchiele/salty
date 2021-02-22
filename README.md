@@ -1,8 +1,10 @@
 # Salty
 
+[![Haskell CI](https://github.com/egonSchiele/salty/actions/workflows/haskell.yml/badge.svg?branch=main)](https://github.com/egonSchiele/salty/actions/workflows/haskell.yml)
+
 Salty is a language that compiles to PHP, JavaScript, and JSX.
 
-Salty compiles to readable code, so there's no long term dependency on it.
+Salty compiles to readable code, so *there's no long term dependency on it*.
 
 Stop using Salty whenever you want, and you'll be left with the PHP or JavaScript code you'd have probably written instead anyway.
 
@@ -47,7 +49,21 @@ This is essentially a `select`, and Salty provides higher order functions so you
 evens = numbers.select(\number -> isEven(number))
 ```
 
+Or for getting an array slice, instead of
+
+```php
+array_slice($foo, 1)
+```
+
+You can do:
+
+```haskell
+foo[1:]
+```
+
 These are simple examples, but you can find some longer examples [here](/test/LongExamples/Js/SimpleWebPage).
+
+See list of features [here](FEATURES.md): dot notation, implicit returns, guards, multi-assign, hash destructuring, and more.
 
 ## Getting Salty
 Compile the code yourself or just copy one of the binaries in `bin`.
