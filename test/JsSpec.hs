@@ -477,7 +477,7 @@ jsTests = [
     -- implicit returns
     "foo := 5" `matches` "const foo = () => {\n  return 5;\n}",
     "foo := bar = 5" `matches` "const foo = () => {\n  bar = 5;\n}",
-    "foo := bar []= 5" `matches` "const foo = () => {\n  bar.push(5);\n}",
+    "foo := bar []= 5" `matches` "const foo = () => {\n  bar.push(5);\n  return bar;\n}",
     "foo := \"hello\"" `matches` "const foo = () => {\n  return \"hello\";\n}",
     "foo x := if x then 'hi' else 'hello'" `matches` "const foo = (x) => {\n  if (x) {\n    return \"hi\";\n  } else {\n    return \"hello\";\n  }\n}",
     "fib x := if x < 2 then x" `matches` "const fib = (x) => {\n  if (x < 2) {\n    return x;\n  }\n}",
