@@ -36,3 +36,10 @@ this doesn't work:
     const [name, setName] = React.useState("")
 
 const and let both have this issue.
+
+
+js doesn't have private functions so this:
+
+    _dispatch action
+
+should create a function named `_dispatch` not `dispatch`
