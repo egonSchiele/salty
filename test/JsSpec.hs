@@ -279,10 +279,9 @@ export default class TodoList extends React.Component where
   makeTodos := @props.todos.map(\t -> @makeTodo(t))
 |]
 
-funcTestResult = [r|
-export default class TodoList extends React.Component {
+funcTestResult = [r| export default class TodoList extends React.Component {
   makeTodos() {
-    this.props.todos.map((t) => this.makeTodo(t));
+    return this.props.todos.map((t) => this.makeTodo(t));
   }
 }|]
 

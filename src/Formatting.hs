@@ -83,7 +83,7 @@ checkBackTracks ((LambdaFunction args body):(BackTrack s):xs) = checkBackTracks 
 -- my solution here is just throw the first backtrack out since it's replaced by the second one.
 checkBackTracks (a:(BackTrack s):(BackTrack s2):xs) = checkBackTracks (s2:xs)
 checkBackTracks (a:(BackTrack s):(WithNewLine (BackTrack s2)):xs) = checkBackTracks (s2:xs)
-
+checkBackTracks (a:(BackTrack s):[]) = [checkBackTracksSingle s]
 checkBackTracks (a:(BackTrack s):xs) = checkBackTracks (s:xs)
 checkBackTracks ((Operation left op right):(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine (Operation left op s)):xs)
 checkBackTracks ((MultiAssign vars right):(WithNewLine (BackTrack s)):xs) = checkBackTracks ((WithNewLine (MultiAssign vars s)):xs)
@@ -133,6 +133,7 @@ checkBackTracksSingle (Parens s) = Parens (checkBackTracks s)
 checkBackTracksSingle (Braces s) = Braces (checkBackTracks s)
 checkBackTracksSingle (BackTrack s) = (checkBackTracksSingle s)
 checkBackTracksSingle (Constant s) = Constant (checkBackTracksSingle s)
+checkBackTracksSingle (Keyword (KwPreceding str salty)) = (Keyword (KwPreceding str (checkBackTracksSingle salty)))
 checkBackTracksSingle x = x
 
 saltyToPhp_ :: Int -> [Salty] -> String

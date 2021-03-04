@@ -76,6 +76,7 @@ checkBackTracks [] = []
 checkBackTracks ((Operation left op right):(BackTrack s):xs) = checkBackTracks ((Operation left op s):xs)
 checkBackTracks ((MultiAssign vars right):(BackTrack s):xs) = checkBackTracks ((MultiAssign vars s):xs)
 checkBackTracks ((LambdaFunction args body):(BackTrack s):xs) = checkBackTracks ((LambdaFunction args s):xs)
+checkBackTracks (a:(BackTrack s):[]) = [checkBackTracksSingle s]
 
 -- these are to make this statement work:
 -- var todos = @state.todos.slice()
@@ -132,6 +133,7 @@ checkBackTracksSingle (Parens s) = Parens (checkBackTracks s)
 checkBackTracksSingle (Braces s) = Braces (checkBackTracks s)
 checkBackTracksSingle (BackTrack s) = (checkBackTracksSingle s)
 checkBackTracksSingle (Constant s) = Constant (checkBackTracksSingle s)
+checkBackTracksSingle (Keyword (KwPreceding str salty)) = (Keyword (KwPreceding str (checkBackTracksSingle salty)))
 checkBackTracksSingle x = x
 
 saltyToJs_ :: Int -> [Salty] -> String
