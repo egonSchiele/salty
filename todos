@@ -43,3 +43,44 @@ js doesn't have private functions so this:
     _dispatch action
 
 should create a function named `_dispatch` not `dispatch`
+
+This doesn't work:
+
+  state.map(\todo -> if todo.id == action.id then todo <> { completed: !todo.completed } else todo)
+
+salty compiles it correctly, but js needs braces around the if in the map.
+
+
+allow partial operations as hash values
+in a where clause, all those vars need to be defined w a const or a let.
+
+    const nextid = @props.store.getState().nextTodoId
+
+generates 3 lines in this context:
+
+  addItem e := {
+    e.preventDefault()
+    const nextid = @props.store.getState().nextTodoId
+    const newTodo = {
+      type: "ADD_TODO",
+      id: nextid,
+      title: ("test " ++ nextid)
+    }
+    @props.store.dispatch(newTodo)
+  }
+
+This file (todolist.salt) led to a bunch of frustration bc this line:
+
+    @props.todos.map(\t -> Todo.new({title: t.title, id: t.id, store: @props.store, completed: t.completed}))
+
+ends up rendered as:
+
+    {this.props.todos}
+      {this.props.todos.map((t) => <Todo title={t.title} id={t.id} store={this.props.store} completed={t.completed}></Todo>)}
+
+(note the `{this.props.todos}` at the start)
+
+smallest example that breaks:
+
+export default class TodoList extends React.Component where
+  makeTodos := @props.todos.map(\t -> @makeTodo(t))
