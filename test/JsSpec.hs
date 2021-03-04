@@ -274,6 +274,18 @@ doFuncResult = [r|const constructor = (props) => {
   });
 }|]
 
+funcTest = [r|
+export default class TodoList extends React.Component where
+  makeTodos := @props.todos.map(\t -> @makeTodo(t))
+|]
+
+funcTestResult = [r|
+export default class TodoList extends React.Component {
+  makeTodos() {
+    this.props.todos.map((t) => this.makeTodo(t));
+  }
+}|]
+
 jsTests = [
     multiLineEachTest,
     multiLineMapTest,
@@ -289,6 +301,7 @@ jsTests = [
     guardTestAsSwitch `matches` guardTestAsSwitchResult,
     longClass `matches` longClassResult,
     doFunc `matches` doFuncResult,
+    funcTest `matches` funcTestResult,
     -- operations
     "foo = 1" `matches` "foo = 1;",
     "bar = 'adit'" `matches` "bar = \"adit\";",
