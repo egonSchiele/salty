@@ -63,9 +63,13 @@ selfClassVar = do
   string "self"
   return $ ClassVar "self"
 
--- classicClassVar = debug "classicClassVar" >> do
-classicClassVar = do
+className = do
   start <- upper
   variable <- many1 classNameChars
-  return $ ClassVar (start:variable)
+  return (start:variable)
+
+-- classicClassVar = debug "classicClassVar" >> do
+classicClassVar = do
+  parts <- className `sepBy1` (char '.')
+  return $ ClassVar (join "." parts)
 
