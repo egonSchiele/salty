@@ -78,10 +78,10 @@ main = do
        ["debug"] -> debugFromStdin
        ["-d"] -> debugFromStdin
        ["-e"] -> findErrorInStdin
-       ["-f", inputFile] -> convertToFile inputFile (replace ".salt" ".php" inputFile)
+       ["-f", inputFile] -> convertToFile inputFile (replace ".salt" ".php" (replace ".saltphp" ".php" inputFile))
        ["-e", inputFile] -> findErrorInFile inputFile
        ["-j"] -> convertToJs
-       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".jsx" inputFile)
+       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".js" (replace ".saltjs" ".js" inputFile))
        [inputFile] -> convert inputFile
        [] -> readFromStdin
        _ -> printHelp
