@@ -198,7 +198,7 @@ guardTestWithWhere = [r|foo a bar := guard
 |]
 
 guardResultWithWhere = [r|const foo = (a, bar) => {
-  awesome = 1 + 1;
+  const awesome = 1 + 1;
   blossom = <Foo />
   if (awesome) {
     return x.foo();
