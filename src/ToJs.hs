@@ -58,6 +58,9 @@ varNameToFunc (StaticVar s) = "this.state." ++ s
 varNameToFunc (ClassVar s) = "error classvar as funcname"
 varNameToFunc (SimpleVar s) = s
 
+isPrivate Private = True
+isPrivate _ = False
+
 class ConvertToJs a where
     toJs :: a -> String
 
@@ -163,9 +166,12 @@ instance ConvertToJs Salty where
   toJs (Operation left Spaceship right) = print2 "% <=> %" (toJs left) (toJs right)
 
   toJs (Function name args body visibility scope)
-    | scope == ClassScope = print3 "\n%(%) {\n%\n}\n" (simpleVarName name) funcArgs (funcBody body)
-    | otherwise = print3 "const % = (%) => {\n%\n}\n" (simpleVarName name) funcArgs (funcBody body)
-    where funcArgs = intercalate ", " $ map toJs args
+    | scope == ClassScope = print3 "\n%(%) {\n%\n}\n" funcName funcArgs (funcBody body)
+    | otherwise = print3 "const % = (%) => {\n%\n}\n" funcName funcArgs (funcBody body)
+    where funcName = funcVisibility ++ (simpleVarName name)
+          -- the parser strips out the leading '_' but we need to put it back for JS
+          funcVisibility = if isPrivate visibility then "_" else ""
+          funcArgs = intercalate ", " $ map toJs args
           funcBody b = case b of
                           [] -> ""
                           [Braces []] -> ""

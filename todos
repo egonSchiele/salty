@@ -2,10 +2,6 @@
 - tests for js code
 - default function args
 
-- some way to specify body when elem is created w block
-
-- test a longer salty file converted to php and js
-
 const elem = React.createElement("div", {
     children: "Hello World",
     className: "container"
@@ -26,23 +22,7 @@ const elem = React.createElement("div", {
 ReactDOM.render(element, rootElement)
 
 
-React for creating elements, REactDOM for rendering to the page
-
-
 - passing callbacks down a react tree is painful, one solution would be to use a state monad
-
-this doesn't work:
-
-    const [name, setName] = React.useState("")
-
-const and let both have this issue.
-
-
-js doesn't have private functions so this:
-
-    _dispatch action
-
-should create a function named `_dispatch` not `dispatch`
 
 This doesn't work:
 
