@@ -191,8 +191,7 @@ instance ConvertToPhp Salty where
   -- same as above but with parens
   toPhp (FunctionCall (Just (Parens [obj])) (Right funcName) args _) = print3 "(%)->%(%)" (toPhp obj) (simpleVarName funcName) (intercalate ", " . map toPhp $ args)
 
-  toPhp (LambdaFunction [] body) =  toPhp body
-  toPhp (LambdaFunction (a:args) body) = ("$" ++ a ++ " = null;\n") ++ (toPhp $ LambdaFunction args body)
+  toPhp (LambdaFunction args body) = print2 "function(%) {\n%\n}" (join ", " args) (addReturn body)
 
   -- special case, each with a range
   toPhp (HigherOrderFunctionCall (Range left right) Each (LambdaFunction loopVar body) _)  =
