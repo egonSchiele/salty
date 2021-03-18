@@ -108,24 +108,25 @@ Then:
 
 ## Usage
 
-By default salty reads from stdin and prints to stdout.
-You can also give it a file to read like so:
+### transpiling to php
 
-    salty test.salt
+    salty -p test.salt # outputs test.php
+    salty -p # reads from stdin and prints php to stdout
 
-And it will print php code on stdout.
+### transpiling to js
 
-Or,
+    salty -j test.salt # outputs test.js
+    salty -j # reads from stdin and prints js to stdout
 
-    salty -f test.salt
+### debugging
 
-Will write to `test.php`.
+Maybe salty isn't behaving how you expected? You can see the parsed AST using these commands
 
-Use
+    salty -d test.salt
+    salty -b test.salt
 
-    stack ghci
+The difference is, `-d` will show the AST after the first step, whereas `-b` will show the AST after backtracks processed.
 
-to play with the parser in ghci.
 
 ## Features
 
