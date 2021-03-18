@@ -38,3 +38,5 @@ in a where clause, all those vars need to be defined w a const or a let.
 
 would be cool to add some basic checks as warnings. Like constructors of react components need to have a super(props) call.
 getChildContext needs to be matched with a childContextTypes. Functions that use a context need to define contextTypes. etc.
+
+listings.prices.0 should resolve to listing.prices[0]

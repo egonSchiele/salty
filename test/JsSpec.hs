@@ -707,5 +707,6 @@ jsTests = [
     "h1 (myVar.foo)" `matches` "<h1>{myVar.foo}</h1>",
     "h1 (@myVar.bar)" `matches` "<h1>{this.myVar.bar}</h1>",
     "h1 (@@myVar.baz)" `matches` "<h1>{this.state.myVar.baz}</h1>",
-    "h1 ('hello, ' ++ name ++ '!')" `matches` "<h1>{\"hello, \" + name + \"!\"}</h1>"
+    "h1 ('hello, ' ++ name ++ '!')" `matches` "<h1>{\"hello, \" + name + \"!\"}</h1>",
+    "export default foo := 1" `matches` "export default function foo() {\n  return 1;\n}"
   ]

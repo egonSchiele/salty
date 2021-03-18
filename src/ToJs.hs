@@ -166,7 +166,7 @@ instance ConvertToJs Salty where
   toJs (Operation left Spaceship right) = print2 "% <=> %" (toJs left) (toJs right)
 
   toJs (Function name args body visibility scope)
-    | scope == ClassScope = print3 "\n%(%) {\n%\n}\n" funcName funcArgs (funcBody body)
+    | scope == ClassScope = print3 "%(%) {\n%\n}\n" funcName funcArgs (funcBody body)
     | otherwise = print3 "const % = (%) => {\n%\n}\n" funcName funcArgs (funcBody body)
     where funcName = funcVisibility ++ (simpleVarName name)
           -- the parser strips out the leading '_' but we need to put it back for JS
@@ -347,6 +347,8 @@ instance ConvertToJs Salty where
   toJs (Keyword (KwPreceding "const" (Operation (Constant (Variable var _)) op right))) = "const " ++ (toJs (Operation (PurePhp (simpleVarName var)) op right))
   toJs (Keyword (KwPreceding "const" (Constant (Variable var _)))) = "const " ++ (simpleVarName var)
   toJs (Keyword (KwPreceding "const" (Variable var _))) = "const " ++ (simpleVarName var)
+
+  toJs (Keyword (KwPreceding "export" (Keyword (KwPreceding "default" f@(Function n a b v s))))) = "export default function " ++ (toJs (Function n a b v ClassScope))
   toJs (Keyword (KwPreceding str salty)) = str ++ " " ++ (toJs salty)
   toJs (Keyword (KwSimple str)) = str
   toJs (Range (SaltyNumber l) (SaltyNumber r)) = show $ [left..right]
