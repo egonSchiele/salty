@@ -343,11 +343,11 @@ jsTests = [
     "foo a b := (a + 1) + (b - 2)" `matches` "const foo = (a, b) => {\n  return (a + 1) + (b - 2);\n}",
     "foo a b := { a + b }" `matches` "const foo = (a, b) => {\n  return a + b;\n}",
     -- no visibility (public/private) for functions in global scope:
-    "_foo a := @a = a" `matches` "const foo = (a) => {\n  this.a = a;\n}",
-    "@@_foo a := @a = a" `matches` "const foo = (a) => {\n  this.a = a;\n}",
+    "_foo a := @a = a" `matches` "const _foo = (a) => {\n  this.a = a;\n}",
+    "@@_foo a := @a = a" `matches` "const _foo = (a) => {\n  this.a = a;\n}",
     -- but do add visibility in class scope:
-    "class Foo {\n_foo a := @a = a\n}" `matches` "class Foo {\n  foo(a) {\n    this.a = a;\n  }\n}",
-    "class Foo {\n@@_foo a := @a = a\n}" `matches` "class Foo {\n  foo(a) {\n    this.a = a;\n  }\n}",
+    "class Foo {\n_foo a := @a = a\n}" `matches` "class Foo {\n  _foo(a) {\n    this.a = a;\n  }\n}",
+    "class Foo {\n@@_foo a := @a = a\n}" `matches` "class Foo {\n  _foo(a) {\n    this.a = a;\n  }\n}",
     "foo2 := 2 + 2" `matches` "const foo2 = () => {\n  return 2 + 2;\n}",
     "__construct a := @a = a" `matches` "const __construct = (a) => {\n  this.a = a;\n}",
     "foo ...a := a" `matches` "const foo = (...a) => {\n  return a;\n}",
@@ -708,5 +708,8 @@ jsTests = [
     "h1 (@myVar.bar)" `matches` "<h1>{this.myVar.bar}</h1>",
     "h1 (@@myVar.baz)" `matches` "<h1>{this.state.myVar.baz}</h1>",
     "h1 ('hello, ' ++ name ++ '!')" `matches` "<h1>{\"hello, \" + name + \"!\"}</h1>",
-    "export default foo := 1" `matches` "export default function foo() {\n  return 1;\n}"
+    "export default foo := 1" `matches` "export default function foo() {\n  return 1;\n}",
+    "React/Component" `matches` "React.Component;",
+    "React/Component.foo" `matches` "React.Component.foo;",
+    "React/Component.foo()" `matches` "React.Component.foo();"
   ]

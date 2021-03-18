@@ -70,6 +70,6 @@ className = do
 
 -- classicClassVar = debug "classicClassVar" >> do
 classicClassVar = do
-  parts <- className `sepBy1` (char '.')
+  parts <- className `sepBy1` (char '/')
   return $ ClassVar (join "." parts)
 

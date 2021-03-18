@@ -127,6 +127,9 @@ Maybe salty isn't behaving how you expected? You can see the parsed AST using th
 
 The difference is, `-d` will show the AST after the first step, whereas `-b` will show the AST after backtracks processed.
 
+If you want Salty to print every single step as it tries to parse your code, use:
+
+    DEBUG=1 salty ...
 
 ## Features
 

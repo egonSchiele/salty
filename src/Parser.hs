@@ -657,7 +657,9 @@ findArgs = debug "findArgs" >> do
   validFuncArgTypes `sepBy` ((string ", ") <||> (string ","))
 
 attrAccess = debug "attrAccess" >> do
+  indentDebugger
   obj <- VariableParser.variable
+  unindentDebugger
   char '.'
   attrName <- many1 varNameChars
   return $ AttrAccess obj attrName
