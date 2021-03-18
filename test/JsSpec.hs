@@ -199,7 +199,7 @@ guardTestWithWhere = [r|foo a bar := guard
 
 guardResultWithWhere = [r|const foo = (a, bar) => {
   const awesome = 1 + 1;
-  blossom = <Foo />
+  const blossom = <Foo />
   if (awesome) {
     return x.foo();
   } else {
@@ -354,7 +354,7 @@ jsTests = [
 
     -- pass by reference
     "incr &count := ++count" `matches` "const incr = (count) => {\n  count = count + 1;\n}",
-    "foo a b := bar\n  where baz = b + 1\n  and bar = a + baz" `matches` "const foo = (a, b) => {\n  baz = b + 1;\n  bar = a + baz;\n  return bar;\n}",
+    "foo a b := bar\n  where baz = b + 1\n  and bar = a + baz" `matches` "const foo = (a, b) => {\n  const baz = b + 1;\n  const bar = a + baz;\n  return bar;\n}",
 
     -- fails, variables don't have the concept of pass by reference or not yet
     -- "foo = &bar" `matches` "foo = &bar",

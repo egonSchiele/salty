@@ -326,6 +326,7 @@ instance ConvertToJs Salty where
   -- array of arrays
   toJs (Array salties@((Array _):rest)) = "[\n" ++ (intercalate ",\n" . map toJs $ salties) ++ ",\n]"
   toJs (Array salties) = "[" ++ (intercalate ", " . map toJs $ salties) ++ "]"
+  toJs (WhereClause salty) = "const " ++ (toJs salty)
   toJs (Guard cond outcome) = print2 "if (%) {\n%\n}" (concat . map toJs $ cond) (addReturnToArray outcome)
   toJs (SaltyGuard Nothing ((Guard cond outcome):[])) = print2 "if (%) {\n%\n}" (concat . map toJs $ cond) (addReturnToArray outcome)
   toJs (SaltyGuard Nothing guards) = initGuards ++ lastGuard

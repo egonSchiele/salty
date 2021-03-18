@@ -124,6 +124,7 @@ checkBackTracksSingle (Range left right) = Range (checkBackTracksSingle left) (c
 checkBackTracksSingle (MultiAssign vars value) = MultiAssign (checkBackTracks vars) (checkBackTracksSingle value)
 checkBackTracksSingle (Guard cond outcome) = Guard (checkBackTracks cond) (checkBackTracks outcome)
 checkBackTracksSingle (SaltyGuard val guards) = SaltyGuard val (checkBackTracks guards)
+checkBackTracksSingle (WhereClause salty) = WhereClause (checkBackTracksSingle salty)
 checkBackTracksSingle (Array s) = Array (checkBackTracks s)
 checkBackTracksSingle (ReturnStatement s) = ReturnStatement (checkBackTracksSingle s)
 checkBackTracksSingle (ReturnStatementForAddReturn s) = ReturnStatement (checkBackTracksSingle s)

@@ -387,7 +387,7 @@ whereClause = debug "whereClause" >> do
   op <- (OperationParser.operation atom saltyParserSingle_) <||> multiAssign
   unindentDebugger
   optional $ char '\n'
-  return op
+  return (WhereClause op)
 
 saltyGuard = debug "saltyGuard" >> do
        saltyGuardSwitchStatement

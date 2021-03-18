@@ -171,6 +171,7 @@ data Salty = Operation { -- e.g. a = 1 / a += 1 / a ||= 0
                 gCondition :: [Salty],
                 gOutcome :: [Salty]
              }
+             | WhereClause Salty
              | Array [Salty]
              | ReturnStatement Salty
              | ReturnStatementForAddReturn Salty
