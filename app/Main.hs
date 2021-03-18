@@ -14,13 +14,13 @@ countLeadingSpaces [] = 0
 countLeadingSpaces (' ':xs) = 1 + (countLeadingSpaces xs)
 countLeadingSpaces _ = 0
 
-convert :: String -> IO ()
-convert infile = do
+convertPhpPrintToStdout :: String -> IO ()
+convertPhpPrintToStdout infile = do
     contents <- readFile infile
     let out = saltyToPhp (getIndentAmt contents) contents
     putStrLn ("<?php\n" ++ out)
 
-convertToFile infile outfile = do
+convertToPhpFile infile outfile = do
     contents <- readFile infile
     let out = saltyToPhp (getIndentAmt contents) contents
     writeFile outfile ("<?php\n" ++ out)
@@ -55,33 +55,30 @@ findErrorInStdin = do
   putStrLn "error in:"
   putStrLn . findErrorLine $ contents
 
-readFromStdin = do
+convertToPhpStdin = do
     contents <- getContents
     putStrLn $ saltyToPhp (getIndentAmt contents) contents
 
-convertToJs = do
+convertToJsStdin = do
     contents <- getContents
     putStrLn $ saltyToJs (getIndentAmt contents) contents
-
-debugFromStdin = do
-    contents <- getContents
-    putStrLn . saltyToDebugTree $ contents
 
 main = do
   args <- getArgs
   case args of
        ["-h"] -> printHelp
        ["help"] -> printHelp
-       ["debug", inputFile] -> debugFile inputFile
        ["-d", inputFile] -> debugFile inputFile
        ["-b", inputFile] -> debugFileCheckBackTracks inputFile
-       ["debug"] -> debugFromStdin
-       ["-d"] -> debugFromStdin
+
        ["-e"] -> findErrorInStdin
-       ["-f", inputFile] -> convertToFile inputFile (replace ".salt" ".php" (replace ".saltphp" ".php" inputFile))
        ["-e", inputFile] -> findErrorInFile inputFile
-       ["-j"] -> convertToJs
-       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".jsx" (replace ".saltjsx" ".jsx" inputFile))
-       [inputFile] -> convert inputFile
-       [] -> readFromStdin
+
+       ["-p"] -> convertToPhpStdin
+       ["-p", inputFile] -> convertToPhpFile inputFile (replace ".salt" ".php" (replace ".saltphp" ".php" inputFile))
+
+       ["-j"] -> convertToJsStdin
+       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".js" (replace ".saltjs" ".js" inputFile))
+
+       [inputFile] -> convertPhpPrintToStdout inputFile
        _ -> printHelp
