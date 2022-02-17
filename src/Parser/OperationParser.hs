@@ -7,7 +7,8 @@ import Text.ParserCombinators.Parsec.Char
 import Text.Parsec.Combinator
 
 operator = debug "operator" >> do
-       (string "!=" >> return NotEquals)
+       (string "!==" >> return NotEquals)
+  <||> (string "!=" >> return NotEquals)
   <||> (string "+=" >> return PlusEquals)
   <||> (string "-=" >> return MinusEquals)
   <||> (string "/=" >> return DivideEquals)
@@ -24,6 +25,7 @@ operator = debug "operator" >> do
   <||> (string "isa" >> return InstanceOf)
   <||> (string "in" >> return In)
   <||> (string "keyin" >> return KeyIn)
+  <||> (string "===" >> return EqualsEquals)
   <||> (string "==" >> return EqualsEquals)
   <||> (string "<=>" >> return Spaceship)
   <||> (string "<=" >> return LessThanOrEqualTo)
