@@ -502,7 +502,7 @@ phpTests = [
     "arr.all(\\x -> x.isEven())" `matches`"$result = true;\nforeach ($arr as $x) {\n    if(!$x->isEven()) {\n        $result = false;\n        break;\n    }\n}",
     "arr.select(\\x -> x.isEven())" `matches`"$result = [];\nforeach ($arr as $x) {\n    if($x->isEven()) {\n        $result []= $x;\n    }\n}",
     "arr.each(\\x -> print(x))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
-    -- "(1..10).each(\\x -> p(prime_factors(x).join(' * ')))" `matches`"foreach ($arr as $x) {\n    print($x);\n}",
+    -- "(1..10).each(\\x -> p(prime_factors(x).join(' * ')))" `matches`"for ($x = 1; $x <= 10; $x++) {\n    var_dump(implode(' * ', prime_factors($x)));\n}",
     "@adit.map(\\x -> x + 1)" `matches` "$result = [];\nforeach ($this->adit as $x) {\n    $result []= $x + 1;\n}",
     "10.times(p('hello'))" `matches` "for ($x = 1; $x <= 10; $x++) {\n    var_dump(\"hello\");\n}",
     "10.times(\\i -> new Hello(i))" `matches` "for ($i = 1; $i <= 10; $i++) {\n    new Hello($i);\n}",
