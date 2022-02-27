@@ -234,9 +234,9 @@ instance ConvertToJs Salty where
 
   -- special case, each with a range
   toJs (HigherOrderFunctionCall (Range left right) Each (LambdaFunction loopVar body) _)  =
-                print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toJs left) (formatLoopVars loopVar) (toJs right) (formatLoopVars loopVar) (toJs body)
+                print6 "for (let % = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toJs left) (formatLoopVars loopVar) (toJs right) (formatLoopVars loopVar) (toJs body)
   toJs (HigherOrderFunctionCall (Parens [Range left right]) Each (LambdaFunction loopVar body) _)  =
-                print6 "for (% = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toJs left) (formatLoopVars loopVar) (toJs right) (formatLoopVars loopVar) (toJs body)
+                print6 "for (let % = %; % <= %; %++) {\n%\n}" (formatLoopVars loopVar) (toJs left) (formatLoopVars loopVar) (toJs right) (formatLoopVars loopVar) (toJs body)
 
   -- each
   toJs (HigherOrderFunctionCall obj Each (LambdaFunction loopVar body) _)  =

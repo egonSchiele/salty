@@ -501,9 +501,9 @@ jsTests = [
     "arr.select(\\x -> x.isEven())" `matches` "arr.filter((x) => x.isEven());",
     "arr.each(\\x -> print(x))" `matches` "arr.forEach((x) => {\n  print(x);\n});",
     "@adit.map(\\x -> x + 1)" `matches` "this.adit.map((x) => x + 1);",
-    "10.times(p('hello'))" `matches` "for (x = 1; x <= 10; x++) {\n  console.log(\"hello\");\n}",
-    "10.times(\\i -> new Hello(i))" `matches` "for (i = 1; i <= 10; i++) {\n  new Hello(i);\n}",
-    "foo.times(\\i -> new Hello(i))" `matches` "for (i = 1; i <= foo; i++) {\n  new Hello(i);\n}",
+    "10.times(p('hello'))" `matches` "for (let x = 1; x <= 10; x++) {\n  console.log(\"hello\");\n}",
+    "10.times(\\i -> new Hello(i))" `matches` "for (let i = 1; i <= 10; i++) {\n  new Hello(i);\n}",
+    "foo.times(\\i -> new Hello(i))" `matches` "for (let i = 1; i <= foo; i++) {\n  new Hello(i);\n}",
     -- same but w parens
     "(@adit).map(\\x -> x + 1)" `matches` "(this.adit).map((x) => x + 1);",
     "users = shops.map(\\s -> s.user)" `matches` "users = shops.map((s) => s.user);",
@@ -611,7 +611,7 @@ jsTests = [
     "take(5, 1..10)" `matches` "take(5, [1,2,3,4,5,6,7,8,9,10]);",
 
     -- classic for loop using each + range
-    "(1..10).each(\\x -> x + 1)" `matches` "for (x = 1; x <= 10; x++) {\n  x + 1;\n}",
+    "(1..10).each(\\x -> x + 1)" `matches` "for (let x = 1; x <= 10; x++) {\n  x + 1;\n}",
     -- "(start..end).each(\\x -> x + 1)" `matches` "for (x = start; x <= end; x++) {\n  x + 1;\n}",
     "foo in 1..10" `matches` "foo >= 1 && foo <= 10;",
     "foo in (1..10)" `matches` "foo >= 1 && foo <= 10;",
