@@ -503,6 +503,7 @@ jsTests = [
     "@adit.map(\\x -> x + 1)" `matches` "this.adit.map((x) => x + 1);",
     "10.times(p('hello'))" `matches` "for (x = 1; x <= 10; x++) {\n  console.log(\"hello\");\n}",
     "10.times(\\i -> new Hello(i))" `matches` "for (i = 1; i <= 10; i++) {\n  new Hello(i);\n}",
+    "foo.times(\\i -> new Hello(i))" `matches` "for (i = 1; i <= foo; i++) {\n  new Hello(i);\n}",
     -- same but w parens
     "(@adit).map(\\x -> x + 1)" `matches` "(this.adit).map((x) => x + 1);",
     "users = shops.map(\\s -> s.user)" `matches` "users = shops.map((s) => s.user);",

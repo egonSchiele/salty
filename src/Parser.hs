@@ -577,7 +577,7 @@ partialHigherOrderFunctionCall = debug "partialHigherOrderFunctionCall" >> do
   return $ BackTrack $ HigherOrderFunctionCall obj funcName func "$result"
 
 times = debug "times" >> do
-  number <- PrimitiveParser.integer
+  number <- PrimitiveParser.integer <||> VariableParser.variable
   char '.'
   string "times"
   char '('
