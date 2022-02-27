@@ -395,6 +395,9 @@ jsTests = [
     ":argv.1.2" `matches` "argv[1][2];",
     ":@foo.bar" `matches` "this.foo[\"bar\"];",
     ":@@foo.bar" `matches` "this.state.foo[\"bar\"];",
+    -- ":@@foo += 1" `matches` "this.state.foo.bar",
+    -- ":@@foo.bar += 1" `matches` "this.state.foo.bar",
+    "let bar = @@foo.bar" `matches` "let bar = this.state.foo.bar;",
     ":bar.baz ?? 1" `matches` "bar[\"baz\"] ?? 1;",
 
     -- if statement

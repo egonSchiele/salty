@@ -103,12 +103,12 @@ instance ConvertToJs Salty where
   toJs (Operation x op (WithNewLine y)) = (toJs $ Operation x op y) ++ "\n"
   toJs (Operation (Variable (StaticVar name) _) Equals right) = print2 "this.setState({\n  %: %\n})" name (toJs right)
   toJs (Operation (HashLookup (Variable (StaticVar name) _) key) Equals right) = line1 ++ line2 ++ line3
-      where line1 = print2 "let % = this.state.%.slice()\n" name name
+      where line1 = print2 "let % = this.state.%\n" name name
             line2 = print3 "%[%] = %\n" name (toJs key) (toJs right)
             line3 = print2 "this.setState({\n  %: %\n})" name name
 
   toJs (Operation (AttrAccess (HashLookup (Variable (StaticVar name) _) key) attr) Equals right) = line1 ++ line2 ++ line3
-      where line1 = print2 "let % = this.state.%.slice()\n" name name
+      where line1 = print2 "let % = this.state.%\n" name name
             line2 = print4 "%[%].% = %\n" name (toJs key) attr (toJs right)
             line3 = print2 "this.setState({\n  %: %\n})" name name
 
@@ -132,6 +132,7 @@ instance ConvertToJs Salty where
   toJs (Operation (ArraySlice obj start (Just end)) Equals arr) = print5 "%.splice(%, % - %, %)" (toJs obj) (toJs start) (toJs end) (toJs start) (toJs arr)
   toJs (Operation left Equals right) = (toJs left) ++ " = " ++ (toJs right)
   toJs (Operation left NotEquals right) = (toJs left) ++ " !== " ++ (toJs right)
+  -- toJs (Operation (Variable (StaticVar name) _) PlusEquals right) = print3 "this.setState({\n  %: % + %\n})" name name (toJs right)
   toJs (Operation left PlusEquals right) = print3 "% = % + %" (toJs left) (toJs left) (toJs right)
   toJs (Operation left MinusEquals right) = print3 "% = % - %" (toJs left) (toJs left) (toJs right)
   toJs (Operation left MultiplyEquals right) = print3 "% = % * %" (toJs left) (toJs left) (toJs right)
