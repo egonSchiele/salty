@@ -90,7 +90,7 @@ instance ConvertToJs ArgumentName where
 instance ConvertToJs Argument where
   toJs (Argument (Just (ArgumentType False typ _)) name (Just default_)) = print3 "?% % = %" typ (toJs name) default_
   toJs (Argument (Just (ArgumentType True typ _)) name (Just default_)) = print3 "?% % = %" typ (toJs name) default_
-  toJs (Argument (Just (ArgumentType False typ _)) name Nothing) = typ ++ " " ++ (toJs name)
+  toJs (Argument (Just (ArgumentType False typ _)) name Nothing) = print2 "%: %" (toJs name) typ
   toJs (Argument (Just (ArgumentType True typ _)) name Nothing) = print2 "?% % = null" typ (toJs name)
   toJs (Argument Nothing name (Just default_)) = print2 "% = %" (toJs name) default_
   toJs (Argument Nothing name Nothing) = toJs name

@@ -23,3 +23,11 @@ in js should call setState
 
   subCost section := @@prices[section]
   ^ doesn't add a return
+
+
+
+add support for ts interfaces:
+
+    export interface HelloWorldProps {
+        name: string;
+    }
