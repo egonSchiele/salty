@@ -78,7 +78,7 @@ main = do
        ["-p", inputFile] -> convertToPhpFile inputFile (replace ".salt" ".php" (replace ".saltphp" ".php" inputFile))
 
        ["-j"] -> convertToJsStdin
-       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".jsx" (replace ".saltjsx" ".jsx" inputFile))
+       ["-j", inputFile] -> convertToJsFile inputFile (replace ".salt" ".jsx" (replace ".saltjsx" ".jsx" (replace ".salttsx" ".tsx" inputFile)))
 
        [inputFile] -> convertPhpPrintToStdout inputFile
        _ -> printHelp
