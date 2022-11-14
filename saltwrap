@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+require "open3"
+lines = File.open(ARGV[0]).readlines
+newl = []
+chunk = ""
+lines.each do |line|
+  if line.strip.start_with?("-")
+    chunk += line[1, line.length]
+  else
+    if chunk != ""
+      l, s = Open3.capture2("salty -j", :stdin_data => chunk)
+      newl << l
+      chunk = ""
+    end
+    newl << line
+  end
+end
+
+File.open(ARGV[0], "w") do |file|
+  newl.each do |line|
+    file.write line
+  end
+end
