@@ -33,7 +33,7 @@ convertToJsFile infile outfile = do
 printHelp = do
     putStrLn "Usage: `salty test.salt` prints to stdout"
     putStrLn "Usage: `salty` reads from stdin and prints to stdout"
-    putStrLn "Usage: `salty debug <filename>` reads file and prints tree to stdout"
+    putStrLn "Usage: `salty -d <filename>` reads file and prints tree to stdout"
 
 debugFile :: String -> IO ()
 debugFile infile = do

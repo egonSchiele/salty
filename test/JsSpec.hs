@@ -274,6 +274,13 @@ doFuncResult = [r|const constructor = (props) => {
   });
 }|]
 
+doFuncImplicit = [r|constructor props := {
+  React.useEffect() do
+    window.localStorage.setItem('step', @@activeItem)
+  end
+}|]
+
+
 funcTest = [r|
 export default class TodoList extends React.Component where
   makeTodos := @props.todos.map(\t -> @makeTodo(t))
@@ -283,6 +290,29 @@ funcTestResult = [r| export default class TodoList extends React.Component {
   makeTodos() {
     return this.props.todos.map((t) => this.makeTodo(t));
   }
+}|]
+
+newDo = [r|constructor props := {
+  Form.new() do
+    window.localStorage.setItem('step', @@activeItem)
+  end
+}|]
+
+newDoResult = [r|const constructor = (props) => {
+  return (<Form>{window.localStorage.setItem("step", this.state.activeItem)}</Form>);
+}|]
+
+
+newDoFunc = [r|constructor props := {
+  Form.new() do \_ ->
+    window.localStorage.setItem('step', @@activeItem)
+  end
+}|]
+
+newDoFuncResult = [r|const constructor = (props) => {
+  return (<Form>{() => {
+    return window.localStorage.setItem("step", this.state.activeItem);
+  }}</Form>);
 }|]
 
 jsTests = [
@@ -300,7 +330,10 @@ jsTests = [
     guardTestAsSwitch `matches` guardTestAsSwitchResult,
     longClass `matches` longClassResult,
     doFunc `matches` doFuncResult,
+    doFuncImplicit `matches` doFuncResult,
     funcTest `matches` funcTestResult,
+    newDo `matches` newDoResult,
+    newDoFunc `matches` newDoFuncResult,
     -- operations
     "foo = 1" `matches` "foo = 1;",
     "bar = 'adit'" `matches` "bar = \"adit\";",
